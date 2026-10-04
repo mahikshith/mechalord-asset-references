@@ -57,4 +57,6 @@ The untouched 3,075,234-triangle GLB was subsequently imported into Blender and 
 
 Execution evidence is retained in `assets/experiments/trellis-local`: separate CPU/smoke/quality receipts, memory samples, device inventory, streamed mesh metrics, stdout/stderr, the cutout and raw models. Logs and raw GLB/PLY files are ignored by Git. The one-step output remains a runtime smoke test; the 12-step output is an original-image-derived geometry candidate awaiting visual acceptance, cleanup, materials and rigging. All inference processes have exited.
 
+A subsequent bounded Blender decimation experiment was also rejected: it retained 1,090,618 triangles instead of the requested 120,000, emitted a mesh-validity warning, and produced a 91,591,064-byte export. The 120-second guard ended its unfinished render; no Blender process remains. Neither experimental reduction is approved for game use. The unchanged raw source and its verified render are the conversion evidence.
+
 The runtime is MIT licensed. Pinned runtime and model-card notices are retained under ignored `tools/vendor/trellis-local/notices`. The quantized weight card declares `other` licensing; each component's terms require separate review before redistribution. The weights are excluded from the game and repository. Runtime licensing does not establish that the whole model stack is MIT licensed.
