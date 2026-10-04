@@ -29,12 +29,16 @@ def inspect(path):
         def scan(accessor_index, positions=False):
             accessor = document['accessors'][accessor_index]
             view = document['bufferViews'][accessor['bufferView']]
+            if not isinstance(accessor.get('count'), int) or accessor['count'] <= 0: raise ValueError('Expected nonempty accessor')
+            if positions and (accessor['componentType'] != 5126 or accessor['type'] != 'VEC3'): raise ValueError('Expected float XYZ coordinates')
+            if not positions and (accessor['componentType'] not in [5125, 5123, 5121] or accessor['type'] != 'SCALAR'): raise ValueError('Expected unsigned triangle indices')
             code, width = {5126: ('f', 4), 5125: ('I', 4), 5123: ('H', 2), 5121: ('B', 1)}[accessor['componentType']]
             components = 3 if accessor['type'] == 'VEC3' else 1 if accessor['type'] == 'SCALAR' else 0
             if not components or 'sparse' in accessor or view.get('buffer', 0) != 0: raise ValueError('Unsupported dense accessor')
             if view.get('byteStride', width * components) != width * components: raise ValueError('Interleaved data is not expected from this exporter')
             offset = view.get('byteOffset', 0) + accessor.get('byteOffset', 0)
             remaining = accessor['count'] * components * width
+            if view.get('byteOffset', 0) < 0 or accessor.get('byteOffset', 0) < 0 or view['byteLength'] < 0: raise ValueError('Negative buffer bounds')
             if accessor.get('byteOffset', 0) + remaining > view['byteLength'] or offset + remaining > binary_size: raise ValueError('Accessor exceeds its view')
             source.seek(binary_start + offset); low = math.inf; high = -math.inf
             while remaining:
