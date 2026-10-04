@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "asset": "forge-tyrant-v3",
+  "route": "original local procedural Blender modelling; not TRELLIS conversion",
+  "productionAccepted": false,
+  "heightMetres": 4.5,
+  "triangles": 17492,
+  "detailedSourceTriangles": 20072,
+  "meshCount": 14,
+  "materials": 1,
+  "textures": 3,
+  "textureDimensions": [
+    768,
+    512
+  ],
+  "estimatedDrawCallsPerInstance": 14,
+  "facing": "Blender +Y forward maps to glTF -Z; renderer rotates Y by pi to face camera +Z",
+  "nodes": {
+    "Root": {
+      "parent": null,
+      "pivotBlenderMetres": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "Torso": {
+      "parent": "Root",
+      "pivotBlenderMetres": [
+        0.0,
+        0.0,
+        2.35438
+      ]
+    },
+    "Head": {
+      "parent": "Torso",
+      "pivotBlenderMetres": [
+        0.0,
+        0.0,
+        3.55507
+      ]
+    },
+    "Arm_L": {
+      "parent": "Torso",
+      "pivotBlenderMetres": [
+        -0.96055,
+        0.0,
+        3.23141
+      ]
+    },
+    "Barrel_L": {
+      "parent": "Arm_L",
+      "pivotBlenderMetres": [
+        -1.2320022583007812,
+        0.7934991717338562,
+        2.6780431270599365
+      ]
+    },
+    "Pod_L": {
+      "parent": "Torso",
+      "pivotBlenderMetres": [
+        -1.03363,
+        -0.10441,
+        3.52375
+      ]
+    },
+    "Leg_L": {
+      "parent": "Root",
+      "pivotBlenderMetres": [
+        -0.53248,
+        0.0,
+        1.9994
+      ]
+    },
+    "Knee_L": {
+      "parent": "Leg_L",
+      "pivotBlenderMetres": [
+        -0.5638,
+        0.07309,
+        1.11194
+      ]
+    },
+    "Foot_L": {
+      "parent": "Knee_L",
+      "pivotBlenderMetres": [
+        -0.57424,
+        0.06264,
+        0.308
+      ]
+    },
+    "Arm_R": {
+      "parent": "Torso",
+      "pivotBlenderMetres": [
+        0.96055,
+        0.0,
+        3.23141
+      ]
+    },
+    "Barrel_R": {
+      "parent": "Arm_R",
+      "pivotBlenderMetres": [
+        1.2320022583007812,
+        0.7934991717338562,
+        2.6780431270599365
+      ]
+    },
+    "Pod_R": {
+      "parent": "Torso",
+      "pivotBlenderMetres": [
+        1.03363,
+        -0.10441,
+        3.52375
+      ]
+    },
+    "Leg_R": {
+      "parent": "Root",
+      "pivotBlenderMetres": [
+        0.53248,
+        0.0,
+        1.9994
+      ]
+    },
+    "Knee_R": {
+      "parent": "Leg_R",
+      "pivotBlenderMetres": [
+        0.5638,
+        0.07309,
+        1.11194
+      ]
+    },
+    "Foot_R": {
+      "parent": "Knee_R",
+      "pivotBlenderMetres": [
+        0.57424,
+        0.06264,
+        0.308
+      ]
+    }
+  },
+  "animationClips": [
+    "Idle",
+    "Attack"
+  ],
+  "source": "C:\\Users\\mahik\\Desktop\\mechalord\\assets\\source\\villains-v3\\forge-tyrant-v3.blend",
+  "glb": "C:\\Users\\mahik\\Desktop\\mechalord\\assets\\exports\\forge-tyrant-v3.glb",
+  "cannonPivotsAligned": true,
+  "cannonSpin": "glTF local Z negative angle. Reaver Barrel_R only; Barrel_L holds its shield. Tyrant spins both barrels."
+}

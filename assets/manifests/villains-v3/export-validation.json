@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "status": "pass",
+  "assets": [
+    {
+      "asset": "cinder-reaver-v3",
+      "status": "pass",
+      "triangles": 7788,
+      "bytes": 692172,
+      "sha256": "f1034ad79d3d9ec13990963d3ecb496a616da1d7b10287eb8e4e183eddc4ee8d",
+      "meshes": 14,
+      "materialCount": 1,
+      "drawCallsPerInstance": 14,
+      "clips": [
+        "Idle",
+        "Attack"
+      ],
+      "heightMetres": 2.00035,
+      "groundOffsetMetres": -1e-05,
+      "restTranslationsVerified": true,
+      "scope": "Binary inspection and Blender reimport, not physical-device performance"
+    },
+    {
+      "asset": "forge-tyrant-v3",
+      "status": "pass",
+      "triangles": 17492,
+      "bytes": 1041540,
+      "sha256": "1d158ca4de14fbec5e2ba2eb53bdf3f8e787be30937fba90d7b70c03b0f7e73b",
+      "meshes": 14,
+      "materialCount": 1,
+      "drawCallsPerInstance": 14,
+      "clips": [
+        "Idle",
+        "Attack"
+      ],
+      "heightMetres": 4.50058,
+      "groundOffsetMetres": -0.0,
+      "restTranslationsVerified": true,
+      "scope": "Binary inspection and Blender reimport, not physical-device performance"
+    }
+  ]
+}

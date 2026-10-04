@@ -10,7 +10,11 @@ Shoot yellow weapon crates to upgrade the cannon. Fire into a gate to improve it
 
 The rejected first preview was replaced: centered portrait framing, brighter ground, larger units, visible projectile hits, individually simulated enemies, weapon progression, changing gates, rapid recruitment, denser authored waves and an attacking boss. The existing TRELLIS commander is retained. The terrain and remaining characters are still provisional.
 
-This preview is one authored 55-second approach plus a boss battle, with three selectable relics and instant retries. It is not the five-stage Android delivery. The old passive siege-reserve phase has been replaced for this combat study.
+This preview now has three selectable authored stages: Relic Causeway (55-second approach), Roller Foundry (60 seconds), and Citadel Breach (65 seconds), each followed by a boss. All stages and relics are available without purchases. Best scores and stage completion are saved locally. The old passive siege-reserve phase has been replaced for this combat study. This is not the five-stage Android delivery.
+
+On `feature/iron-front-lanes-and-arsenal`, paired left/right gates have explicit apertures; rollers move across the road; larger troop representatives and denser waves occupy more of the battlefield. Shooting crates earns XP toward Pulse, Twin, Arc and Siege cannons. Relic charge is earned in combat. The boss uses traveling shells, energy fans or rockets according to the stage, with warnings and actual collision. Reaver elites and the Forge Tyrant use original editable Blender assets based on the new concept references; they are modeled interpretations, not TRELLIS conversions.
+
+Terrain changes from a warm causeway to a foundry with pipes, then a cool citadel with energy crystals. The formation compresses near the roadside. Normal enemy rendering uses pooled instances and prioritizes nearer threats when its representative limit is reached. The desktop visual limits exceed the original mobile budget and need device profiling before Android acceptance.
 
 ## Source and verification
 
@@ -22,3 +26,5 @@ This preview is one authored 55-second approach plus a boss battle, with three s
 - Run node tools/playable-preview/test_assault.mjs for the actual new binary/adapter tests.
 
 The existing Unreal runtime still connects to the previous BattleSimulation and needs the new combat adapter. No native engine build or Android measurement is claimed. Review rebuild-validation.md for actual results and top-lords-rebuild-study.md for reference evidence.
+
+The previous build is preserved at Git commit `7975736` on `main`. Reference observations for this iteration are in `iron-front-v3-reference-study.md`.

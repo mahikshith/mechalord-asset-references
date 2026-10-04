@@ -1,0 +1,226 @@
+{
+  "schema": 2,
+  "scope": "Actual three-level Assault browser adapter and shipped WASM. Automated controls only; no Unreal, physical-device or first-time-player validation.",
+  "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
+  "bytes": 887894,
+  "sha256": "c96fec06356f005fe842cc3317bb5c76f2ed0c033dad2ae2badaf4380413f5d1",
+  "memoryBytes": 1179648,
+  "testedAt": "2026-10-04T15:27:33.496Z",
+  "winningRuns": [
+    {
+      "level": 0,
+      "relic": 0,
+      "time": 63.983333587646484,
+      "army": 160,
+      "weapon": 4,
+      "kills": 277,
+      "score": 3287,
+      "abilityUptime": 0.2813232601477853
+    },
+    {
+      "level": 0,
+      "relic": 1,
+      "time": 63.93333435058594,
+      "army": 160,
+      "weapon": 4,
+      "kills": 416,
+      "score": 4673,
+      "abilityUptime": 0.38894681341516435
+    },
+    {
+      "level": 0,
+      "relic": 2,
+      "time": 60.93333435058594,
+      "army": 160,
+      "weapon": 4,
+      "kills": 343,
+      "score": 3947,
+      "abilityUptime": 0.45158642572137636
+    },
+    {
+      "level": 1,
+      "relic": 0,
+      "time": 71.03333282470703,
+      "army": 160,
+      "weapon": 4,
+      "kills": 250,
+      "score": 3217,
+      "abilityUptime": 0.2956358538296786
+    },
+    {
+      "level": 1,
+      "relic": 1,
+      "time": 71.11666870117188,
+      "army": 160,
+      "weapon": 4,
+      "kills": 472,
+      "score": 5523,
+      "abilityUptime": 0.3885633823688649
+    },
+    {
+      "level": 1,
+      "relic": 2,
+      "time": 67.19999694824219,
+      "army": 160,
+      "weapon": 4,
+      "kills": 358,
+      "score": 4381,
+      "abilityUptime": 0.41369049497742855
+    },
+    {
+      "level": 2,
+      "relic": 0,
+      "time": 84.5999984741211,
+      "army": 147,
+      "weapon": 3,
+      "kills": 64,
+      "score": 1725,
+      "abilityUptime": 0.1773049677369493
+    },
+    {
+      "level": 2,
+      "relic": 1,
+      "time": 94.68333435058594,
+      "army": 160,
+      "weapon": 2,
+      "kills": 90,
+      "score": 2068,
+      "abilityUptime": 0.19010737341960338
+    },
+    {
+      "level": 2,
+      "relic": 2,
+      "time": 75.28333282470703,
+      "army": 160,
+      "weapon": 4,
+      "kills": 396,
+      "score": 5443,
+      "abilityUptime": 0.4281602862666405
+    }
+  ],
+  "tests": 30,
+  "passed": 30,
+  "failed": 0,
+  "results": [
+    {
+      "name": "actual browser adapter loads the rebuilt WASM without unexpected imports",
+      "status": "pass"
+    },
+    {
+      "name": "three selectable stages reset with distinct names, duration and boss health",
+      "status": "pass"
+    },
+    {
+      "name": "portrait steering is bounded and obeys its movement speed",
+      "status": "pass"
+    },
+    {
+      "name": "all stages introduce paired alternatives at the same distance",
+      "status": "pass"
+    },
+    {
+      "name": "choosing left or right collects only one of a pair and never repeats it",
+      "status": "pass"
+    },
+    {
+      "name": "center can miss both paired apertures, and off-lane shots do not alter them",
+      "status": "pass"
+    },
+    {
+      "name": "actual moving allied shots damage and improve the selected gate",
+      "status": "pass"
+    },
+    {
+      "name": "negative gates can be shot toward positive value before passage",
+      "status": "pass"
+    },
+    {
+      "name": "causeway rapid paired chain contains sixteen gates with separate crossings",
+      "status": "pass"
+    },
+    {
+      "name": "dense authored hordes persist and later stages have distinct elites",
+      "status": "pass"
+    },
+    {
+      "name": "weapon upgrades require crate damage and accumulated XP, never time alone",
+      "status": "pass"
+    },
+    {
+      "name": "strong fifty-health barrier is destroyed by shots and grants extra XP",
+      "status": "pass"
+    },
+    {
+      "name": "rollers actually traverse sideways with different authored patterns",
+      "status": "pass"
+    },
+    {
+      "name": "steering into a roller loses troops while steering around it avoids that impact",
+      "status": "pass"
+    },
+    {
+      "name": "earned charge gates relic activation, prevents duplicates and expires",
+      "status": "pass"
+    },
+    {
+      "name": "EMP slows approaching machines but not gates",
+      "status": "pass"
+    },
+    {
+      "name": "Overdrive increases the actual allied projectile stream",
+      "status": "pass"
+    },
+    {
+      "name": "runner transitions preserve troop/weapon/relic state for all three bosses",
+      "status": "pass"
+    },
+    {
+      "name": "each boss visibly fires its own travelling shell, orb fan or rocket volley",
+      "status": "pass"
+    },
+    {
+      "name": "real incoming boss shots hit an occupied lane and miss a dodged lane",
+      "status": "pass"
+    },
+    {
+      "name": "Shield blocks a real boss shell and EMP slows real incoming projectiles",
+      "status": "pass"
+    },
+    {
+      "name": "Citadel ranged elites fire collision-bearing projectiles during the run",
+      "status": "pass"
+    },
+    {
+      "name": "every stage is beatable with every relic and no purchased upgrades",
+      "status": "pass"
+    },
+    {
+      "name": "relic energy cannot regenerate during its active tactical window",
+      "status": "pass"
+    },
+    {
+      "name": "missing gate choices and never dodging can lose all stages",
+      "status": "pass"
+    },
+    {
+      "name": "pause freezes steering, ability, machines, allied and enemy shots",
+      "status": "pass"
+    },
+    {
+      "name": "fixed-step outcomes agree at 30, 60 and 120 Hz in all stages",
+      "status": "pass"
+    },
+    {
+      "name": "all state pools and numeric values stay finite and bounded through full runs",
+      "status": "pass"
+    },
+    {
+      "name": "effects drain once per snapshot without changing ongoing state",
+      "status": "pass"
+    },
+    {
+      "name": "250 retries clear transient objects and do not increase WASM allocation",
+      "status": "pass"
+    }
+  ]
+}
