@@ -1,0 +1,18 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.8",
+  "Category": "Games",
+  "Description": "Editable native art and environment workshop for Mechalord",
+  "Plugins": [
+    {"Name": "AndroidFileServer", "Enabled": false},
+    {"Name": "PythonScriptPlugin", "Enabled": true},
+    {"Name": "EditorScriptingUtilities", "Enabled": true},
+    {"Name": "GeometryScripting", "Enabled": true},
+    {"Name": "SequencerScripting", "Enabled": true},
+    {"Name": "ModelingToolsEditorMode", "Enabled": true},
+    {"Name": "Interchange", "Enabled": true},
+    {"Name": "InterchangeEditor", "Enabled": true},
+    {"Name": "ModelContextProtocol", "Enabled": true},
+    {"Name": "AllToolsets", "Enabled": true}
+  ]
+}

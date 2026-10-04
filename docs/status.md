@@ -18,14 +18,14 @@ Validation: **56/56 actual C++/WASM checks**, **44/44 combat-visual CPU checks**
 
 The existing Unreal GameMode still owns the older `BattleSimulation` runner-to-launcher battle. Compiling `AssaultSimulation.cpp` as module source will not connect v7 combat to that mode. A native assault adapter, matching HUD/save behavior, actual map/import validation and Nothing Phone (3) testing remain required. See [native-gap-v7.md](native-gap-v7.md) for the inspected interfaces and minimum port.
 
-A separate content-only project, `game/MechalordArtLab`, is being built and tested for native asset inspection while the compiler prerequisite is unresolved. It is not the playable v7 game. Its validation remains in progress; use [unreal-artlab.md](unreal-artlab.md) for current receipts and limits rather than treating file creation or an editor connection as acceptance.
+A separate content-only project, `game/MechalordArtLab`, now contains 12 native modular meshes, five imported character scenes, two inspection cameras and a looping machinery/laser sequence. Actual Unreal checks passed for six falling/settling physics bodies and 13 animated objects. Placement and laser-axis errors found during viewport review were corrected. This remains an asset workshop; the playable v7 combat is not yet connected to it. See [unreal-artlab.md](unreal-artlab.md) for measurements, captures and limits.
 
 ## Milestones
 
 | Milestone | Delivered | Still required |
 | --- | --- | --- |
 | M1 | Research, design brief, original pilot references, asset register and folders | First-time-player observations and final art acceptance |
-| M2 | Preserved source commander, editable Blender source, detailed/mobile candidates and first-pass animation; native Art Lab work in progress | Accepted pilot assets, verified engine scale/materials/animation, APK and Nothing Phone (3) measurements |
+| M2 | Preserved source commander, editable Blender source, detailed/mobile candidates and first-pass animation; native kit/imports and actual workshop motion/physics checks | Final pilot-art acceptance, skeletal deformation review, native combat integration, APK and Nothing Phone (3) measurements |
 | M3 | Three-stage browser combat; legacy Unreal runtime/HUD/save source and bootstrap | Supported Windows C++ toolchain, successful build, v7 adapter, current native scene and Play-in-Editor validation |
 | M4 | Legacy ChunkDownloader source, manifest/server tools and optional-chapter rules | Cooked packs, exclusion audit, native mount/offline tests; current assault integration comes first |
 | Later economy | Gems, bundles, skins, characters, weapons and unlock research | Separate later economy/billing design; no payments active. Current troop-funded transfer is free |

@@ -22,7 +22,7 @@ Legacy stages four/five require an installed compatible chapter and loaded autho
 
 ## Native asset work and next playable slice
 
-The separate content-only project `game/MechalordArtLab` is being built/tested while the C++ toolchain is unresolved. It is for original asset/material/part inspection, not a substitute for current gameplay. Do not claim its validation complete yet; [unreal-artlab.md](unreal-artlab.md) provides evolving native receipts and limits. Current browser GLBs need deliberate engine-supported import/export and scale, texture, pivot, hierarchy and animation checks; the legacy FBX route should not be assumed to import them correctly.
+The separate content-only project `game/MechalordArtLab` now has saved native meshes, five Interchange character imports, repaired geometry placement, a looping machinery sequence, and passing actual motion/debris-physics checks. It is for asset inspection; current combat is still not connected. [unreal-artlab.md](unreal-artlab.md) provides engine receipts and viewport captures. Skeleton deformation, battle integration, mobile rendering and packaging remain distinct acceptance steps.
 
 After a successful `MechalordEditor` build, add an assault-specific adapter and retain the legacy mode as a clearly identified reference. Start with stage zero/rank zero, map phases explicitly, and pass steering in world metres −3..3. Advance the shared fixed-step core once per tick and render its authoritative formation, targets, projectiles, pickups, lasers and boss state at 100 cm per metre. Consume each effect once; engine physics must not duplicate core damage.
 

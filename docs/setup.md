@@ -12,7 +12,7 @@ An actual `MechalordEditor` C++ build was attempted. It failed because Windows S
 
 `tools/launch_unreal.ps1 -Build -Bootstrap -Launch` builds the existing editor target, runs `tools/bootstrap_unreal.py`, then opens `game/Mechalord/Mechalord.uproject`. That complete sequence has not succeeded. Bootstrap creates the **legacy** Entry map, unlit materials, five stage data assets and chapter labels; its runtime still uses `BattleSimulation`. It does not port the current three-stage v7 assault combat. Experimental rejected art is excluded by default. See [unreal-runtime.md](unreal-runtime.md) before presenting this route as current gameplay.
 
-A separate content-only `game/MechalordArtLab` is being built/tested for native asset inspection independently of the C++ game. Art Lab validation is not yet complete; [unreal-artlab.md](unreal-artlab.md) is the source for receipts and launch instructions. Its assets/map do not establish a native gameplay port.
+The separate content-only `game/MechalordArtLab` opens independently of the C++ game. Native geometry/imports are saved, with actual motion and debris-physics checks completed. Run `tools/launch_artlab.ps1`, then **Start simulation** to inspect the workshop. [unreal-artlab.md](unreal-artlab.md) records the receipts, cameras and limits. These assets are not yet connected to the current combat runtime. Unreal Turnkey also reports incomplete Android Studio/NDK prerequisites; Android packaging remains pending.
 
 When using live Unreal tools, verify the actual editor and loaded project before changes. Plugin installation alone does not establish the correct project connection.
 

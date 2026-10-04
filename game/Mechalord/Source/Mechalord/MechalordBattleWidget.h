@@ -39,6 +39,7 @@ private:
     float RefreshClock = 0;
     UTextBlock* Text(const FString& Value, int32 Size = 18);
     UButton* Button(const FString& Label, UTextBlock*& OutLabel);
+    UButton* Button(const FString& Label, TObjectPtr<UTextBlock>& OutLabel);
     void ChooseStage(int32 Stage);
     void ChooseRelic(int32 Relic);
     UFUNCTION() void Stage0(); UFUNCTION() void Stage1(); UFUNCTION() void Stage2(); UFUNCTION() void Stage3(); UFUNCTION() void Stage4();

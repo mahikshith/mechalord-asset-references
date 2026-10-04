@@ -2,6 +2,7 @@ game/**/Binaries/
 game/**/Intermediate/
 game/**/Saved/
 game/**/DerivedDataCache/
+game/MechalordArtLab/Content/MechalordArtLab/Recovery/
 game/**/*.sln
 .vs/
 .venv/

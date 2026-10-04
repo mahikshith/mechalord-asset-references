@@ -31,6 +31,12 @@ UButton* UMechalordBattleWidget::Button(const FString& Label,UTextBlock*& OutLab
     auto* Control=WidgetTree->ConstructWidget<UButton>(); Control->SetBackgroundColor(FLinearColor(.025f,.17f,.18f,1));
     OutLabel=Text(Label); OutLabel->SetJustification(ETextJustify::Center); Control->AddChild(OutLabel); return Control;
 }
+UButton* UMechalordBattleWidget::Button(const FString& Label,TObjectPtr<UTextBlock>& OutLabel) {
+    UTextBlock* RawLabel=nullptr;
+    UButton* Control=Button(Label,RawLabel);
+    OutLabel=RawLabel;
+    return Control;
+}
 TSharedRef<SWidget> UMechalordBattleWidget::RebuildWidget() {
     if(!WidgetTree)WidgetTree=NewObject<UWidgetTree>(this);
     StageButtons.Reset(); StageLabels.Reset(); RelicButtons.Reset(); RelicLabels.Reset();
