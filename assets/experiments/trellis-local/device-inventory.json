@@ -1,0 +1,26 @@
+[
+  {
+    "index": 0,
+    "name": "Vulkan0",
+    "description": "AMD Radeon(TM) Graphics",
+    "type": 2,
+    "freeBytes": 8119595616,
+    "totalBytes": 8546942976
+  },
+  {
+    "index": 1,
+    "name": "Vulkan1",
+    "description": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "type": 1,
+    "freeBytes": 3533071975,
+    "totalBytes": 4156555264
+  },
+  {
+    "index": 2,
+    "name": "CPU",
+    "description": "AMD Ryzen 7 4800H with Radeon Graphics         ",
+    "type": 0,
+    "freeBytes": 5365792768,
+    "totalBytes": 16557891584
+  }
+]

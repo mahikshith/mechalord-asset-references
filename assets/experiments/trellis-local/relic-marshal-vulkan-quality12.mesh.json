@@ -1,0 +1,43 @@
+{
+  "file": "C:\\Users\\mahik\\Desktop\\mechalord\\assets\\experiments\\trellis-local\\relic-marshal-vulkan-quality12.glb",
+  "bytes": 53760256,
+  "validGLB2": true,
+  "finiteCoordinates": true,
+  "indicesInRange": true,
+  "generator": "trellis.cpp v0.8.1",
+  "generation": {
+    "seed": 42,
+    "commit": "c0bed38c1578f7e36e3e50c8ff1e38fa0d47583f",
+    "backend": "vulkan",
+    "build": "2026-09-25T11:16:54Z",
+    "generated": "2026-10-04T16:02:17Z"
+  },
+  "primitives": [
+    {
+      "vertices": 1404718,
+      "triangles": 3075234,
+      "coordinateRange": [
+        -0.5000622272491455,
+        0.5001802444458008
+      ],
+      "boundsMin": [
+        -0.155402541,
+        -0.500062227,
+        -0.454945028
+      ],
+      "boundsMax": [
+        0.171549618,
+        0.500180244,
+        0.453964323
+      ]
+    }
+  ],
+  "triangles": 3075234,
+  "vertices": 1404718,
+  "materials": 0,
+  "textures": 0,
+  "animations": 0,
+  "skins": 0,
+  "mobileReady": false,
+  "acceptance": "Dense untextured source geometry; cleanup, materials, rigging and animation remain required"
+}

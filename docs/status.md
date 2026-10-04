@@ -28,6 +28,7 @@ The new AssaultSimulation is portable C++ and is compiled to assault.wasm for th
 
 ## Evidence and limits
 
+- Local quantized TRELLIS conversion now works on the RTX 3050: a normal 12-step geometry pass completed in 262.8 seconds with 1,473 MiB highest sampled whole-device GPU memory. The original commander reference produced a dense untextured GLB, inspected directly in Blender. Armor and weapon forms are recognizable, with contour noise and thin/open edges requiring cleanup. A fast clustered preview was rejected for surface defects. This source candidate has not replaced the current game character. See trellis-local-attempt.md.
 - Rebuilt-core checks are recorded in builds/rebuild-test-results.json with the actual binary hash. See rebuild-validation.md. Older BattleSimulation results are retained as historical evidence only; they do not validate the new combat.
 - Browser checks cover boot, actual drag movement, projectile impacts, troop growth, weapon progression to level 3, pause/resume, retry, Shield and the runner-to-boss transition. Final camera and responsive-layout inspection are recorded in rebuild-validation.md.
 - The source commander retains its 19,537 triangles and first-pass local animation. The crowd uses instanced reduced commander meshes. Enemy crawler, boss and scenery remain provisional; the rejected earlier environment is not approved art.
