@@ -3,9 +3,9 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 type Role = 'deck' | 'tile' | 'stone' | 'edge' | 'steel' | 'dark' | 'accent' | 'light' | 'earth';
 export const ENVIRONMENT_PALETTES = [
-  { sky: 0xb5ccd0, deck: 0xa49e85, tile: 0xb2ac92, stone: 0x8a8472, edge: 0xd0bea0, steel: 0x496b72, dark: 0x334a50, accent: 0x348fa0, light: 0x8ae5db, earth: 0x72877d },
-  { sky: 0xc4b6a6, deck: 0x778183, tile: 0x89918c, stone: 0x5e6969, edge: 0xb4a080, steel: 0x4d6065, dark: 0x303d42, accent: 0xb57646, light: 0xffbb61, earth: 0x766c5a },
-  { sky: 0xadbdd3, deck: 0x7989a3, tile: 0x8d9db4, stone: 0x526680, edge: 0xaebfcd, steel: 0x425976, dark: 0x2d3c57, accent: 0x717ba8, light: 0x89def4, earth: 0x65758b },
+  { sky: 0xb5ccd0, deck: 0x2f4354, tile: 0x354957, stone: 0x2d4252, edge: 0x5c7184, steel: 0x496b72, dark: 0x223442, accent: 0x348fa0, light: 0x8ae5db, earth: 0x506461 },
+  { sky: 0xc4b6a6, deck: 0x343f4c, tile: 0x3c4854, stone: 0x273744, edge: 0x65717a, steel: 0x4d6065, dark: 0x26333f, accent: 0xb57646, light: 0xffbb61, earth: 0x514e48 },
+  { sky: 0xadbdd3, deck: 0x283b51, tile: 0x30435b, stone: 0x25394e, edge: 0x586d86, steel: 0x425976, dark: 0x233348, accent: 0x717ba8, light: 0x89def4, earth: 0x49596c },
 ] as const;
 
 /** A render-only, bounded causeway. Surface y=0; decorative structures stay outside the lanes. */
@@ -34,9 +34,9 @@ export class BattleEnvironment {
       if (role === 'light') { material.emissiveIntensity = .45; material.roughness = .5; }
       this.materials.set(role, material);
     }
-    const [bump, roughness] = this.stoneTextures();
+    const [bump, roughness, albedo] = this.stoneTextures();
     for (const role of ['deck', 'tile', 'stone', 'edge'] as Role[]) {
-      const material = this.materials.get(role)!; material.bumpMap = bump; material.bumpScale = role === 'deck' || role === 'tile' ? .065 : .045; material.roughnessMap = roughness;
+      const material = this.materials.get(role)!; material.map = albedo; material.bumpMap = bump; material.bumpScale = role === 'deck' || role === 'tile' ? .065 : .045; material.roughnessMap = roughness;
     }
     this.build(this.common, parts => {
       this.box(parts, 'stone', 9.7, 1.23, 8, 0, -.765, 0, .09);
@@ -133,8 +133,8 @@ export class BattleEnvironment {
   }
 
   private keep(geometry: T.BufferGeometry): T.BufferGeometry { this.geometries.add(geometry); return geometry; }
-  private stoneTextures(): [T.Texture, T.Texture] {
-    const size = 512, height = new Uint8Array(size * size * 4), roughness = new Uint8Array(height.length);
+  private stoneTextures(): [T.Texture, T.Texture, T.Texture] {
+    const size = 512, height = new Uint8Array(size * size * 4), roughness = new Uint8Array(height.length), albedo = new Uint8Array(height.length);
     let seed = 81173;
     const random = (): number => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return (seed >>> 8) / 16777216; };
     for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
@@ -142,8 +142,9 @@ export class BattleEnvironment {
       const cloud = Math.sin(x * .037 + y * .061) * 3 + Math.cos(x * .083 - y * .025) * 2;
       const value = Math.round(128 + (noise - .5) * 20 + cloud - (noise > .987 ? 23 : 0));
       const coarse = Math.round(219 + noise * 21 + cloud);
-      for (let channel = 0; channel < 3; channel++) { height[offset + channel] = value; roughness[offset + channel] = coarse; }
-      height[offset + 3] = roughness[offset + 3] = 255;
+      const pigment = Math.max(150, Math.min(231, Math.round(205 + (noise - .5) * 17 + cloud * 1.3 - (noise > .987 ? 25 : 0))));
+      for (let channel = 0; channel < 3; channel++) { height[offset + channel] = value; roughness[offset + channel] = coarse; albedo[offset + channel] = pigment; }
+      height[offset + 3] = roughness[offset + 3] = albedo[offset + 3] = 255;
     }
     const make = (pixels: Uint8Array, cracks: boolean): T.Texture => {
       let texture: T.Texture;
@@ -162,7 +163,8 @@ export class BattleEnvironment {
       texture.wrapS = texture.wrapT = T.RepeatWrapping; texture.repeat.set(.65, .65); texture.anisotropy = 4; texture.needsUpdate = true;
       this.textures.push(texture); return texture;
     };
-    return [make(height, true), make(roughness, false)];
+    const stoneAlbedo = make(albedo, true); stoneAlbedo.colorSpace = T.SRGBColorSpace;
+    return [make(height, true), make(roughness, false), stoneAlbedo];
   }
   private part(parts: Map<Role, T.BufferGeometry[]>, role: Role, geometry: T.BufferGeometry, x: number, y: number, z: number, rx = 0, ry = 0, rz = 0): void {
     this.dummy.position.set(x, y, z); this.dummy.rotation.set(rx, ry, rz); this.dummy.scale.set(1, 1, 1); this.dummy.updateMatrix();

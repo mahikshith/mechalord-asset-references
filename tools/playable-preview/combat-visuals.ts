@@ -32,7 +32,8 @@ function joined(parts:T.BufferGeometry[]){const geo=mergeGeometries(parts,false)
 
 type Chunk={p:T.Vector3;v:T.Vector3;r:T.Vector3;spin:T.Vector3;size:T.Vector3;color:T.Color;life:number;max:number;bounce:number};
 type Puff={p:T.Vector3;v:T.Vector3;life:number;max:number;size:number;kind:'smoke'|'fire'|'flash';color:T.Color};
-type Fragment={group:T.Group;v:T.Vector3;spin:T.Vector3;delay:number;age:number;floor:number;settled:boolean;materials:T.Material[]};
+type Fragment={group:T.Group;v:T.Vector3;spin:T.Vector3;delay:number;age:number;floor:number;settled:boolean;materials:T.Material[];ownedGeometry?:T.BufferGeometry};
+function visibleInTree(object:T.Object3D,root:T.Object3D){for(let p:T.Object3D|null=object;p;p=p.parent){if(!p.visible)return false;if(p===root)break;}return true;}
 
 export class CombatVisuals {
   readonly debrisCapacity=384;readonly particleCapacity=256;readonly fragmentCapacity=24;
@@ -40,6 +41,7 @@ export class CombatVisuals {
   private puffs:Puff[]=Array.from({length:256},()=>({p:new T.Vector3(),v:new T.Vector3(),life:0,max:1,size:1,kind:'smoke',color:new T.Color()}));
   private chunkIndex=0;private puffIndex=0;private seed=1921;private age=0;private dummy=new T.Object3D();
   private fragments:Fragment[]=[];private bossBurn?:T.Vector3;private bossBurnTime=0;private bossEmission=0;
+  private commanderFragments:Fragment[]=[];readonly commanderFragmentCapacity=12;
   private debris:T.InstancedMesh;private smoke:T.InstancedMesh;private fire:T.InstancedMesh;
   constructor(private scene:T.Scene){
     this.debris=pool(scene,new T.BoxGeometry(1,1,1),standard(0xffffff),this.debrisCapacity);this.debris.castShadow=true;
@@ -67,8 +69,8 @@ export class CombatVisuals {
   }
   allyLoss(x:number,worldZ:number,count:number){
     if(count<=0)return;const chunks=Math.min(8,Math.max(2,Math.ceil(count*1.5)));
-    for(let i=0;i<chunks;i++)this.chunk(x+(this.random()-.5)*.7,.55+this.random()*.5,worldZ+(this.random()-.5)*.7,.16,i%2?0x34434b:0xd5c9a9,1.6);
-    this.impact(x,.65,worldZ,.7);
+    for(let i=0;i<chunks;i++)this.chunk(x+(this.random()-.5)*.7,.55+this.random()*.5,worldZ+(this.random()-.5)*.7,.22,i%2?0x34434b:0xd5c9a9,2.1);
+    this.impact(x,.75,worldZ,1.0);
   }
   impact(x:number,y:number,worldZ:number,strength=1){
     this.puff(x,y,worldZ,'flash',.55*strength,.13,0xffeec3);
@@ -81,7 +83,7 @@ export class CombatVisuals {
     if(this.fragments.length||this.bossBurnTime>0)return false;
     root.updateWorldMatrix(true,true);let count=0;const centers:T.Vector3[]=[];
     root.traverse(object=>{
-      const mesh=object as T.Mesh;if(!mesh.isMesh||!mesh.visible||count>=this.fragmentCapacity)return;
+      const mesh=object as T.Mesh;if(!mesh.isMesh||!visibleInTree(mesh,root)||count>=this.fragmentCapacity)return;
       // Skip HUD/badges and effects; the actual articulated mesh pieces stay intact.
       if(!mesh.geometry.getAttribute('position')||mesh.name.toLowerCase().includes('badge'))return;
       mesh.geometry.computeBoundingBox();const center=mesh.geometry.boundingBox!.getCenter(new T.Vector3()).applyMatrix4(mesh.matrixWorld);
@@ -101,6 +103,45 @@ export class CombatVisuals {
     this.impact(pos.x,2,pos.z,3);for(const p of centers.slice(0,8))this.impact(p.x,p.y,p.z,1.3);
     return count>0;
   }
+  /** Freeze actual skinned pose, then detach anatomical mesh pieces. Independent of boss wreck. */
+  commanderDeath(root:T.Object3D){
+    if(this.commanderFragments.length)return false;root.updateWorldMatrix(true,true);
+    const origin=root.getWorldPosition(new T.Vector3());
+    const add=(geometry:T.BufferGeometry,material:T.Material,matrix:T.Matrix4,owned=false)=>{
+      if(this.commanderFragments.length>=this.commanderFragmentCapacity){if(owned)geometry.dispose();return;}
+      geometry.computeBoundingBox();const center=geometry.boundingBox!.getCenter(new T.Vector3()).applyMatrix4(matrix);
+      const clone=material.clone(),copy=new T.Mesh(geometry,clone);copy.castShadow=true;copy.matrixAutoUpdate=false;
+      copy.matrix.copy(new T.Matrix4().makeTranslation(-center.x,-center.y,-center.z).multiply(matrix));
+      const group=new T.Group();group.position.copy(center);group.add(copy);this.scene.add(group);
+      const direction=center.clone().sub(origin).setY(0);if(direction.lengthSq()<.02)direction.set(this.random()-.5,0,this.random()-.5);direction.normalize().multiplyScalar(1.7+this.random()*1.7);
+      direction.y=2.4+this.random()*1.6;const bounds=new T.Box3().setFromObject(group);
+      this.commanderFragments.push({group,v:direction,spin:new T.Vector3((this.random()-.5)*4,(this.random()-.5)*4,(this.random()-.5)*4),delay:0,age:0,floor:Math.max(.08,center.y-bounds.min.y),settled:false,materials:[clone],ownedGeometry:owned?geometry:undefined});
+    };
+    root.traverse(object=>{
+      const mesh=object as T.Mesh;if(!mesh.isMesh||!visibleInTree(mesh,root)||this.commanderFragments.length>=this.commanderFragmentCapacity)return;
+      const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+      if(materials.every(m=>m.opacity<=0||m.blending===T.AdditiveBlending)||['RingGeometry','CircleGeometry','PlaneGeometry'].includes(mesh.geometry.type))return;
+      if(!(mesh as T.SkinnedMesh).isSkinnedMesh){add(mesh.geometry,materials[0],mesh.matrixWorld);return;}
+      const skinned=mesh as T.SkinnedMesh;skinned.skeleton.update();const source=mesh.geometry,position=source.getAttribute('position'),uv=source.getAttribute('uv'),index=source.index;
+      const triangleCount=(index?index.count:position.count)/3;
+      if(triangleCount>150000){add(mesh.geometry,materials[0],mesh.matrixWorld);return;}
+      const posed=new Float32Array(position.count*3),point=new T.Vector3(),low=new T.Vector3(Infinity,Infinity,Infinity),high=new T.Vector3(-Infinity,-Infinity,-Infinity);
+      for(let i=0;i<position.count;i++){skinned.getVertexPosition(i,point).applyMatrix4(mesh.matrixWorld);point.toArray(posed,i*3);low.min(point);high.max(point);}
+      const height=Math.max(.01,high.y-low.y),middleX=(low.x+high.x)/2,width=high.x-low.x;
+      const buckets=new Map<string,{vertices:number[];uvs:number[];material:number}>();
+      for(let t=0;t<triangleCount;t++){
+        const ids=[0,1,2].map(c=>index?index.getX(t*3+c):t*3+c);
+        const x=ids.reduce((sum,id)=>sum+posed[id*3],0)/3,y=(ids.reduce((sum,id)=>sum+posed[id*3+1],0)/3-low.y)/height;
+        const side=x<middleX?'L':'R';const region=y>.79?'Head':y<.16?'Foot_'+side:y<.37?'Leg_'+side:Math.abs(x-middleX)>width*.22&&y<.78?'Arm_'+side:'Torso';
+        const group=source.groups.find(g=>t*3>=g.start&&t*3<g.start+g.count);const material=group?.materialIndex??0,key=region+'_'+material;
+        let bucket=buckets.get(key);if(!bucket){bucket={vertices:[],uvs:[],material};buckets.set(key,bucket);}
+        for(const id of ids){bucket.vertices.push(posed[id*3],posed[id*3+1],posed[id*3+2]);if(uv)bucket.uvs.push(uv.getX(id),uv.getY(id));}
+      }
+      for(const [name,bucket] of buckets){const geometry=new T.BufferGeometry();geometry.name='FrozenCommander_'+name;geometry.setAttribute('position',new T.Float32BufferAttribute(bucket.vertices,3));if(uv)geometry.setAttribute('uv',new T.Float32BufferAttribute(bucket.uvs,2));geometry.computeVertexNormals();add(geometry,materials[bucket.material]??materials[0],new T.Matrix4(),true);}
+    });
+    if(this.commanderFragments.length){this.impact(origin.x,1.5,origin.z,2.2);for(let i=0;i<10;i++)this.chunk(origin.x,1+this.random(),origin.z,.27,i%2?0xe4d7b5:0x33444d,3.4);}
+    return this.commanderFragments.length>0;
+  }
   update(dt:number){
     // Substeps keep bounce stable after a slow frame; freeze exactly when dt=0.
     const elapsed=Math.max(0,Math.min(dt,.15));this.age+=elapsed;
@@ -109,7 +150,7 @@ export class CombatVisuals {
       for(const c of this.chunks){if(c.life<=0)continue;c.life-=step;c.v.y-=step*9.8;c.p.addScaledVector(c.v,step);c.r.addScaledVector(c.spin,step);
         const floor=Math.max(.04,c.size.y*.5);if(c.p.y<floor){c.p.y=floor;c.v.y=Math.abs(c.v.y)*.26;c.v.x*=.67;c.v.z*=.67;c.spin.multiplyScalar(.6);c.bounce++;if(c.bounce>3)c.v.y=0;}}
       for(const p of this.puffs){if(p.life<=0)continue;p.life-=step;p.p.addScaledVector(p.v,step);p.v.multiplyScalar(1-step*.6);}
-      for(const f of this.fragments){if(f.settled)continue;f.age+=step;if(f.age<f.delay)continue;f.v.y-=step*8;f.group.position.addScaledVector(f.v,step);f.group.rotation.x+=f.spin.x*step;f.group.rotation.y+=f.spin.y*step;f.group.rotation.z+=f.spin.z*step;
+      for(const collection of [this.fragments,this.commanderFragments])for(const f of collection){if(f.settled)continue;f.age+=step;if(f.age<f.delay)continue;f.v.y-=step*8;f.group.position.addScaledVector(f.v,step);f.group.rotation.x+=f.spin.x*step;f.group.rotation.y+=f.spin.y*step;f.group.rotation.z+=f.spin.z*step;
         if(f.group.position.y<f.floor){f.group.position.y=f.floor;f.v.y=Math.abs(f.v.y)*.12;f.v.x*=.75;f.v.z*=.75;f.spin.multiplyScalar(.4);}}
     }
     if(this.bossBurn&&this.bossBurnTime>0){this.bossBurnTime-=elapsed;this.bossEmission+=elapsed;
@@ -121,19 +162,19 @@ export class CombatVisuals {
     changed(this.debris,dc);changed(this.smoke,sc);changed(this.fire,fc);
     // A recognizable static wreck remains behind the result overlay until retry.
     // Settling ends physics work; reset owns the final material cleanup.
-    for(const f of this.fragments)if(!f.settled&&f.age>=2.5){
+    for(const collection of [this.fragments,this.commanderFragments])for(const f of collection)if(!f.settled&&f.age>=2.5){
       const bounds=new T.Box3().setFromObject(f.group);f.group.position.y+=.04-bounds.min.y;
       f.v.set(0,0,0);f.spin.set(0,0,0);f.settled=true;
     }
   }
-  reset(){for(const c of this.chunks)c.life=0;for(const p of this.puffs)p.life=0;for(const f of this.fragments){this.scene.remove(f.group);f.materials.forEach(m=>m.dispose());}this.fragments=[];this.bossBurnTime=0;this.bossBurn=undefined;changed(this.debris,0);changed(this.smoke,0);changed(this.fire,0);}
-  stats(){return {debris:this.debris.count,smoke:this.smoke.count,fire:this.fire.count,bossFragments:this.fragments.length,capacity:this.debrisCapacity+this.particleCapacity+this.fragmentCapacity};}
+  reset(){for(const c of this.chunks)c.life=0;for(const p of this.puffs)p.life=0;for(const collection of [this.fragments,this.commanderFragments])for(const f of collection){this.scene.remove(f.group);f.materials.forEach(m=>m.dispose());f.ownedGeometry?.dispose();}this.fragments=[];this.commanderFragments=[];this.bossBurnTime=0;this.bossBurn=undefined;changed(this.debris,0);changed(this.smoke,0);changed(this.fire,0);}
+  stats(){return {debris:this.debris.count,smoke:this.smoke.count,fire:this.fire.count,bossFragments:this.fragments.length,commanderFragments:this.commanderFragments.length,capacity:this.debrisCapacity+this.particleCapacity+this.fragmentCapacity+this.commanderFragmentCapacity};}
   dispose(){this.reset();for(const m of [this.debris,this.smoke,this.fire]){this.scene.remove(m);m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}}
 }
 
 /** One recognizable ~1.1m robot per actual target; two draw calls for a whole wave. */
 export class RobotFormation {
-  private body:T.InstancedMesh;private eyes:T.InstancedMesh;private count=0;private dummy=new T.Object3D();
+  private body:T.InstancedMesh;private eyes:T.InstancedMesh;private treadMark:T.InstancedMesh;private count=0;private dummy=new T.Object3D();
   constructor(private scene:T.Scene,readonly capacity=200){
     const dark=0x25323c,red=0x963729,bronze=0x96754a,parts:T.BufferGeometry[]=[];
     for(const side of [-1,1]){
@@ -151,21 +192,28 @@ export class RobotFormation {
     this.body=pool(scene,joined(parts),material,capacity);this.body.castShadow=true;
     const glow=joined([painted(new T.BoxGeometry(.24,.035,.045),0xffae37,0,.99,.19),painted(new T.OctahedronGeometry(.09),0xff5a22,0,.67,.30)]);
     const eyes=basic(0xffffff);eyes.vertexColors=true;eyes.toneMapped=false;this.eyes=pool(scene,glow,eyes,capacity);
+    this.treadMark=pool(scene,new T.BoxGeometry(.27,.055,.065),standard(0xa48c63),capacity*2);
   }
   begin(){this.count=0;}
-  add(x:number,worldZ:number,scale=1,yaw=0,hit=false){if(this.count>=this.capacity)return;
+  add(x:number,worldZ:number,scale=1,yaw=0,hit=false,phase=0){if(this.count>=this.capacity)return;
     const sized=scale*(hit?1.035:1);
-    this.dummy.position.set(x,.025,worldZ);this.dummy.rotation.set(0,yaw,0);this.dummy.scale.set(sized*.82,sized*1.1,sized);this.dummy.updateMatrix();
-    this.body.setMatrixAt(this.count,this.dummy.matrix);this.eyes.setMatrixAt(this.count,this.dummy.matrix);this.count++;
+    const bounce=Math.abs(Math.sin(phase*9))*.055,lean=Math.sin(phase*9)*.035;
+    this.dummy.position.set(x,.025+bounce,worldZ);this.dummy.rotation.set(lean,yaw,Math.sin(phase*9)*.045);this.dummy.scale.set(sized*.82,sized*1.1,sized);this.dummy.updateMatrix();
+    this.body.setMatrixAt(this.count,this.dummy.matrix);this.eyes.setMatrixAt(this.count,this.dummy.matrix);
+    for(const side of [-1,1]){const travel=((phase*2.4+(side>0?.5:0))%1+1)%1,z=(travel-.5)*.5;
+      this.dummy.position.set(x+Math.cos(yaw)*side*.32*sized*.82+Math.sin(yaw)*z*sized,.32*sized+Math.sin(travel*Math.PI)*.035,worldZ-Math.sin(yaw)*side*.32*sized*.82+Math.cos(yaw)*z*sized);
+      this.dummy.rotation.set(0,yaw,0);this.dummy.scale.set(sized*.82,sized,sized);this.dummy.updateMatrix();this.treadMark.setMatrixAt(this.count*2+(side>0?1:0),this.dummy.matrix);}
+    this.count++;
   }
-  end(){changed(this.body,this.count);changed(this.eyes,this.count);}
+  end(){changed(this.body,this.count);changed(this.eyes,this.count);changed(this.treadMark,this.count*2);}
   reset(){this.begin();this.end();}
-  dispose(){for(const mesh of [this.body,this.eyes]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
+  dispose(){for(const mesh of [this.body,this.eyes,this.treadMark]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 
-export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;overdrive:boolean;weapon:number;visible?:boolean};
+export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossY?:number;bossLaunchHeight?:number;overdrive:boolean;weapon:number;visible?:boolean};
 export class CombatMissiles {
-  private bodies:T.InstancedMesh;private exhaust:T.InstancedMesh;private orbs:T.InstancedMesh;private dummy=new T.Object3D();
+  private bodies:T.InstancedMesh;private exhaust:T.InstancedMesh;private orbs:T.InstancedMesh;private orbCores:T.InstancedMesh;
+  private bullets:T.InstancedMesh;private tips:T.InstancedMesh;private wakes:T.InstancedMesh;private dummy=new T.Object3D();
   private color=new T.Color();readonly capacity=768;
   private hostileLaunchZ=new Map<number,{z:number;height:number}>();
   constructor(private scene:T.Scene){
@@ -176,33 +224,44 @@ export class CombatMissiles {
     const material=standard(0xffffff);material.vertexColors=true;this.bodies=pool(scene,joined(parts),material,this.capacity);
     const flame=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.48,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
     this.exhaust=pool(scene,new T.ConeGeometry(.105,.85,6).rotateX(Math.PI/2).translate(0,0,-.64),flame,this.capacity);
-    const orb=basic(0xe074ff);orb.toneMapped=false;this.orbs=pool(scene,new T.IcosahedronGeometry(.20,1),orb,96);
+    const orb=standard(0xbf3820);orb.emissive.set(0x74170b);orb.emissiveIntensity=.65;this.orbs=pool(scene,new T.IcosahedronGeometry(.22,1),orb,96);
+    const orbCore=basic(0xffa53e);orbCore.toneMapped=false;this.orbCores=pool(scene,new T.OctahedronGeometry(.17,1),orbCore,96);
+    this.bullets=pool(scene,new T.CylinderGeometry(.048,.048,.30,6).rotateX(Math.PI/2),standard(0xffffff),this.capacity);
+    const tip=basic(0xffffff);tip.toneMapped=false;this.tips=pool(scene,new T.SphereGeometry(.054,6,4).translate(0,0,.18),tip,this.capacity);
+    this.wakes=pool(scene,new T.ConeGeometry(.045,.55,5).rotateX(Math.PI/2).translate(0,0,-.37),new T.MeshBasicMaterial({color:0x76dcff,transparent:true,opacity:.35,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),this.capacity);
   }
   update(friendly:Shot[],hostile:EnemyShot[],options:MissileOptions){
-    let count=0,orbCount=0;if(options.visible===false){this.reset();return;}
-    const write=(x:number,y:number,z:number,yaw:number,scale:number,enemy=false,kind:Shot['kind']='pulse')=>{
-      if(count>=this.capacity)return;this.dummy.position.set(x,y,z);this.dummy.rotation.set(0,yaw,0);this.dummy.scale.setScalar(scale);this.dummy.updateMatrix();
-      if(!enemy&&kind==='rail'){this.dummy.scale.z*=1.4;this.dummy.updateMatrix();}
-      this.bodies.setMatrixAt(count,this.dummy.matrix);this.bodies.setColorAt(count,this.color.set(enemy?0xff9262:kind==='arc'?0xc2a6ff:kind==='rail'?0xffd283:0xc8f2ff));
-      this.dummy.scale.set(scale,scale,scale*(options.overdrive&&!enemy?2:1));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(enemy?0xff6024:options.overdrive?0x72dcff:kind==='arc'?0xb88cff:kind==='rail'?0xffcc58:0x73d8ff));count++;
+    let count=0,bulletCount=0,wakeCount=0,orbCount=0;if(options.visible===false){this.reset();return;}
+    const write=(x:number,y:number,z:number,yaw:number,scale:number,enemy=false,kind:string='pulse',owner:'commander'|'troop'='commander')=>{
+      if(count+bulletCount>=this.capacity)return;this.dummy.position.set(x,y,z);this.dummy.rotation.set(0,yaw,0);this.dummy.scale.setScalar(scale);
+      const rocket=kind==='missile'||kind==='rocket';
+      if(!rocket){this.dummy.scale.z*=kind==='rail'?1.65:kind==='cannon'?1.2:1;this.dummy.updateMatrix();this.bullets.setMatrixAt(bulletCount,this.dummy.matrix);this.tips.setMatrixAt(bulletCount,this.dummy.matrix);
+        this.bullets.setColorAt(bulletCount,this.color.set(enemy?0xd86d39:owner==='troop'?0x2c93cd:0xd3a54e));
+        this.tips.setColorAt(bulletCount,this.color.set(enemy?0xffa12b:owner==='troop'?0x53c9ff:0xffca54));bulletCount++;
+        if(options.overdrive&&!enemy){this.wakes.setMatrixAt(wakeCount++,this.dummy.matrix);}return;
+      }
+      this.dummy.updateMatrix();this.bodies.setMatrixAt(count,this.dummy.matrix);this.bodies.setColorAt(count,this.color.set(enemy?0xff9262:owner==='troop'?0x69baff:0xffd18a));
+      this.dummy.scale.set(scale,scale,scale*(options.overdrive&&!enemy?2:1));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(enemy?0xff6024:owner==='troop'?0x59bcff:0xffc064));count++;
     };
     for(const p of friendly){
-      const velocity=p as Shot & {dx?:number;dz?:number};
-      write(p.x,1.25,-p.z*options.depthScale,Math.atan2(velocity.dx??0,-(velocity.dz??1)*options.depthScale),p.heavy?1.05:.85,false,p.kind??'pulse');
+      const velocity=p as Shot & {dx?:number;dz?:number;owner?:'troop'|'commander';y?:number};
+      const launch=p.kind==='missile'?2.08:p.kind==='cannon'?1.42:p.kind==='rail'?1.8:1.35;
+      const height=T.MathUtils.lerp(launch,1.25,T.MathUtils.clamp(p.z/10,0,1));
+      write(p.x,velocity.y??height,-p.z*options.depthScale,Math.atan2(velocity.dx??0,-(velocity.dz??1)*options.depthScale),p.kind==='missile'?1.25:p.heavy?1.05:.85,false,p.kind??'pulse',velocity.owner??'commander');
     }
     const live=new Set<number>();
     for(const p of hostile){if(live.size>=96)break;live.add(p.id);
-      if(!this.hostileLaunchZ.has(p.id))this.hostileLaunchZ.set(p.id,{z:Math.max(1,options.bossZ??p.z),height:options.bossPhase?3:.85});
+      if(!this.hostileLaunchZ.has(p.id))this.hostileLaunchZ.set(p.id,{z:Math.max(1,options.bossZ??p.z),height:options.bossPhase?(options.bossY??0)+(options.bossLaunchHeight??3):.85});
       const launch=this.hostileLaunchZ.get(p.id)!;
       const height=.85+(launch.height-.85)*Math.max(0,Math.min(1,p.z/launch.z));
-      if(p.kind==='orb'){if(orbCount>=96)continue;this.dummy.position.set(p.x,height,-p.z*options.depthScale);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(Math.max(.8,p.radius/.18));this.dummy.updateMatrix();this.orbs.setMatrixAt(orbCount++,this.dummy.matrix);}
-      else write(p.x,height,-p.z*options.depthScale,Math.atan2(p.dx,-p.dz*options.depthScale),p.kind==='rocket'?1.45:1.05,true);
+      if(p.kind==='orb'){if(orbCount>=96)continue;this.dummy.position.set(p.x,height,-p.z*options.depthScale);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(Math.max(.8,p.radius/.18));this.dummy.updateMatrix();this.orbs.setMatrixAt(orbCount,this.dummy.matrix);this.dummy.position.z+=.13*this.dummy.scale.z;this.dummy.updateMatrix();this.orbCores.setMatrixAt(orbCount++,this.dummy.matrix);}
+      else write(p.x,height,-p.z*options.depthScale,Math.atan2(p.dx,-p.dz*options.depthScale),p.kind==='rocket'?1.45:1.8,true,p.kind);
     }
     for(const id of this.hostileLaunchZ.keys())if(!live.has(id))this.hostileLaunchZ.delete(id);
-    changed(this.bodies,count);changed(this.exhaust,count);changed(this.orbs,orbCount);
+    changed(this.bodies,count);changed(this.exhaust,count);changed(this.orbs,orbCount);changed(this.orbCores,orbCount);changed(this.bullets,bulletCount);changed(this.tips,bulletCount);changed(this.wakes,wakeCount);
   }
-  reset(){changed(this.bodies,0);changed(this.exhaust,0);changed(this.orbs,0);this.hostileLaunchZ.clear();}
-  dispose(){for(const mesh of [this.bodies,this.exhaust,this.orbs]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
+  reset(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes])changed(mesh,0);this.hostileLaunchZ.clear();}
+  dispose(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 
 export type ArmyAbilityOptions={depthScale:number;armyRadius:number;armyCenterX?:number;armyCenterZ:number;visible?:boolean};
