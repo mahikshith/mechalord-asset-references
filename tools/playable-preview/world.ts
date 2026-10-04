@@ -38,7 +38,17 @@ export class Battlefield{
   this.scene.add(this.boss);
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas);this.resize();
  }
- resize(){const w=Math.max(1,this.canvas.clientWidth),h=Math.max(1,this.canvas.clientHeight);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();}
+ cameraLookZ=-9.3;
+ resize(){
+  const w=Math.max(1,this.canvas.clientWidth),h=Math.max(1,this.canvas.clientHeight);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
+  // Keep all six rows clear of the health/transfer controls. Use the maximum
+  // formation footprint so recruitment and casualties cannot make the camera bob.
+  const distance=(5.05/Math.min(.45,this.camera.aspect))/Math.tan(T.MathUtils.degToRad(this.camera.fov*.5));
+  const rear=new T.Vector3(0,0,3.39),bottom=h-128;
+  const rearY=(look:number)=>{this.camera.position.set(0,distance*.58,look+distance*.815);this.camera.lookAt(0,.1,look);this.camera.updateMatrixWorld(true);return(1-rear.clone().project(this.camera).y)*h*.5;};
+  let low=-9.3,high=0;
+  if(rearY(low)>bottom){for(let i=0;i<18;i++){const mid=(low+high)*.5;if(rearY(mid)>bottom)low=mid;else high=mid;}this.cameraLookZ=high;}else this.cameraLookZ=low;
+ }
  async load(){
   const loader=new GLTFLoader();const [hero,troop,elite,tyrant]=await Promise.all([loader.loadAsync('commander.glb'),loader.loadAsync('troop.glb'),loader.loadAsync('cinder-reaver.glb'),loader.loadAsync('forge-tyrant.glb')]);this.model=hero.scene;this.model.scale.setScalar(.95);this.model.rotation.y=Math.PI;this.hero.add(this.model);this.model.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material.roughness=.76;o.material.metalness=.12;}if(o.isBone&&o.name.startsWith('upperarm'))this.heroArms.push(o);});
   const styled=new Set<T.Material>();for(const asset of [elite,tyrant])asset.scene.traverse((o:any)=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])if(!styled.has(m)){styled.add(m);m.color.multiplyScalar(2.2);m.metalness=.20;m.roughness=.64;}});
@@ -76,6 +86,7 @@ export class Battlefield{
   if(e.kind==='pickup')this.fx.powerAcquire(this.hero,powerKind(e.value));
   if(e.kind==='coreExpose'){this.fx.impact(e.x,this.boss.position.y+3.0,z,1.6);this.shake=.17;}
   if(e.kind==='bossRevive'){this.fx.impact(e.x,this.boss.position.y+2.7,z,2);this.shake=.24;}
+  if(e.kind==='bossPartBreak'){const part=['cannonL','cannonR','boosterL','boosterR','legL','legR'][e.value-1] as 'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'|undefined;if(part){this.scene.updateMatrixWorld(true);this.fx.bossPartBreak(this.boss,part);this.shake=.24;}}
   if(e.kind==='bossPhase'){this.shake=.20;this.fx.impact(e.x,2.8,z,2);}
   if(e.kind==='kill'){this.hitNumbers.delete(e.entityId);if(e.variant<0)this.fx.impact(e.x,1,z,2);else this.fx.enemyDeath(e.x,z,e.variant,e.variant>0?1.6:1);this.shake=Math.max(this.shake,.07);}
   if(e.kind==='contact'){this.fx.impact(e.x,.6,z,1.2);this.shake=Math.max(this.shake,.045);}
@@ -83,30 +94,31 @@ export class Battlefield{
   if(e.kind==='gate'||e.kind==='recruit'){this.fx.impact(e.x,.6,z,.8);if(e.value!==0)this.float(e.value>0?'+'+e.value:String(e.value),e.x,z,'#73eaff');}
   if(e.kind==='troopDeath')this.fx.allyLoss(e.x,z,1);
   if(e.kind==='damage'){this.shake=.12;this.float('-'+Math.abs(e.value),e.x,z,'#ff8469',2,true);}
-  if(e.kind==='bossShot'){this.fx.muzzle(e.x,this.boss.position.y+(e.value===0?4.5:3.4),z,true);this.shake=.07;}
+  if(e.kind==='bossShot'){this.fx.muzzle(e.x,this.boss.position.y+(e.value===3?4.3:e.value===0?4.5:3.4),z,true);this.shake=.07;}
   if(e.kind==='commanderHit'){this.fx.impact(e.x,1.3,z,1.2);this.shake=.2;this.float('-'+Math.abs(e.value)+' HP',e.x,z,'#ff8469',3.1,true);}
   if(e.kind==='hazardBreak'){this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
   if(e.kind==='commanderDeath'&&!this.commanderExploded){this.scene.updateMatrixWorld(true);this.fx.commanderDeath(this.hero);this.commanderExploded=true;this.hero.visible=false;this.shake=.4;}
   if(e.kind==='retreat')this.hitNumbers.delete(e.entityId);
   if(e.kind==='bossDeath'&&!this.bossExploded){this.scene.updateMatrixWorld(true);this.fx.bossDeath(this.boss);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
  }
+ sacrifice(positions:{x:number,z:number}[]){this.fx.sacrifice(this.hero,positions);}
  float(text:string,x:number,z:number,color:string,height=2,plain=false){if(this.floating.length>=16){const f=this.floating.shift()!;this.scene.remove(f.badge.sprite);f.badge.dispose();}const badge=new Badge(text.length>8?3:1.5,plain);badge.set(text,color);this.scene.add(badge.sprite);this.floating.push({badge,life:1.0,x,y:height,z});}
  update(s:Snapshot,dt:number,mode:'intro'|'play'|'paused'|'result',draw=true){
   if(mode==='paused'){if(draw)this.renderer.render(this.scene,this.camera);return;}
-  const active=mode==='play',intro=mode==='intro',renderDt=mode==='paused'?0:dt;
-  this.age+=renderDt;const hostileRate=s.timePower==='freeze'?0:s.timePower==='slow'?.5:s.timePower==='haste'?1.35:1;this.hostileAge+=renderDt*hostileRate;const bossAge=this.hostileAge;const bossPhase=s.phase==='boss'||s.phase==='destroying'||(this.bossExploded&&s.phase==='won')||(s.phase==='lost'&&s.bossHp>0&&s.travelDistance>=s.travelGoal);
+  const active=mode==='play',intro=mode==='intro',downed=s.phase==='lastStand',renderDt=mode==='paused'?0:dt;
+  this.age+=renderDt;const hostileRate=s.timePower==='freeze'?0:s.timePower==='slow'?.5:s.timePower==='haste'?1.35:1;this.hostileAge+=renderDt*hostileRate;const bossAge=this.hostileAge;const bossPhase=s.phase==='boss'||s.phase==='destroying'||(this.bossExploded&&s.phase==='won')||((s.phase==='lost'||downed)&&s.bossHp>0&&s.travelDistance>=s.travelGoal);
   const marching=active&&s.phase==='run';
   if(marching!==this.running){this.run?.stop();this.idle?.stop();(marching?this.run:this.idle)?.reset().play();this.running=marching;}
   for(const arm of this.heroArms)arm.rotation.x+=arm.userData.lastRecoil??0;
   this.mixer?.update(renderDt*(marching?1.25:1));this.environment.update(intro?this.age*.55:s.travelDistance,s.level,renderDt);
   // Constant close portrait framing: commander below centre, long visible approach.
-  const halfWidth=5.05,distance=(halfWidth/Math.min(.45,this.camera.aspect))/Math.tan(T.MathUtils.degToRad(this.camera.fov*.5)),lookZ=-8.0;
+   const halfWidth=5.05,distance=(halfWidth/Math.min(.45,this.camera.aspect))/Math.tan(T.MathUtils.degToRad(this.camera.fov*.5)),lookZ=this.cameraLookZ;
   this.camera.position.set(0,distance*.58,lookZ+distance*.815);this.camera.lookAt(0,.1,lookZ);
   if(this.shake>0&&active){this.camera.position.x+=(Math.random()-.5)*this.shake;this.camera.position.y+=(Math.random()-.5)*this.shake;this.shake=Math.max(0,this.shake-renderDt*.65);}
   const horizontalVelocity=renderDt>0?(s.x-this.previousX)/renderDt:0;this.previousX=s.x;
-  this.hero.position.set(intro?0:s.x,marching?Math.abs(Math.sin(this.age*11))*.055:0,intro?-3.7:0);
+  this.hero.position.set(intro?0:s.x,downed?-.24:marching?Math.abs(Math.sin(this.age*11))*.055:0,intro?-3.7:0);
   this.recoil=Math.max(0,this.recoil-renderDt*5);
-  if(this.model){this.model.scale.setScalar(intro?1.65:1.43);this.model.rotation.set(-this.recoil*.035,intro?Math.PI*.87:Math.PI+T.MathUtils.clamp(horizontalVelocity*.025,-.12,.12),-T.MathUtils.clamp(horizontalVelocity*.025,-.10,.10));}
+  if(this.model){this.model.scale.setScalar(intro?1.65:1.43);this.model.rotation.set(downed?.75:-this.recoil*.035,intro?Math.PI*.87:Math.PI+T.MathUtils.clamp(horizontalVelocity*.025,-.12,.12),-T.MathUtils.clamp(horizontalVelocity*.025,-.10,.10));}
   for(const arm of this.heroArms){arm.userData.lastRecoil=this.recoil*.12;arm.rotation.x-=arm.userData.lastRecoil;}
   this.arsenal?.update(s,renderDt);this.heroRing.visible=!intro;
   this.hero.visible=!this.commanderExploded;this.formationPositions=[];
@@ -147,9 +159,9 @@ export class Battlefield{
   for(let i=eliteCount;i<this.elitePool.length;i++)this.elitePool[i].visible=false;
   this.boss.visible=(bossPhase||intro)&&!this.bossExploded;this.boss.position.set(intro?0:s.bossX,intro?0:s.bossY,intro?-12:-s.bossZ);this.boss.scale.setScalar(intro?1.25:1.4);
   const bossVelocity=renderDt>0?(s.bossX-this.bossPreviousX)/renderDt:0;this.bossPreviousX=s.bossX;
-  this.boss.rotation.z=T.MathUtils.clamp(-bossVelocity*.025,-.07,.07);this.boss.rotation.y=bossPhase?T.MathUtils.clamp((s.x-s.bossX)*-.025,-.12,.12):0;
+  this.boss.rotation.z=T.MathUtils.clamp(-bossVelocity*.025,-.07,.07);this.boss.rotation.y=bossPhase?T.MathUtils.clamp(Math.atan2(((s.bossAction==='windup'||s.bossAction==='fire')?s.bossLane:s.x)-s.bossX,Math.max(6,s.bossZ)),-.32,.32):0;
   const recovering=s.bossState==='rebuilding',exposed=s.bossState==='exposed';
-  const windup=s.phase==='boss'&&s.bossAction==='windup',fire=s.phase==='boss'&&s.bossAction==='fire',walk=s.phase==='lost'||recovering||exposed?0:windup?.02:.16;
+  const windup=s.phase==='boss'&&s.bossAction==='windup',fire=s.phase==='boss'&&s.bossAction==='fire',walk=s.phase==='lost'||downed||recovering||exposed?0:windup?.02:.16;
   for(const joint of this.bossJoints){joint.quaternion.copy(joint.userData.restQuaternion);const side=joint.name.endsWith('R')?Math.PI:0;
    if(joint.name.startsWith('Leg_'))joint.rotation.x+=Math.sin(bossAge*5.5+side)*walk;
    else if(joint.name.startsWith('Knee_'))joint.rotation.x+=Math.max(0,Math.sin(bossAge*5.5+side))*(exposed||recovering?.02:.12);
@@ -160,7 +172,7 @@ export class Battlefield{
   for(const glow of this.bossMuzzles){(glow.material as T.MeshBasicMaterial).opacity=windup?.65+Math.sin(bossAge*28)*.25:fire?.95:0;glow.scale.setScalar(windup?1.5+Math.sin(bossAge*28)*.25:2.7);}
   if(this.boss.visible)this.set(this.shadowInstances,shadowCount++,this.boss.position.x,.032,this.boss.position.z,5.5);
   this.shadowInstances.count=shadowCount;this.shadowInstances.instanceMatrix.needsUpdate=true;
-  this.missiles.update(s.shots,s.enemyShots,{depthScale:1,bossPhase,bossZ:s.bossZ,bossY:s.bossY,bossLaunchHeight:s.bossPattern==='heavy'?4.5:3.4,overdrive:s.ability>0&&s.relic===2,weapon:s.weapon,visible:!intro&&s.phase!=='won'&&s.phase!=='lost'});
+  this.missiles.update(s.shots,s.enemyShots,{depthScale:1,bossPhase,bossZ:s.bossZ,bossY:s.bossY,bossLaunchHeight:s.bossPattern==='laser'?4.3:s.bossPattern==='heavy'?4.5:3.4,lasers:s.lasers,overdrive:s.ability>0&&s.relic===2,weapon:s.weapon,visible:!intro&&s.phase!=='won'&&s.phase!=='lost'});
   this.abilities.update(s,{depthScale:1,armyRadius:Math.max(1.5,outer+.8),armyCenterZ:1.5,armyCenterX:centerX,visible:!intro&&s.phase!=='won'&&s.phase!=='lost'},renderDt);
   if(active&&s.phase!=='destroying'&&this.age-this.lastMuzzle>.14&&s.shots.some(p=>p.z<2.8)){
    for(const p of this.formationPositions.filter(p=>s.shots.some(shot=>shot.owner==='troop'&&Math.abs(shot.x-p.x)<.15&&shot.z+p.z>=0&&shot.z+p.z<1.2)).slice(0,8))this.fx.muzzle(p.x,.9,p.z-.3,false);

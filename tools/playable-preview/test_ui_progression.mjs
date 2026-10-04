@@ -18,16 +18,16 @@ for(const name of ['main.ts','audio.ts'])await transform(await fs.readFile(path.
 await build({entryPoints:[path.join(here,'main.ts')],bundle:true,platform:'node',format:'esm',outfile:output,plugins:[{name:'test-boundaries',setup(b){
   b.onResolve({filter:/^\.\/(assault-core|world)$/},a=>({path:a.path,namespace:'ui-test'}));
   b.onLoad({filter:/.*/,namespace:'ui-test'},a=>({contents:a.path.endsWith('world')?
-    'export class Battlefield{async load(){}reset(){}trigger(){}update(){}}':`
+    'export class Battlefield{async load(){}reset(){}trigger(){}sacrifice(){}update(){}}':`
     export class AssaultCore {
       constructor(){globalThis.testCore=this;this.steps=0;this.calls=[];}async load(){}
       start(relic,level=0,rank=0){
         this.calls.push({relic,level,rank});this.s={phase:'run',time:0,duration:40,level,levelName:['Relic Causeway','Roller Foundry','Citadel Breach'][level],rank,rankReward:1,
-        weaponPower:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',powerTime:rank?6:0,timePower:'none',timePowerTime:0,x:0,army:8+rank*2,commanderHp:100+rank*5,commanderMaxHp:100+rank*5,energy:30,ability:0,relic,weapon:1,weaponXP:0,weaponNeed:40,kills:0,
-        bossHp:100,bossMax:100,bossArmor:100,bossArmorMax:100,bossCoreHp:40,bossCoreMax:40,bossCoreTime:0,bossState:'armored',bossRevives:0,bossAttack:0,bossLane:0,bossX:0,bossZ:20,bossY:0,bossPhase:1,bossPattern:'heavy',bossAction:'strafe',deathProgress:0,travelDistance:0,travelGoal:100,
+        weaponPower:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',starterWeapon:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',weaponPermanent:rank>0,powerTime:0,timePower:'none',timePowerTime:0,x:0,army:8+rank*2,commanderHp:100+rank*5,commanderMaxHp:100+rank*5,energy:30,ability:0,relic,weapon:1,weaponXP:0,weaponNeed:40,kills:0,
+        canHeal:false,healCost:20,healAmount:25,healUsesRemaining:2,reviveAvailable:false,reviveCost:30,reviveHp:50,reviveUsed:false,lasers:[],bossPartsMask:0,bossPart:'cannon',bossPartHp:100,bossPartMax:100,bossHp:100,bossMax:100,bossArmor:100,bossArmorMax:100,bossCoreHp:40,bossCoreMax:40,bossCoreTime:0,bossState:'armored',bossRevives:0,bossAttack:0,bossLane:0,bossX:0,bossZ:20,bossY:0,bossPhase:1,bossPattern:'heavy',bossAction:'strafe',deathProgress:0,travelDistance:0,travelGoal:100,
         engagement:false,frontline:2.6,score:100,targets:[],shots:[],enemyShots:[],pickups:[],effects:[]};
       }
-      pause(v){this.paused=v;}activate(){return false;}step(){this.steps++;}snapshot(){return {...this.s};}
+      heal(){this.healCalls=(this.healCalls||0)+1;return this.s.canHeal;}revive(){this.reviveCalls=(this.reviveCalls||0)+1;if(!this.s.reviveAvailable)return false;this.s.phase='boss';this.s.commanderHp=50;this.s.army-=30;this.s.reviveAvailable=false;this.s.reviveUsed=true;return true;}declineRevive(){this.declineCalls=(this.declineCalls||0)+1;this.s.phase='lost';}pause(v){this.paused=v;}activate(){return false;}step(){this.steps++;}snapshot(){return {...this.s};}
     }`}));
 }}]});
 
@@ -70,7 +70,7 @@ e.get('start').click();assert.equal(testCore.calls.at(-1).rank,0);win();assert.e
 frame();frame();assert.equal(saved().commanderXP,100,'Repeated result frames must not award again');
 assert.equal(e.get('result-rank').textContent,'RANK UP! COMMANDER 2 · +100 XP');
 e.get('next-level').click();assert.equal(testCore.calls.at(-1).level,1);assert.equal(testCore.calls.at(-1).rank,1);frame();
-assert.equal(e.get('power-name').textContent,'HAND CANNONS');assert.equal(e.get('power-time').textContent,'6.0s');assert.equal(e.get('ability-name').textContent,'SHIELD');
+assert.equal(e.get('power-name').textContent,'HAND CANNONS');assert.equal(e.get('power-time').textContent,'FULL RUN');assert.equal(e.get('ability-name').textContent,'SHIELD');
 win();assert.equal(saved().commanderXP,200);e.get('retry').click();win();assert.equal(saved().commanderXP,235);
 e.get('next-level').click();win();assert.equal(saved().commanderXP,335);assert.match(e.get('result-unlock').textContent,/GUIDED MISSILES/);
 e.get('retry').click();assert.equal(testCore.calls.at(-1).rank,2);frame();assert.equal(e.get('power-name').textContent,'GUIDED MISSILES');win();
@@ -85,7 +85,7 @@ console.log('PASS: earned XP, exactly-once rewards, ranks 1–4, next-stage/retr
 const healthCase=await harness();healthCase.elements.get('start').click();testCore.s.army=1;testCore.s.commanderHp=57;healthCase.frame();
 assert.equal(healthCase.elements.get('commander-health-value').textContent,'57/100');assert(Math.abs(parseFloat(healthCase.elements.get('commander-health-fill').style.width)-57)<.000001);assert.equal(healthCase.elements.get('abilities').hidden,false);
 testCore.s.army=0;testCore.s.commanderHp=23;healthCase.frame();assert.equal(healthCase.elements.get('commander-health').attributes['aria-valuenow'],'23');assert(healthCase.elements.get('commander-health').classList.values.has('critical'));
-testCore.s.phase='boss';testCore.s.bossHp=40;testCore.s.bossArmor=40;testCore.s.kills=19;healthCase.frame();assert.equal(healthCase.elements.get('route-fill').style.width,'40%');assert.equal(healthCase.elements.get('kills').textContent,'19');assert.equal(healthCase.elements.get('kill-label').textContent,'ELIMINATED');assert(!ids.includes('boss-hud'),'Only the top mission health bar remains');
+testCore.s.phase='boss';testCore.s.bossHp=40;testCore.s.bossArmor=40;testCore.s.kills=19;healthCase.frame();assert.equal(healthCase.elements.get('route-fill').style.width,'40%');assert.equal(healthCase.elements.get('kills').textContent,'19');assert.equal(healthCase.elements.get('kill-label').textContent,'BREAK THE HAND CANNONS');assert(!ids.includes('boss-hud'),'Only the top mission health bar remains');
 testCore.s.phase='lost';testCore.s.commanderHp=0;healthCase.frame();assert.equal(healthCase.elements.get('abilities').hidden,true);assert.equal(healthCase.elements.get('result').hidden,true);
 const deadSteps=testCore.steps;for(let i=0;i<20;i++)healthCase.frame();assert.equal(testCore.steps,deadSteps,'No new core combat during cosmetic death');assert.equal(healthCase.elements.get('result').hidden,true);
 for(let i=0;i<80;i++)healthCase.frame();assert.equal(healthCase.elements.get('result').hidden,false);assert.equal(healthCase.saved().commanderXP,0);healthCase.elements.get('back').click();
@@ -103,6 +103,15 @@ testCore.s.phase='boss';testCore.s.bossState='exposed';testCore.s.bossCoreHp=20;
 testCore.s.bossState='rebuilding';testCore.s.bossRevives=1;testCore.s.bossArmor=40;battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'REBUILDING');assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · REFORGED');
 battleUI.elements.get('pause-levels').click();battleUI.elements.get('start').click();battleUI.frame();assert.equal(battleUI.elements.get('army-loss').textContent,'');assert.equal(battleUI.elements.get('time-power').hidden,true);battleUI.elements.get('back').click();
 console.log('PASS: independent time-power icons and expiry, permanent casualty feedback, commander damage with surviving troops, compact pickup toast, single armor/core/rebuild bar and retry cleanup.');
+
+const transferUI=await harness();transferUI.elements.get('start').click();testCore.s.canHeal=true;testCore.s.army=70;testCore.s.commanderHp=60;transferUI.frame();
+assert.equal(transferUI.elements.get('transfer').hidden,false);assert.equal(transferUI.elements.get('transfer-cost').textContent,'−20 · +25 HP');assert.match(transferUI.elements.get('transfer').attributes['aria-label'],/20 troops.*25 commander health/);transferUI.elements.get('transfer').click();assert.equal(testCore.healCalls,1);
+testCore.s.canHeal=false;testCore.s.effects=[{id:10,kind:'heal',value:25}];testCore.s.commanderHp=85;transferUI.frame();assert.equal(transferUI.elements.get('transfer').hidden,true);assert.equal(transferUI.elements.get('commander-health-value').textContent,'85/100');
+testCore.s.phase='lastStand';testCore.s.commanderHp=0;testCore.s.reviveAvailable=true;transferUI.frame();assert.equal(transferUI.elements.get('last-stand').hidden,false);assert.equal(transferUI.elements.get('abilities').hidden,true);assert.match(transferUI.elements.get('last-stand-copy').textContent,/30 troops.*50 commander HP/);const frozenSteps=testCore.steps;for(let i=0;i<20;i++)transferUI.frame();assert.equal(testCore.steps,frozenSteps,'No combat while deciding revival');assert.equal(testCore.reviveCalls,undefined,'No automatic troop spending');
+transferUI.elements.get('revive').click();transferUI.frame();assert.equal(testCore.reviveCalls,1);assert.equal(transferUI.elements.get('last-stand').hidden,true);assert.equal(transferUI.elements.get('abilities').hidden,false);assert.equal(transferUI.elements.get('commander-health-value').textContent,'50/100');assert.equal(transferUI.saved().commanderXP,0);
+testCore.s.phase='lastStand';testCore.s.reviveAvailable=true;transferUI.frame();transferUI.elements.get('accept-defeat').click();transferUI.elements.get('pause').click();transferUI.frame();assert.equal(transferUI.elements.get('paused').hidden,true,'Decline followed by pause must not trap terminal defeat');assert.equal(testCore.declineCalls,1);assert.equal(transferUI.elements.get('last-stand').hidden,true);assert.equal(transferUI.elements.get('result').hidden,true);for(let i=0;i<100;i++)transferUI.frame();assert.equal(transferUI.elements.get('result').hidden,false);transferUI.elements.get('retry').click();transferUI.frame();assert.equal(transferUI.elements.get('last-stand').hidden,true);assert.equal(transferUI.elements.get('transfer').hidden,true);transferUI.elements.get('back').click();
+console.log('PASS: optional heal costs, explicit one-use revival choice, frozen decision time, no automatic spending, decline/destruction, retry reset and full-run starter weapon display.');
+
 
 
 for(const value of ['{broken',JSON.stringify({schema:2,cleared:['true',false,0],best:['bad',null,-20],lastLevel:'2',commanderXP:'450'}),JSON.stringify({schema:2,commanderXP:-100,lastLevel:99})]){
@@ -128,9 +137,9 @@ console.log('PASS: malformed storage, free stage selection, blocked-storage fall
 
 await build({entryPoints:[path.join(here,'audio.ts')],bundle:true,format:'esm',platform:'node',outfile:path.join(root,'builds/audio-check.mjs')});
 const {BattleAudio}=await import(pathToFileURL(path.join(root,'builds/audio-check.mjs')).href),audio=new BattleAudio();await audio.unlock();
-assert.equal(audio.buffers.size,17);
+assert.equal(audio.buffers.size,18);
 for(const [,buffer]of audio.buffers){const values=buffer.getChannelData(0);assert(values.every(Number.isFinite));assert(values.some(value=>Math.abs(value)>.01));assert(values.every(value=>Math.abs(value)<=.96));}
 assert(audio.speak('intro','The front is mine.',true));assert(!audio.speak('intro','The front is mine.',true));
 for(let i=0;i<50;i++)audio.play('hit');assert.equal(audio.active.size,24);audio.silence();assert.equal(audio.active.size,0);
 audio.setEnabled(false);audio.play('win');assert.equal(audio.active.size,0);audio.setEnabled(true);audio.reset();assert(audio.speak('intro','Again.',true));audio.dispose();assert.equal(audio.active.size,0);
-console.log('PASS: 17 cached finite audible waveforms, bounded sources, local-voice deduplication, mute/reset/disposal.');
+console.log('PASS: 18 cached finite audible waveforms, bounded sources, local-voice deduplication, mute/reset/disposal.');

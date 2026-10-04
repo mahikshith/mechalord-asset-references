@@ -1,6 +1,6 @@
 import type { Effect, Snapshot } from './contract';
 
-type Cue = 'pulse'|'twin'|'arc'|'rail'|'hit'|'grunt'|'impact'|'explosion'|'pickup'|'relic'|'windup'|'cannon'|'win'|'rank'|'start'|'loss'|'rolling';
+type Cue = 'pulse'|'twin'|'arc'|'rail'|'hit'|'grunt'|'impact'|'explosion'|'pickup'|'relic'|'windup'|'cannon'|'win'|'rank'|'start'|'loss'|'rolling'|'laser';
 /** Original, locally synthesized mechanical sounds. No downloaded samples or voice service. */
 export class BattleAudio {
   private context?: AudioContext;
@@ -25,7 +25,7 @@ export class BattleAudio {
     try {
       if (!this.context) {
         this.context = new AudioContext(); this.master = this.context.createGain(); this.master.gain.value = .65; this.master.connect(this.context.destination);
-        for (const cue of ['pulse','twin','arc','rail','hit','grunt','impact','explosion','pickup','relic','windup','cannon','win','rank','start','loss','rolling'] as Cue[]) this.buffers.set(cue, this.make(cue));
+        for (const cue of ['pulse','twin','arc','rail','hit','grunt','impact','explosion','pickup','relic','windup','cannon','win','rank','start','loss','rolling','laser'] as Cue[]) this.buffers.set(cue, this.make(cue));
       }
       if (this.enabled) await this.context.resume();
     } catch { /* Audio failure never blocks the game or its captions. */ }
@@ -55,7 +55,10 @@ export class BattleAudio {
       case 'kill': this.play('explosion', .45, .11); this.play('grunt', .4, .45); break;
       case 'damage': case 'contact': case 'commanderHit': this.play('impact', .7, .13); break;
       case 'block': this.play('arc', .35, .14); break;
-      case 'bossShot': this.play('cannon', .85, .09); break;
+      case 'bossShot': this.play(event.value === 3 ? 'laser' : 'cannon', .85, .09); break;
+      case 'bossPartBreak': this.play('explosion', .9, .14); this.play('impact', .75, .14); break;
+      case 'heal': case 'revive': this.play('relic', .9, .25); break;
+      case 'commanderDown': this.play('loss', .7); break;
       case 'coreExpose': this.play('relic', .85); this.play('impact', .55); break;
       case 'bossRevive': this.play('windup', .9); this.play('grunt', .75); break;
       case 'bossDeath': this.play('explosion', 1.8); this.play('grunt', 1); break;
@@ -98,14 +101,15 @@ export class BattleAudio {
   dispose(): void { this.silence(); if ('speechSynthesis' in window) window.speechSynthesis.removeEventListener('voiceschanged', this.voiceListener); void this.context?.close(); this.buffers.clear(); }
 
   private make(cue: Cue): AudioBuffer {
-    const audio = this.context!, length = cue === 'rolling' ? 1 : cue === 'explosion' ? 1.35 : cue === 'windup' ? .65 : ['win','rank'].includes(cue) ? .78 : ['pickup','relic','start','loss'].includes(cue) ? .4 : cue === 'grunt' ? .24 : cue === 'cannon' ? .3 : .14;
+    const audio = this.context!, length = cue === 'laser' ? .8 : cue === 'rolling' ? 1 : cue === 'explosion' ? 1.35 : cue === 'windup' ? .65 : ['win','rank'].includes(cue) ? .78 : ['pickup','relic','start','loss'].includes(cue) ? .4 : cue === 'grunt' ? .24 : cue === 'cannon' ? .3 : .14;
     const buffer = audio.createBuffer(1, Math.ceil(length * audio.sampleRate), audio.sampleRate), samples = buffer.getChannelData(0);
     let seed = 18231, filtered = 0, phase = 0;
     for (let i = 0; i < samples.length; i++) {
       const t = i / audio.sampleRate, p = t / length; seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
       const noise = seed / 2147483648 - 1; filtered += (noise - filtered) * .12;
       let value = 0;
-      if (cue === 'rolling') value = filtered * .45 + Math.sin(t * Math.PI * 2 * 39) * .08 + Math.sin(t * Math.PI * 2 * 17) * .08 * Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * 11)), 8);
+      if (cue === 'laser') { phase += 2 * Math.PI * (180 + 75 * Math.sin(p * Math.PI)) / audio.sampleRate; value = (Math.sin(phase) * .32 + Math.sin(phase * 3.02) * .16 + filtered * .14) * Math.min(1,t*60) * Math.pow(1-p,.45); }
+      else if (cue === 'rolling') value = filtered * .45 + Math.sin(t * Math.PI * 2 * 39) * .08 + Math.sin(t * Math.PI * 2 * 17) * .08 * Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * 11)), 8);
       else if (['pickup','relic','win','rank','start'].includes(cue)) {
         const notes = cue === 'rank' ? [392,494,587,784] : cue === 'win' ? [330,440,554,660] : cue === 'relic' ? [220,440,660,880] : [440,554,660,880];
         const note = notes[Math.min(3, Math.floor(p * 4))]; phase += 2 * Math.PI * note / audio.sampleRate;

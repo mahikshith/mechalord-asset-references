@@ -32,6 +32,7 @@ function joined(parts:T.BufferGeometry[]){const geo=mergeGeometries(parts,false)
 
 type Chunk={p:T.Vector3;v:T.Vector3;r:T.Vector3;spin:T.Vector3;size:T.Vector3;color:T.Color;life:number;max:number;bounce:number};
 type Puff={p:T.Vector3;v:T.Vector3;life:number;max:number;size:number;kind:'smoke'|'fire'|'flash';color:T.Color};
+type SacrificeStream={root:T.Object3D;from:T.Vector3;age:number;delay:number};
 type Acquisition={root:T.Object3D;age:number;radius:number;height:number;color:T.Color};
 type Fragment={group:T.Group;v:T.Vector3;spin:T.Vector3;delay:number;age:number;floor:number;settled:boolean;materials:T.Material[];ownedGeometry?:T.BufferGeometry};
 function visibleInTree(object:T.Object3D,root:T.Object3D){for(let p:T.Object3D|null=object;p;p=p.parent){if(!p.visible)return false;if(p===root)break;}return true;}
@@ -41,9 +42,10 @@ export class CombatVisuals {
   private chunks:Chunk[]=Array.from({length:384},()=>({p:new T.Vector3(),v:new T.Vector3(),r:new T.Vector3(),spin:new T.Vector3(),size:new T.Vector3(),color:new T.Color(),life:0,max:1,bounce:0}));
   private puffs:Puff[]=Array.from({length:256},()=>({p:new T.Vector3(),v:new T.Vector3(),life:0,max:1,size:1,kind:'smoke',color:new T.Color()}));
   private chunkIndex=0;private puffIndex=0;private seed=1921;private age=0;private dummy=new T.Object3D();
-  private fragments:Fragment[]=[];private bossBurn?:T.Vector3;private bossBurnTime=0;private bossEmission=0;
+  private fragments:Fragment[]=[];private hiddenBossParts=new Map<T.Object3D,boolean>();private bossDestroyed=false;private bossBurn?:T.Vector3;private bossBurnTime=0;private bossEmission=0;
   private commanderFragments:Fragment[]=[];readonly commanderFragmentCapacity=12;
   private debris:T.InstancedMesh;private smoke:T.InstancedMesh;private fire:T.InstancedMesh;
+  private sacrificeStreams:SacrificeStream[]=[];private streamBodies:T.InstancedMesh;private streamHeads:T.InstancedMesh;
   private acquisitions:Acquisition[]=[];private acquireRing:T.InstancedMesh;private acquireTrace:T.InstancedMesh;private acquireDummy=new T.Object3D();
   constructor(private scene:T.Scene){
     this.debris=pool(scene,new T.BoxGeometry(1,1,1),standard(0xffffff),this.debrisCapacity);this.debris.castShadow=true;
@@ -54,6 +56,8 @@ export class CombatVisuals {
     this.acquireRing=pool(scene,new T.TorusGeometry(1,.025,3,32).rotateX(Math.PI/2),light,4);
     const trace=joined([painted(new T.BoxGeometry(.025,.28,.025),0xffffff,-.035,.26,0,0,0,-.25),painted(new T.BoxGeometry(.025,.23,.025),0xffffff,.01,.04,0,0,0,.55),painted(new T.BoxGeometry(.025,.28,.025),0xffffff,-.02,-.19,0,0,0,-.25)]);
     this.acquireTrace=pool(scene,trace,light.clone(),32);instanceFade(this.acquireRing,4);instanceFade(this.acquireTrace,32);
+    const streamMaterial=new T.MeshBasicMaterial({color:0x6ee8ff,transparent:true,opacity:.75,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
+    this.streamBodies=pool(scene,new T.CylinderGeometry(.035,.035,1,6).rotateX(Math.PI/2),streamMaterial,48);this.streamHeads=pool(scene,new T.OctahedronGeometry(.11),streamMaterial.clone(),48);instanceFade(this.streamBodies,48);instanceFade(this.streamHeads,48);
     instanceFade(this.debris,this.debrisCapacity);instanceFade(this.smoke,this.particleCapacity);instanceFade(this.fire,this.particleCapacity);
   }
   private random(){this.seed=(this.seed*16807)%2147483647;return this.seed/2147483647;}
@@ -84,11 +88,33 @@ export class CombatVisuals {
     for(let i=0;i<4;i++)this.puff(x,y,worldZ,'smoke',(.22+this.random()*.22)*strength,.7+this.random()*.7,0x47515a);
   }
   muzzle(x:number,y:number,worldZ:number,hostile=false){this.puff(x,y,worldZ,'flash',.22,.07,hostile?0xff6b20:0xffd46d);}
+  /** Break authoritative named source parts, preserving their world pose and original geometry. */
+  bossPartBreak(root:T.Object3D,part:'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'){
+    if(this.bossDestroyed)return false;root.updateWorldMatrix(true,true);
+    const selectors={cannonL:['Barrel_L'],cannonR:['Barrel_R'],boosterL:['Pod_L','BattleizerWing_L'],boosterR:['Pod_R','BattleizerWing_R'],legL:['Leg_L'],legR:['Leg_R']};
+    let detached=0;
+    for(const name of selectors[part]){const node=root.getObjectByName(name);if(!node||!visibleInTree(node,root))continue;
+      const sources:T.Mesh[]=[];node.traverse(o=>{const m=o as T.Mesh;if(m.isMesh&&visibleInTree(m,root))sources.push(m);});
+      for(const mesh of sources){if(this.fragments.length>=this.fragmentCapacity)break;
+        const originals=Array.isArray(mesh.material)?mesh.material:[mesh.material];if(originals.every(m=>m.opacity<=0||m.blending===T.AdditiveBlending))continue;
+        mesh.geometry.computeBoundingBox();const center=mesh.geometry.boundingBox!.getCenter(new T.Vector3()).applyMatrix4(mesh.matrixWorld),materials=originals.map(m=>m.clone());
+        const copy=new T.Mesh(mesh.geometry,Array.isArray(mesh.material)?materials:materials[0]);copy.matrixAutoUpdate=false;copy.matrix.copy(new T.Matrix4().makeTranslation(-center.x,-center.y,-center.z).multiply(mesh.matrixWorld));copy.castShadow=true;copy.name='Wreck_'+mesh.name;
+        const group=new T.Group();group.position.copy(center);group.add(copy);this.scene.add(group);const bounds=new T.Box3().setFromObject(group),side=part.endsWith('L')?-1:1;
+        this.fragments.push({group,v:new T.Vector3(side*(1.2+this.random()),1.5+this.random(),.7),spin:new T.Vector3(.5,side*1.2,side*1.7),delay:0,age:0,floor:Math.max(.1,center.y-bounds.min.y),settled:false,materials});this.impact(center.x,center.y,center.z,.9);detached++;
+      }
+      if(sources.length){if(!this.hiddenBossParts.has(node))this.hiddenBossParts.set(node,node.visible);node.visible=false;}
+    }
+    return detached>0;
+  }
   /** Copies mesh transforms before the caller hides the live boss. Does not own its geometry. */
   bossDeath(root:T.Object3D){
-    if(this.fragments.length||this.bossBurnTime>0)return false;
-    root.updateWorldMatrix(true,true);let count=0;const centers:T.Vector3[]=[];
-    root.traverse(object=>{
+    if(this.bossDestroyed)return false;this.bossDestroyed=true;
+    root.updateWorldMatrix(true,true);
+    // Keep eight slots for the final torso/head blast, even after repeated part loss.
+    while(this.fragments.length>this.fragmentCapacity-8){const old=this.fragments.shift()!;this.scene.remove(old.group);old.materials.forEach(m=>m.dispose());old.ownedGeometry?.dispose();}
+    let count=this.fragments.length;const centers:T.Vector3[]=[],sources:T.Object3D[]=[];root.traverse(object=>sources.push(object));
+    const priority=(o:T.Object3D)=>/torso/i.test(o.name)?0:/head|face/i.test(o.name+' '+o.parent?.name)?1:2;
+    sources.sort((a,b)=>priority(a)-priority(b));sources.forEach(object=>{
       const mesh=object as T.Mesh;if(!mesh.isMesh||!visibleInTree(mesh,root)||count>=this.fragmentCapacity)return;
       // Skip HUD/badges and effects; the actual articulated mesh pieces stay intact.
       if(!mesh.geometry.getAttribute('position')||mesh.name.toLowerCase().includes('badge'))return;
@@ -96,7 +122,7 @@ export class CombatVisuals {
       const sourceMaterials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
       if(sourceMaterials.every(m=>m.opacity<=0||m.blending===T.AdditiveBlending))return;
       const materials=sourceMaterials.map(m=>{const clone=m.clone();clone.transparent=true;return clone;});
-      const copy=new T.Mesh(mesh.geometry,Array.isArray(mesh.material)?materials:materials[0]);copy.castShadow=true;
+      const copy=new T.Mesh(mesh.geometry,Array.isArray(mesh.material)?materials:materials[0]);copy.castShadow=true;copy.name='Wreck_'+mesh.name;
       copy.matrixAutoUpdate=false;copy.matrix.copy(new T.Matrix4().makeTranslation(-center.x,-center.y,-center.z).multiply(mesh.matrixWorld));
       const group=new T.Group();group.position.copy(center);group.add(copy);this.scene.add(group);
       const name=(mesh.name+' '+mesh.parent?.name).toLowerCase();const delay=name.includes('torso')?.72:name.includes('head')?.43:.06*(count%5);
@@ -148,6 +174,11 @@ export class CombatVisuals {
     if(this.commanderFragments.length){this.impact(origin.x,1.5,origin.z,2.2);for(let i=0;i<10;i++)this.chunk(origin.x,1+this.random(),origin.z,.27,i%2?0xe4d7b5:0x33444d,3.4);}
     return this.commanderFragments.length>0;
   }
+  /** Consumed troop positions are world coordinates, not simulated casualties. */
+  sacrifice(root:T.Object3D,positions:ReadonlyArray<{x:number;z:number;y?:number}>){
+    for(const [i,position] of positions.slice(0,24).entries()){if(this.sacrificeStreams.length>=48)this.sacrificeStreams.shift();this.sacrificeStreams.push({root,from:new T.Vector3(position.x,position.y??.85,position.z),age:0,delay:i*.012});}
+    if(positions.length)this.powerAcquire(root,'guided');
+  }
   /** Compact pickup transformation; only four simultaneous pulses, shared geometry/materials. */
   powerAcquire(root:T.Object3D,kind:'guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'){
     root.updateWorldMatrix(true,true);const bounds=new T.Box3().setFromObject(root),size=bounds.getSize(new T.Vector3());
@@ -187,6 +218,14 @@ export class CombatVisuals {
     }
     this.acquisitions=this.acquisitions.filter(p=>p.age<.85);changed(this.acquireRing,rings);changed(this.acquireTrace,traces);
 
+    let streamCount=0;const up=new T.Vector3(0,0,1);
+    for(const stream of this.sacrificeStreams){stream.age+=elapsed;const age=stream.age-stream.delay;if(age<0||age>=.75)continue;
+      const end=stream.root.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,1.6,0)),t=age/.75;
+      const at=(v:number)=>stream.from.clone().lerp(end,v).add(new T.Vector3(0,Math.sin(v*Math.PI)*.65,0));const point=at(t),tail=at(Math.max(0,t-.16)),direction=point.clone().sub(tail),length=Math.max(.03,direction.length());
+      this.acquireDummy.position.copy(point).add(tail).multiplyScalar(.5);this.acquireDummy.quaternion.setFromUnitVectors(up,direction.normalize());this.acquireDummy.scale.set(1,1,length);this.acquireDummy.updateMatrix();this.streamBodies.setMatrixAt(streamCount,this.acquireDummy.matrix);this.streamBodies.geometry.getAttribute('instanceOpacity').setX(streamCount,.9*(1-t*.4));
+      this.acquireDummy.position.copy(point);this.acquireDummy.rotation.set(0,0,0);this.acquireDummy.scale.setScalar(.7+.25*Math.sin(t*Math.PI));this.acquireDummy.updateMatrix();this.streamHeads.setMatrixAt(streamCount,this.acquireDummy.matrix);this.streamHeads.geometry.getAttribute('instanceOpacity').setX(streamCount,.9*(1-t*.4));streamCount++;
+    }
+    this.sacrificeStreams=this.sacrificeStreams.filter(s=>s.age-s.delay<.75);changed(this.streamBodies,streamCount);changed(this.streamHeads,streamCount);
     // A recognizable static wreck remains behind the result overlay until retry.
     // Settling ends physics work; reset owns the final material cleanup.
     for(const collection of [this.fragments,this.commanderFragments])for(const f of collection)if(!f.settled&&f.age>=2.5){
@@ -194,9 +233,9 @@ export class CombatVisuals {
       f.v.set(0,0,0);f.spin.set(0,0,0);f.settled=true;
     }
   }
-  reset(){this.acquisitions=[];changed(this.acquireRing,0);changed(this.acquireTrace,0);for(const c of this.chunks)c.life=0;for(const p of this.puffs)p.life=0;for(const collection of [this.fragments,this.commanderFragments])for(const f of collection){this.scene.remove(f.group);f.materials.forEach(m=>m.dispose());f.ownedGeometry?.dispose();}this.fragments=[];this.commanderFragments=[];this.bossBurnTime=0;this.bossBurn=undefined;changed(this.debris,0);changed(this.smoke,0);changed(this.fire,0);}
-  stats(){return {debris:this.debris.count,smoke:this.smoke.count,fire:this.fire.count,bossFragments:this.fragments.length,commanderFragments:this.commanderFragments.length,acquirePulses:this.acquisitions.length,capacity:this.debrisCapacity+this.particleCapacity+this.fragmentCapacity+this.commanderFragmentCapacity};}
-  dispose(){this.reset();for(const m of [this.debris,this.smoke,this.fire,this.acquireRing,this.acquireTrace]){this.scene.remove(m);m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}}
+  reset(){this.sacrificeStreams=[];changed(this.streamBodies,0);changed(this.streamHeads,0);for(const [node,visible] of this.hiddenBossParts)node.visible=visible;this.hiddenBossParts.clear();this.bossDestroyed=false;this.acquisitions=[];changed(this.acquireRing,0);changed(this.acquireTrace,0);for(const c of this.chunks)c.life=0;for(const p of this.puffs)p.life=0;for(const collection of [this.fragments,this.commanderFragments])for(const f of collection){this.scene.remove(f.group);f.materials.forEach(m=>m.dispose());f.ownedGeometry?.dispose();}this.fragments=[];this.commanderFragments=[];this.bossBurnTime=0;this.bossBurn=undefined;changed(this.debris,0);changed(this.smoke,0);changed(this.fire,0);}
+  stats(){return {debris:this.debris.count,smoke:this.smoke.count,fire:this.fire.count,bossFragments:this.fragments.length,commanderFragments:this.commanderFragments.length,acquirePulses:this.acquisitions.length,sacrificeStreams:this.sacrificeStreams.length,capacity:this.debrisCapacity+this.particleCapacity+this.fragmentCapacity+this.commanderFragmentCapacity};}
+  dispose(){this.reset();for(const m of [this.debris,this.smoke,this.fire,this.acquireRing,this.acquireTrace,this.streamBodies,this.streamHeads]){this.scene.remove(m);m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}}
 }
 
 /** One recognizable ~1.1m robot per actual target; two draw calls for a whole wave. */
@@ -237,12 +276,12 @@ export class RobotFormation {
   dispose(){for(const mesh of [this.body,this.eyes,this.treadMark]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 
-export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossY?:number;bossLaunchHeight?:number;overdrive:boolean;weapon:number;visible?:boolean};
+export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossY?:number;bossLaunchHeight?:number;overdrive:boolean;weapon:number;visible?:boolean;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
 export class CombatMissiles {
   private bodies:T.InstancedMesh;private exhaust:T.InstancedMesh;private orbs:T.InstancedMesh;private orbCores:T.InstancedMesh;
   private bullets:T.InstancedMesh;private tips:T.InstancedMesh;private wakes:T.InstancedMesh;private dummy=new T.Object3D();
   private color=new T.Color();readonly capacity=768;
-  private hostileLaunchZ=new Map<number,{z:number;height:number}>();
+  private beamShells:T.InstancedMesh;private beamCores:T.InstancedMesh;private hostileLaunchZ=new Map<number,{z:number;height:number}>();
   constructor(private scene:T.Scene){
     const parts=[painted(new T.CylinderGeometry(.09,.09,.47,8),0xbfc6c8,0,0,0,Math.PI/2),
       painted(new T.ConeGeometry(.095,.21,8),0xc17536,0,0,.34,Math.PI/2),
@@ -255,6 +294,8 @@ export class CombatMissiles {
     const orbCore=basic(0xffa53e);orbCore.toneMapped=false;this.orbCores=pool(scene,new T.OctahedronGeometry(.17,1),orbCore,96);
     this.bullets=pool(scene,new T.CylinderGeometry(.048,.048,.30,6).rotateX(Math.PI/2),standard(0xffffff),this.capacity);
     const tip=basic(0xffffff);tip.toneMapped=false;this.tips=pool(scene,new T.SphereGeometry(.054,6,4).translate(0,0,.18),tip,this.capacity);
+    this.beamShells=pool(scene,new T.CylinderGeometry(.5,.5,1,10).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xff7428,transparent:true,opacity:.62,depthWrite:false,toneMapped:false}),4);
+    this.beamCores=pool(scene,new T.CylinderGeometry(.18,.18,1,8).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffdc92,toneMapped:false}),4);
     this.wakes=pool(scene,new T.ConeGeometry(.045,.55,5).rotateX(Math.PI/2).translate(0,0,-.37),new T.MeshBasicMaterial({color:0x76dcff,transparent:true,opacity:.35,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),this.capacity);
   }
   update(friendly:Shot[],hostile:EnemyShot[],options:MissileOptions){
@@ -286,9 +327,16 @@ export class CombatMissiles {
     }
     for(const id of this.hostileLaunchZ.keys())if(!live.has(id))this.hostileLaunchZ.delete(id);
     changed(this.bodies,count);changed(this.exhaust,count);changed(this.orbs,orbCount);changed(this.orbCores,orbCount);changed(this.bullets,bulletCount);changed(this.tips,bulletCount);changed(this.wakes,wakeCount);
+    this.updateBeams(options);
   }
-  reset(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes])changed(mesh,0);this.hostileLaunchZ.clear();}
-  dispose(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
+  private updateBeams(options:MissileOptions){
+    let count=0;for(const beam of options.lasers??[]){if(count>=4||beam.time<=0)continue;
+      const from=new T.Vector3(beam.x,(options.bossY??0)+(options.bossLaunchHeight??3.4),-beam.z*options.depthScale),to=new T.Vector3(beam.endX,1.25,-beam.endZ*options.depthScale),direction=to.clone().sub(from),length=direction.length();if(length<.01)continue;
+      this.dummy.position.copy(from).add(to).multiplyScalar(.5);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction.normalize());this.dummy.scale.set(Math.max(.05,beam.width),Math.max(.05,beam.width),length);this.dummy.updateMatrix();this.beamShells.setMatrixAt(count,this.dummy.matrix);this.beamCores.setMatrixAt(count,this.dummy.matrix);count++;
+    }changed(this.beamShells,count);changed(this.beamCores,count);
+  }
+  reset(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores])changed(mesh,0);this.hostileLaunchZ.clear();}
+  dispose(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 
 export type ArmyAbilityOptions={depthScale:number;armyRadius:number;armyCenterX?:number;armyCenterZ:number;visible?:boolean};

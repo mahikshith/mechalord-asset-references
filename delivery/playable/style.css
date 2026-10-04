@@ -31,3 +31,18 @@ body.boss-warning .route i{background:#ef7954}body.boss-warning #phase-label{col
 .health-hit{animation:health-hit .65s ease-out}@keyframes health-hit{0%,35%{background:#893e39;color:#fff}100%{background:transparent}}
 #route-fill.core-exposed{background:#ffcd68;box-shadow:0 0 9px #ffbd5d}#route-fill.rebuilding{background:#8debfa}
 #toast{bottom:auto;top:calc(134px + env(safe-area-inset-top));font-size:10px;padding:7px 10px;max-width:calc(100% - 26px);line-height:1.35;background:#102633eb}
+
+/* Durable weapons and an optional transfer share the compact health control. */
+.temporary-power{padding:5px 7px 6px;margin-bottom:5px}.temporary-power>span{font-size:7px;margin-top:2px}.temporary-power.permanent>span{display:none}.temporary-power.permanent i{display:none}.temporary-power.permanent #power-time{font-size:9px;color:#bcf2df}.temporary-power.permanent{padding-bottom:5px}
+.weapon{padding-top:6px;padding-bottom:6px}.commander-health{margin-top:4px}.weapon-track{margin-top:4px;margin-bottom:3px}
+.transfer{display:flex;width:100%;align-items:center;justify-content:space-between;gap:4px;margin-top:5px;min-height:30px;padding:4px 5px;border:1px solid #85dbd3;border-radius:5px;background:#17454f;color:#c9fff2;text-align:left}.transfer strong{font-size:8px;line-height:1.2;max-width:49px}.transfer span{font-size:8px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}.transfer:active{background:#216978}.transfer:disabled{opacity:.4}.weapon:has(.transfer:not([hidden])) .weapon-track,.weapon:has(.transfer:not([hidden])) #weapon-xp{display:none}
+.last-stand{z-index:9}.last-stand h2{font-size:27px}.last-stand p:not(.eyebrow){font-size:13px;line-height:1.5;color:#d7ede8;margin:12px 0 20px}.last-stand .primary{font-size:14px;background:#98dfca;box-shadow:0 4px 0 #3c867c}.last-stand .text-button{font-size:11px}
+.health-restored{animation:restore .9s ease-out}@keyframes restore{0%,35%{background:#86efd5;box-shadow:0 0 14px #86efd5}100%{background:transparent;box-shadow:none}}
+
+/* The active arsenal replaces the redundant base-gun heading. Keep the rear
+   formation clear without shrinking the commander or the troop models. */
+.weapon:has(.temporary-power:not([hidden])) .weapon-title{display:none}
+.temporary-power,.temporary-power.permanent{padding:3px 7px 4px;margin-bottom:4px}
+#power-symbol{font-size:14px}.temporary-power>span{display:none}
+.weapon-track{margin-top:3px;margin-bottom:2px}.commander-health{margin-top:3px}
+#abilities{bottom:calc(6px + env(safe-area-inset-bottom))}.footer-note{margin-top:4px}.footer-note button{padding-top:3px;padding-bottom:3px}
