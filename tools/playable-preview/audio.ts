@@ -56,9 +56,11 @@ export class BattleAudio {
       case 'damage': case 'contact': case 'commanderHit': this.play('impact', .7, .13); break;
       case 'block': this.play('arc', .35, .14); break;
       case 'bossShot': this.play('cannon', .85, .09); break;
+      case 'coreExpose': this.play('relic', .85); this.play('impact', .55); break;
+      case 'bossRevive': this.play('windup', .9); this.play('grunt', .75); break;
       case 'bossDeath': this.play('explosion', 1.8); this.play('grunt', 1); break;
       case 'commanderDeath': this.play('explosion', 1.2); this.play('impact', 1); break;
-      case 'pickup': this.play(event.value === 3 ? 'relic' : event.value === 2 ? 'start' : 'pickup', .9, .25); break;
+      case 'pickup': this.play(event.value === 3 || event.value === 4 ? 'relic' : event.value === 2 || event.value === 6 ? 'start' : 'pickup', .9, .25); break;
       case 'recruit': if (event.value > 0) this.play('pickup', .55, .2); break;
       case 'relic': this.play('relic', .75, .3); break;
     }

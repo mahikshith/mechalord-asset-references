@@ -32,6 +32,7 @@ function joined(parts:T.BufferGeometry[]){const geo=mergeGeometries(parts,false)
 
 type Chunk={p:T.Vector3;v:T.Vector3;r:T.Vector3;spin:T.Vector3;size:T.Vector3;color:T.Color;life:number;max:number;bounce:number};
 type Puff={p:T.Vector3;v:T.Vector3;life:number;max:number;size:number;kind:'smoke'|'fire'|'flash';color:T.Color};
+type Acquisition={root:T.Object3D;age:number;radius:number;height:number;color:T.Color};
 type Fragment={group:T.Group;v:T.Vector3;spin:T.Vector3;delay:number;age:number;floor:number;settled:boolean;materials:T.Material[];ownedGeometry?:T.BufferGeometry};
 function visibleInTree(object:T.Object3D,root:T.Object3D){for(let p:T.Object3D|null=object;p;p=p.parent){if(!p.visible)return false;if(p===root)break;}return true;}
 
@@ -43,11 +44,16 @@ export class CombatVisuals {
   private fragments:Fragment[]=[];private bossBurn?:T.Vector3;private bossBurnTime=0;private bossEmission=0;
   private commanderFragments:Fragment[]=[];readonly commanderFragmentCapacity=12;
   private debris:T.InstancedMesh;private smoke:T.InstancedMesh;private fire:T.InstancedMesh;
+  private acquisitions:Acquisition[]=[];private acquireRing:T.InstancedMesh;private acquireTrace:T.InstancedMesh;private acquireDummy=new T.Object3D();
   constructor(private scene:T.Scene){
     this.debris=pool(scene,new T.BoxGeometry(1,1,1),standard(0xffffff),this.debrisCapacity);this.debris.castShadow=true;
     this.smoke=pool(scene,new T.IcosahedronGeometry(1,1),basic(0xffffff,.31),this.particleCapacity);
     const flame=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.8,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
     this.fire=pool(scene,new T.IcosahedronGeometry(1,0),flame,this.particleCapacity);
+    const light=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
+    this.acquireRing=pool(scene,new T.TorusGeometry(1,.025,3,32).rotateX(Math.PI/2),light,4);
+    const trace=joined([painted(new T.BoxGeometry(.025,.28,.025),0xffffff,-.035,.26,0,0,0,-.25),painted(new T.BoxGeometry(.025,.23,.025),0xffffff,.01,.04,0,0,0,.55),painted(new T.BoxGeometry(.025,.28,.025),0xffffff,-.02,-.19,0,0,0,-.25)]);
+    this.acquireTrace=pool(scene,trace,light.clone(),32);instanceFade(this.acquireRing,4);instanceFade(this.acquireTrace,32);
     instanceFade(this.debris,this.debrisCapacity);instanceFade(this.smoke,this.particleCapacity);instanceFade(this.fire,this.particleCapacity);
   }
   private random(){this.seed=(this.seed*16807)%2147483647;return this.seed/2147483647;}
@@ -142,6 +148,14 @@ export class CombatVisuals {
     if(this.commanderFragments.length){this.impact(origin.x,1.5,origin.z,2.2);for(let i=0;i<10;i++)this.chunk(origin.x,1+this.random(),origin.z,.27,i%2?0xe4d7b5:0x33444d,3.4);}
     return this.commanderFragments.length>0;
   }
+  /** Compact pickup transformation; only four simultaneous pulses, shared geometry/materials. */
+  powerAcquire(root:T.Object3D,kind:'guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'){
+    root.updateWorldMatrix(true,true);const bounds=new T.Box3().setFromObject(root),size=bounds.getSize(new T.Vector3());
+    const colors={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639};
+    if(this.acquisitions.length>=4)this.acquisitions.shift();
+    this.acquisitions.push({root,age:0,radius:T.MathUtils.clamp(Math.max(size.x,size.z)*.45,.5,1.4),height:T.MathUtils.clamp(size.y,1.5,3.5),color:new T.Color(colors[kind])});
+    const position=root.getWorldPosition(new T.Vector3());for(let i=0;i<3;i++)this.puff(position.x,1.3+i*.3,position.z,'flash',.13,.22,colors[kind]);
+  }
   update(dt:number){
     // Substeps keep bounce stable after a slow frame; freeze exactly when dt=0.
     const elapsed=Math.max(0,Math.min(dt,.15));this.age+=elapsed;
@@ -160,6 +174,19 @@ export class CombatVisuals {
     for(const p of this.puffs){if(p.life<=0)continue;const age=1-p.life/p.max,fade=Math.min(1,p.life/.22),mesh=p.kind==='smoke'?this.smoke:this.fire,index=p.kind==='smoke'?sc++:fc++;
       this.dummy.position.copy(p.p);this.dummy.rotation.set(age*2,age*3,age);this.dummy.scale.setScalar(p.size*(p.kind==='smoke'?1+age*2:1-age*.55)*fade);this.dummy.updateMatrix();mesh.setMatrixAt(index,this.dummy.matrix);mesh.geometry.getAttribute('instanceOpacity').setX(index,fade);mesh.setColorAt(index,p.color);}
     changed(this.debris,dc);changed(this.smoke,sc);changed(this.fire,fc);
+    let rings=0,traces=0;
+    for(const pulse of this.acquisitions){pulse.age+=elapsed;if(pulse.age>=.85)continue;
+      const p=pulse.root.getWorldPosition(new T.Vector3()),progress=pulse.age/.85,fade=Math.sin(Math.PI*progress)*.8;
+      this.acquireDummy.position.set(p.x,p.y+pulse.height*(.25+.5*progress),p.z);this.acquireDummy.rotation.set(0,0,0);this.acquireDummy.scale.setScalar(pulse.radius*(.78+progress*.5));this.acquireDummy.updateMatrix();
+      this.acquireRing.setMatrixAt(rings,this.acquireDummy.matrix);this.acquireRing.setColorAt(rings,pulse.color);this.acquireRing.geometry.getAttribute('instanceOpacity').setX(rings++,fade);
+      for(let i=0;i<8;i++){const angle=i/8*Math.PI*2;
+        this.acquireDummy.position.set(p.x+Math.cos(angle)*pulse.radius*.74,p.y+pulse.height*(.25+(i%3)*.22),p.z+Math.sin(angle)*pulse.radius*.74);
+        this.acquireDummy.rotation.set(0,-angle,Math.sin(pulse.age*18+i)*.08);this.acquireDummy.scale.set(1,pulse.height*.45,1);this.acquireDummy.updateMatrix();
+        this.acquireTrace.setMatrixAt(traces,this.acquireDummy.matrix);this.acquireTrace.setColorAt(traces,pulse.color);this.acquireTrace.geometry.getAttribute('instanceOpacity').setX(traces++,fade);
+      }
+    }
+    this.acquisitions=this.acquisitions.filter(p=>p.age<.85);changed(this.acquireRing,rings);changed(this.acquireTrace,traces);
+
     // A recognizable static wreck remains behind the result overlay until retry.
     // Settling ends physics work; reset owns the final material cleanup.
     for(const collection of [this.fragments,this.commanderFragments])for(const f of collection)if(!f.settled&&f.age>=2.5){
@@ -167,9 +194,9 @@ export class CombatVisuals {
       f.v.set(0,0,0);f.spin.set(0,0,0);f.settled=true;
     }
   }
-  reset(){for(const c of this.chunks)c.life=0;for(const p of this.puffs)p.life=0;for(const collection of [this.fragments,this.commanderFragments])for(const f of collection){this.scene.remove(f.group);f.materials.forEach(m=>m.dispose());f.ownedGeometry?.dispose();}this.fragments=[];this.commanderFragments=[];this.bossBurnTime=0;this.bossBurn=undefined;changed(this.debris,0);changed(this.smoke,0);changed(this.fire,0);}
-  stats(){return {debris:this.debris.count,smoke:this.smoke.count,fire:this.fire.count,bossFragments:this.fragments.length,commanderFragments:this.commanderFragments.length,capacity:this.debrisCapacity+this.particleCapacity+this.fragmentCapacity+this.commanderFragmentCapacity};}
-  dispose(){this.reset();for(const m of [this.debris,this.smoke,this.fire]){this.scene.remove(m);m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}}
+  reset(){this.acquisitions=[];changed(this.acquireRing,0);changed(this.acquireTrace,0);for(const c of this.chunks)c.life=0;for(const p of this.puffs)p.life=0;for(const collection of [this.fragments,this.commanderFragments])for(const f of collection){this.scene.remove(f.group);f.materials.forEach(m=>m.dispose());f.ownedGeometry?.dispose();}this.fragments=[];this.commanderFragments=[];this.bossBurnTime=0;this.bossBurn=undefined;changed(this.debris,0);changed(this.smoke,0);changed(this.fire,0);}
+  stats(){return {debris:this.debris.count,smoke:this.smoke.count,fire:this.fire.count,bossFragments:this.fragments.length,commanderFragments:this.commanderFragments.length,acquirePulses:this.acquisitions.length,capacity:this.debrisCapacity+this.particleCapacity+this.fragmentCapacity+this.commanderFragmentCapacity};}
+  dispose(){this.reset();for(const m of [this.debris,this.smoke,this.fire,this.acquireRing,this.acquireTrace]){this.scene.remove(m);m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}}
 }
 
 /** One recognizable ~1.1m robot per actual target; two draw calls for a whole wave. */
@@ -267,7 +294,7 @@ export class CombatMissiles {
 export type ArmyAbilityOptions={depthScale:number;armyRadius:number;armyCenterX?:number;armyCenterZ:number;visible?:boolean};
 export class ArmyAbilityVisuals {
   private group=new T.Group();private dome:T.Mesh;private domeGrid:T.Mesh;private boundary:T.Mesh;private wave:T.Mesh;
-  private arcs:T.LineSegments;private arcPositions=new Float32Array(24*6);private overdrive:T.Mesh;
+  private arcs:T.LineSegments;private arcPositions=new Float32Array(24*6);private overdrive:T.Mesh;private timeRings:T.InstancedMesh;private timeHands:T.InstancedMesh;private frostSweep:T.Mesh;private hasteTrace:T.Mesh;private timeDummy=new T.Object3D();
   private clock=0;private wasEmp=false;private pulseAge=10;
   constructor(private scene:T.Scene){
     this.dome=new T.Mesh(new T.SphereGeometry(1,24,12,0,Math.PI*2,0,Math.PI/2),new T.MeshBasicMaterial({color:0x54cfff,transparent:true,opacity:.12,side:T.DoubleSide,depthWrite:false}));
@@ -277,13 +304,19 @@ export class ArmyAbilityVisuals {
     const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(this.arcPositions,3).setUsage(T.DynamicDrawUsage));
     this.arcs=new T.LineSegments(geometry,new T.LineBasicMaterial({color:0xd2c5ff,transparent:true,opacity:.9,depthWrite:false,toneMapped:false}));this.arcs.frustumCulled=false;
     this.overdrive=new T.Mesh(new T.RingGeometry(.88,1,48),new T.MeshBasicMaterial({color:0xffb342,transparent:true,opacity:.6,side:T.DoubleSide,depthWrite:false,toneMapped:false}));this.overdrive.rotation.x=-Math.PI/2;
+    const ringMaterial=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.43,depthWrite:false,side:T.DoubleSide,toneMapped:false});
+    this.timeRings=pool(scene,new T.RingGeometry(.76,.84,24).rotateX(-Math.PI/2),ringMaterial,16);this.group.add(this.timeRings);
+    const hands=joined([painted(new T.BoxGeometry(.025,.018,.36),0x68d59d,0,0,-.15),painted(new T.BoxGeometry(.23,.018,.025),0x68d59d,.1,0,0)]);const handMaterial=basic(0xffffff,.5);handMaterial.vertexColors=true;handMaterial.toneMapped=false;
+    this.timeHands=pool(scene,hands,handMaterial,16);this.group.add(this.timeHands);
+    this.frostSweep=new T.Mesh(new T.RingGeometry(.95,1,32,1,0,Math.PI),new T.MeshBasicMaterial({color:0x9cecff,transparent:true,opacity:.24,side:T.DoubleSide,depthWrite:false,toneMapped:false}));this.frostSweep.rotation.x=-Math.PI/2;this.frostSweep.visible=false;this.group.add(this.frostSweep);
+    const chevrons=joined([-1,1].flatMap(side=>[painted(new T.BoxGeometry(.045,.018,.34),0xff8739,side*.11,0,-.05,0,side*-.62,0),painted(new T.BoxGeometry(.045,.018,.34),0xff8739,side*.11,0,.30,0,side*-.62,0)]));const hasteMaterial=basic(0xffffff,.65);hasteMaterial.vertexColors=true;hasteMaterial.toneMapped=false;this.hasteTrace=new T.Mesh(chevrons,hasteMaterial);this.hasteTrace.visible=false;this.group.add(this.hasteTrace);
     this.group.add(this.dome,this.domeGrid,this.boundary,this.wave,this.arcs,this.overdrive);scene.add(this.group);this.group.visible=false;
   }
   update(s:Snapshot,options:ArmyAbilityOptions,dt:number){
-    this.clock+=Math.max(0,dt);this.pulseAge+=Math.max(0,dt);const active=s.ability>0&&options.visible!==false;
+    this.clock+=Math.max(0,dt);this.pulseAge+=Math.max(0,dt);const timeState=s as Snapshot&{timePower?:string;timePowerTime?:number};const timeActive=(timeState.timePowerTime??0)>0&&options.visible!==false;const active=s.ability>0&&options.visible!==false;
     const emp=active&&s.relic===1;if(emp&&!this.wasEmp)this.pulseAge=0;this.wasEmp=emp;
     const centerX=options.armyCenterX??s.x,heroDistance=Math.hypot(s.x-centerX,options.armyCenterZ);
-    this.group.position.set(centerX,.04,options.armyCenterZ);this.group.visible=options.visible!==false&&(active||this.pulseAge<.85);
+    this.group.position.set(centerX,.04,options.armyCenterZ);this.group.visible=options.visible!==false&&(active||timeActive||this.pulseAge<.85);
     const radius=Math.max(1.6,options.armyRadius+.65,heroDistance+1.0);const shield=active&&s.relic===0;
     this.dome.visible=this.domeGrid.visible=this.boundary.visible=shield;
     // Commander is almost 2.8m tall in the current renderer and stands away
@@ -316,7 +349,18 @@ export class ArmyAbilityVisuals {
     this.arcs.visible=emp&&segments>0;this.arcs.geometry.setDrawRange(0,segments*2);
     this.arcs.geometry.getAttribute('position').needsUpdate=true;
     this.overdrive.visible=active&&s.relic===2;this.overdrive.scale.setScalar(radius*(1+.045*Math.sin(this.clock*12)));this.overdrive.rotation.z=this.clock;
+    let tc=0,hc=0;const freeze=timeActive&&timeState.timePower==='freeze',slow=timeActive&&timeState.timePower==='slow';
+    if(freeze||slow){const color=new T.Color(freeze?0x87dfff:0x62d69c);
+      const mark=(x:number,z:number,size:number)=>{if(tc>=16)return;this.timeDummy.position.set(x-centerX,.025,-z*options.depthScale-options.armyCenterZ);this.timeDummy.rotation.set(0,0,0);this.timeDummy.scale.setScalar(size*(freeze?1:1+.05*Math.sin(this.clock*3)));this.timeDummy.updateMatrix();this.timeRings.setMatrixAt(tc,this.timeDummy.matrix);this.timeRings.setColorAt(tc++,color);
+        if(slow){this.timeDummy.rotation.y=this.clock*.5;this.timeDummy.updateMatrix();this.timeHands.setMatrixAt(hc++,this.timeDummy.matrix);}};
+      for(const target of s.targets)if(target.kind==='enemy'&&target.hp>0&&target.z>=0&&target.z<17)mark(target.x,target.z,target.variant>0?.8:.52);
+      if(s.phase==='boss'&&s.bossHp>0)mark(s.bossX,s.bossZ,1.6);
+    }
+    changed(this.timeRings,tc);changed(this.timeHands,hc);
+    this.frostSweep.visible=freeze;this.frostSweep.position.set(s.x-centerX,.02,-Math.max(2,Math.min(7,s.frontline??6))*options.depthScale-options.armyCenterZ);this.frostSweep.scale.setScalar(2.1+.12*Math.sin(this.clock*2));
+    this.hasteTrace.visible=timeActive&&timeState.timePower==='haste';this.hasteTrace.position.set(s.x-centerX,.035,-options.armyCenterZ-.35);this.hasteTrace.scale.setScalar(1+.10*Math.sin(this.clock*9));
+
   }
-  reset(){this.group.visible=false;this.wasEmp=false;this.pulseAge=10;}
-  dispose(){this.scene.remove(this.group);const geometries=new Set<T.BufferGeometry>();this.group.traverse(obj=>{const mesh=obj as T.Mesh;if(mesh.geometry){geometries.add(mesh.geometry);(mesh.material as T.Material).dispose();}});geometries.forEach(g=>g.dispose());}
+  reset(){this.group.visible=false;this.wasEmp=false;this.pulseAge=10;changed(this.timeRings,0);changed(this.timeHands,0);this.frostSweep.visible=false;this.hasteTrace.visible=false;}
+  dispose(){this.scene.remove(this.group);const geometries=new Set<T.BufferGeometry>();this.group.traverse(obj=>{const mesh=obj as T.Mesh;if(mesh.geometry){geometries.add(mesh.geometry);(mesh.material as T.Material).dispose();if((mesh as T.InstancedMesh).isInstancedMesh)(mesh as T.InstancedMesh).dispose();}});geometries.forEach(g=>g.dispose());}
 }

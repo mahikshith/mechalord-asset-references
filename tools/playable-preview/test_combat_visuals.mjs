@@ -149,8 +149,24 @@ test('nearby boss receives its separate EMP visual cue',()=>{
   const bossState={...state,relic:1,phase:'boss',bossHp:100,bossX:3,bossZ:13.5,targets:[]};abilities.update(bossState,abilityOptions,.016);assert(abilities.arcs.visible);assert.equal(abilities.arcs.geometry.drawRange.count,16);
   bossState.bossZ=14;abilities.update(bossState,abilityOptions,.016);assert.equal(abilities.arcs.visible,false);
 });
+test('time fields mark actual hostiles and expire without scene allocations',()=>{
+  const base={...state,ability:0,relic:0,phase:'run',frontline:6,targets:Array.from({length:30},(_,id)=>({id,kind:'enemy',hp:1,x:id%3-1,z:5+id*.2,variant:0}))};const objects=scene.children.length;
+  abilities.update({...base,timePower:'freeze',timePowerTime:3},abilityOptions,.1);assert.equal(abilities.timeRings.count,16);assert.equal(abilities.timeHands.count,0);assert(abilities.frostSweep.visible);assert(abilities.group.visible);
+  const clock=abilities.clock,matrix=new T.Matrix4();abilities.timeRings.getMatrixAt(0,matrix);const before=matrix.clone();abilities.update({...base,timePower:'freeze',timePowerTime:3},abilityOptions,0);assert.equal(abilities.clock,clock);abilities.timeRings.getMatrixAt(0,matrix);assert(before.equals(matrix));
+  const position=new T.Vector3().setFromMatrixPosition(matrix);assert(Math.abs(position.x-(base.targets[0].x-abilityOptions.armyCenterX))<1e-6);assert(Math.abs(position.z-(-base.targets[0].z-abilityOptions.armyCenterZ))<1e-6);
+  abilities.update({...base,timePower:'slow',timePowerTime:3},abilityOptions,.1);assert.equal(abilities.timeHands.count,16);assert(!abilities.frostSweep.visible);
+  abilities.update({...base,timePower:'haste',timePowerTime:3},abilityOptions,.1);assert(abilities.hasteTrace.visible);assert.equal(abilities.timeRings.count,0);
+  abilities.update({...base,timePower:'haste',timePowerTime:0},abilityOptions,.1);assert(!abilities.hasteTrace.visible);assert.equal(abilities.timeHands.count,0);assert.equal(scene.children.length,objects);abilities.reset();assert.equal(abilities.timeRings.count,0);assert(!abilities.group.visible);
+});
+test('pickup armor transformation is bounded, freezes, follows hero, and expires',()=>{
+  fx.reset();const hero=new T.Group();hero.add(new T.Mesh(new T.BoxGeometry(1,3,.8),new T.MeshBasicMaterial()));hero.position.set(2,0,4);scene.add(hero);const childCount=scene.children.length;
+  for(let i=0;i<100;i++)fx.powerAcquire(hero,['guided','cannons','railburst','freeze','slow','haste'][i%6]);fx.update(.1);assert.equal(fx.stats().acquirePulses,4);assert.equal(fx.acquireRing.count,4);assert.equal(fx.acquireTrace.count,32);assert.equal(scene.children.length,childCount);
+  const old=fx.acquisitions.map(p=>p.age),matrix=new T.Matrix4();fx.acquireRing.getMatrixAt(0,matrix);const before=matrix.clone();fx.update(0);fx.acquireRing.getMatrixAt(0,matrix);assert(before.equals(matrix));assert.deepEqual(fx.acquisitions.map(p=>p.age),old);
+  hero.position.x=1;fx.update(.1);fx.acquireRing.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).x-1)<1e-6);
+  for(let i=0;i<8;i++)fx.update(.1);assert.equal(fx.stats().acquirePulses,0);assert.equal(fx.acquireRing.count,0);assert.equal(fx.acquireTrace.count,0);fx.reset();scene.remove(hero);hero.children[0].geometry.dispose();hero.children[0].material.dispose();
+});
 test('per-instance fading preserves shader chunk hooks and alpha capacity',()=>{
-  for(const mesh of [fx.debris,fx.smoke,fx.fire]){const shader={vertexShader:'#include <common>\n#include <begin_vertex>',fragmentShader:'#include <common>\n#include <color_fragment>'};mesh.material.onBeforeCompile(shader);assert(shader.vertexShader.includes('vInstanceOpacity = instanceOpacity'));assert(shader.fragmentShader.includes('diffuseColor.a *= vInstanceOpacity'));assert.equal(mesh.geometry.getAttribute('instanceOpacity').count,mesh===fx.debris?384:256);}
+  for(const mesh of [fx.debris,fx.smoke,fx.fire,fx.acquireRing,fx.acquireTrace]){const shader={vertexShader:'#include <common>\n#include <begin_vertex>',fragmentShader:'#include <common>\n#include <color_fragment>'};mesh.material.onBeforeCompile(shader);assert(shader.vertexShader.includes('vInstanceOpacity = instanceOpacity'));assert(shader.fragmentShader.includes('diffuseColor.a *= vInstanceOpacity'));assert.equal(mesh.geometry.getAttribute('instanceOpacity').count,mesh===fx.debris?384:mesh===fx.acquireRing?4:mesh===fx.acquireTrace?32:256);}
 });
 const arsenalHero=new T.Group(),arsenalBoss=new T.Group(),arsenal=new ArsenalVisuals(arsenalHero,arsenalBoss);
 const arsenalState={phase:'run',weaponPower:'none',powerTime:0,shots:[],bossAction:'strafe',bossPhase:1,bossPattern:'heavy',bossY:0,bossAttack:0};
@@ -158,6 +174,9 @@ test('hand cannon power is temporary and never inferred from weapon tier',()=>{
   arsenal.update({...arsenalState,weapon:4},.1);assert.equal(arsenal.cannons.visible,false);
   arsenal.update({...arsenalState,weaponPower:'cannons',powerTime:4,shots:[{z:.8,dx:0,dz:32}]},.1);assert(arsenal.cannons.visible);assert(arsenal.hands.some(h=>h.flash.visible));assert(arsenal.hands[0].rotor.rotation.z>0);
   arsenal.update({...arsenalState,weaponPower:'cannons',powerTime:0},.1);assert.equal(arsenal.cannons.visible,false);
+});
+test('troop shots cannot falsely trigger commander cannon recoil',()=>{
+  arsenal.reset();arsenal.update({...arsenalState,weaponPower:'cannons',powerTime:3,shots:[{owner:'troop',z:-.7,dx:0,dz:32}]},.1);assert(arsenal.hands.every(h=>!h.flash.visible));assert.equal(arsenal.recoil,0);
 });
 test('arsenal pause freezes transforms and angled aim wraps correctly',()=>{
   const s={...arsenalState,weaponPower:'cannons',powerTime:2,shots:[{z:.8,dx:-.1,dz:32}]};arsenal.update(s,.1);assert(Math.abs(arsenal.hands[0].group.rotation.y-Math.PI)<.02);
@@ -168,9 +187,27 @@ test('boss phase unfolds cannons and authoritative hover enables jets',()=>{
   assert(arsenal.wings[1].hinge.position.x>.9);assert(arsenal.wings.every(w=>w.jet.visible));assert(arsenal.bossCharge.visible);assert.equal(arsenalBoss.position.y,0);
   arsenal.update({...s,bossY:0,bossAction:'fire'},.1);assert(arsenal.wings.every(w=>!w.jet.visible&&w.flash.visible));
 });
-test('pickup cages rotate, stay finite, and dispose all local resources once',()=>{
-  for(const kind of ['guided','cannons','railburst']){const pickup=createPickup(kind,true);arsenalHero.add(pickup);let disposed=0,unique=new Set();pickup.traverse(o=>{if(o.isMesh){unique.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])unique.add(m);}});unique.forEach(r=>r.addEventListener('dispose',()=>disposed++));
-    updatePickup(pickup,1,true);assert.equal(pickup.userData.pickupKind,kind);assert(pickup.userData.pickupVisual.position.y>0.9);assert(pickup.userData.pickupCage.rotation.y!==0);disposePickup(pickup);assert.equal(disposed,unique.size);assert.equal(pickup.parent,null);}
+test('all six pickup symbols hover, stay readable, and dispose resources once',()=>{
+  for(const kind of ['guided','cannons','railburst','freeze','slow','haste']){const pickup=createPickup(kind,true);arsenalHero.add(pickup);let disposed=0,unique=new Set();pickup.traverse(o=>{if(o.isMesh){unique.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])unique.add(m);}});unique.forEach(r=>r.addEventListener('dispose',()=>disposed++));
+    updatePickup(pickup,1,true);assert.equal(pickup.userData.pickupKind,kind);assert(pickup.userData.pickupVisual.position.y>0.9);assert(pickup.userData.pickupIcon.name==='PickupSymbol_'+kind);assert(Math.abs(pickup.userData.pickupIcon.rotation.y)<.7);assert(pickup.userData.pickupCage.rotation.z!==0);disposePickup(pickup);assert.equal(disposed,unique.size);assert.equal(pickup.parent,null);}
+});
+test('weapon and time pickup silhouettes have distinct measured geometry',()=>{
+  const signatures=[];
+  for(const kind of ['guided','cannons','railburst','freeze','slow','haste']){const p=createPickup(kind);p.updateMatrixWorld(true);const box=new T.Box3().setFromObject(p.userData.pickupIcon),size=box.getSize(new T.Vector3());let vertices=0;p.userData.pickupIcon.traverse(m=>{if(m.isMesh)vertices+=m.geometry.getAttribute('position').count;});signatures.push(vertices+':'+size.toArray().map(v=>v.toFixed(2)).join(','));
+    if(kind==='freeze')assert(size.y>.9&&size.z<.4);if(kind==='railburst')assert(size.z>size.y*2);if(kind==='haste')assert(size.y>.9&&size.z<.2);disposePickup(p);}
+  assert.equal(new Set(signatures).size,6);
+});
+test('boss chest opens only for core exposure, rebuilds, and respects pause',()=>{
+  const state={...arsenalState,phase:'boss',bossState:'exposed',bossCoreTime:5,bossRevives:0,bossY:0};arsenal.reset();for(let i=0;i<10;i++)arsenal.update(state,.1);assert(arsenal.coreOpen>.9);assert(arsenal.furnace.visible);assert(arsenal.coreDoors.some(d=>d.position.length()>.3));
+  const clock=arsenal.clock,door=arsenal.coreDoors[0].position.clone();arsenal.update(state,0);assert.equal(arsenal.clock,clock);assert(door.equals(arsenal.coreDoors[0].position));
+  for(let i=0;i<20;i++)arsenal.update({...state,bossState:'rebuilding',bossRevives:1},.1);assert(arsenal.coreOpen<.2);assert(arsenal.unfolded>.9);assert(arsenal.wings[1].hinge.position.x>1.25);
+  for(let i=0;i<10;i++)arsenal.update({...state,bossState:'armored',bossRevives:1},.1);assert(arsenal.coreOpen<.02);assert(!arsenal.furnace.visible);arsenal.reset();
+});
+test('time powers scale only hostile weapon and jet animation',()=>{
+  const base={...arsenalState,phase:'boss',bossPhase:2,bossY:.6,bossAction:'windup',weaponPower:'cannons',powerTime:5,shots:[{owner:'commander',z:.5,dx:0,dz:32}]};
+  for(const [power,rate] of [['freeze',0],['slow',.5],['haste',1.35]]){arsenal.reset();arsenal.update({...base,timePower:power,timePowerTime:3},.1);assert(Math.abs(arsenal.bossClock-.1*rate)<1e-8);assert(Math.abs(arsenal.clock-.1)<1e-8);assert(arsenal.hands[0].rotor.rotation.z>0);
+    const clock=arsenal.bossClock,rotor=arsenal.wings[0].rotor.rotation.z,jet=arsenal.wings[0].jet.scale.clone();arsenal.update({...base,timePower:power,timePowerTime:3},0);assert.equal(arsenal.bossClock,clock);assert.equal(arsenal.wings[0].rotor.rotation.z,rotor);assert(jet.equals(arsenal.wings[0].jet.scale));}
+  arsenal.reset();arsenal.update({...base,timePower:'freeze',timePowerTime:0},.1);assert.equal(arsenal.bossClock,.1);
 });
 test('arsenal retries keep a fixed hierarchy and disposal owns no actor meshes',()=>{
   const h=arsenalHero.children.length,b=arsenalBoss.children.length;for(let i=0;i<300;i++){arsenal.update({...arsenalState,phase:'boss',weaponPower:'guided',powerTime:3,bossPhase:2,bossY:.4},.05);arsenal.reset();assert.equal(arsenalHero.children.length,h);assert.equal(arsenalBoss.children.length,b);}

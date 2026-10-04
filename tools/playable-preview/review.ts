@@ -1,16 +1,20 @@
 // Internal visual QA harness. Every encounter and outcome comes from the shipping WASM.
 import {AssaultCore} from './assault-core';
 import {Battlefield} from './world';
-import type {Snapshot} from './contract';
+import type {Snapshot,PickupPower} from './contract';
+import {powerKind} from './power-catalog';
 const canvas=document.querySelector('canvas')!;
 const core=new AssaultCore(),world=new Battlefield(canvas);
 let state:Snapshot,paused=false,previous=performance.now(),speed=1;
+let seekPower:PickupPower|undefined,missCore=false;
 const status=document.querySelector('output')!;
 function aim(s:Snapshot){
  if(s.phase==='boss'){
+  if(missCore&&s.bossState==='exposed')return s.bossX>=0?-3:3;
   const shots=s.enemyShots.filter(p=>p.z<5.5).map(p=>({x:p.x-p.dx*p.z/p.dz,size:p.radius+.5}));const desired=s.bossX;
   return[desired,-2.8,2.8,-1.5,1.5,0].filter(x=>!shots.some(p=>Math.abs(x-p.x)<p.size)).sort((a,b)=>Math.abs(a-desired)-Math.abs(b-desired))[0]??desired;
  }
+ if(seekPower){const selected=s.pickups.filter(p=>p.kind===seekPower&&p.z<24).sort((a,b)=>a.z-b.z)[0];if(selected)return selected.x;const orb=s.targets.find(t=>t.kind==='orb'&&powerKind(t.value)===seekPower&&t.z<29);if(orb)return orb.x;}
  const pickup=s.pickups.filter(p=>p.z<6).sort((a,b)=>a.z-b.z)[0];
  const goals=s.targets.filter(t=>t.z>1&&t.z<29&&(t.kind==='crate'||t.kind==='gate'||t.kind==='orb'||t.kind==='enemy'&&t.variant>0&&t.z<14)).sort((a,b)=>a.z-b.z);
  let desired=pickup?.x??goals[0]?.x??0;
@@ -24,7 +28,7 @@ function tick(dt:number,render=true,draw=true){
  core.step(dt,aim(state));state=core.snapshot();
  if(render){for(const event of state.effects)world.trigger(event);world.update(state,dt,'play',draw);}
 }
-function start(){core.start(Number((document.querySelector('#relic') as HTMLSelectElement).value) as 0|1|2,Number((document.querySelector('#level') as HTMLSelectElement).value),Number((document.querySelector('#rank') as HTMLSelectElement).value));state=core.snapshot();world.reset();paused=false;}
+function start(){seekPower=undefined;missCore=false;core.start(Number((document.querySelector('#relic') as HTMLSelectElement).value) as 0|1|2,Number((document.querySelector('#level') as HTMLSelectElement).value),Number((document.querySelector('#rank') as HTMLSelectElement).value));state=core.snapshot();world.reset();paused=false;}
 document.querySelector('#start')!.addEventListener('click',start);
 document.querySelector('#pause')!.addEventListener('click',()=>{paused=!paused;});
 document.querySelector('#step')!.addEventListener('click',()=>{paused=true;tick(1/30);});
@@ -44,9 +48,18 @@ document.querySelector('#defeat')!.addEventListener('click',()=>{
  for(let i=0;i<30000&&['run','boss'].includes(state.phase);i++){preceding=state;core.step(1/60,0);state=core.snapshot();}
  world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event);world.update(state,0,'play');paused=true;
 });
+
+function replayUntil(predicate:(s:Snapshot)=>boolean){
+ let preceding=state;
+ for(let i=0;i<18000&&['run','boss'].includes(state.phase)&&!predicate(state);i++){preceding=state;tick(1/60,false);}
+ world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event);world.update(state,.12,'play');paused=true;
+}
+document.querySelector('#core')!.addEventListener('click',()=>{start();replayUntil(s=>s.bossState==='exposed');});
+document.querySelector('#revive')!.addEventListener('click',()=>{start();missCore=true;replayUntil(s=>s.bossState==='rebuilding');missCore=false;});
+document.querySelector('#collect')!.addEventListener('click',()=>{start();seekPower=(document.querySelector('#pickup') as HTMLSelectElement).value as PickupPower;replayUntil(s=>s.effects.some(e=>e.kind==='pickup'&&powerKind(e.value)===seekPower));seekPower=undefined;});
 await Promise.all([core.load(),world.load()]);start();
 function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=now;
  if(!paused){for(let i=0;i<speed;i++)tick(dt,true,i===speed-1);}else world.update(state,0,'paused');
- status.textContent=`${state.phase} · ${state.time.toFixed(1)}s · army ${state.army} · kills ${state.kills} · weapon ${state.weapon} · ${state.weaponPower} ${state.powerTime.toFixed(1)}s · ${state.bossHp.toFixed(0)} boss HP · phase ${state.bossPhase} ${state.bossPattern}`;
+ status.textContent=`${state.phase} · ${state.time.toFixed(1)}s · army ${state.army} (${state.formation.length} visible) · Marshal ${state.commanderHp.toFixed(0)}HP · kills ${state.kills} · weapon ${state.weapon} · ${state.weaponPower} ${state.powerTime.toFixed(1)}s · ${state.timePower} ${state.timePowerTime.toFixed(1)}s · ${state.bossState} ${state.bossCoreTime.toFixed(1)}s · armor ${state.bossArmor.toFixed(0)} · core ${state.bossCoreHp.toFixed(0)} · revives ${state.bossRevives} · phase ${state.bossPhase} ${state.bossPattern}`;
  canvas.dataset.phase=state.phase;requestAnimationFrame(frame);
 }requestAnimationFrame(frame);

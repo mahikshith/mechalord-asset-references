@@ -2,6 +2,7 @@ import { AssaultCore } from './assault-core';
 import { Battlefield } from './world';
 import { BattleAudio } from './audio';
 import type { Relic, Snapshot } from './contract';
+import {powers,powerKind} from './power-catalog';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => {
   const element = document.getElementById(id);
@@ -33,7 +34,6 @@ const progress: Progress = { cleared: [false, false, false], best: [0, 0, 0], ga
 let migratedProgress = false;
 const rankThresholds = [0, 100, 250, 450];
 const headStarts = ['STANDARD DEPLOYMENT', 'HAND CANNONS · 6s HEAD START', 'GUIDED MISSILES · 6s HEAD START', 'RAIL BURST · 6s HEAD START'];
-const powerNames = { none: '', guided: 'GUIDED MISSILES', cannons: 'HAND CANNONS', railburst: 'RAIL BURST' };
 function commanderRank(): number { let rank = 0; for (let i = 1; i < rankThresholds.length; i++) if (progress.commanderXP >= rankThresholds[i]) rank = i; return rank; }
 try {
   const saved = JSON.parse(localStorage.getItem('mechalord-iron-front-progress-v1') || 'null');
@@ -102,6 +102,7 @@ function begin(): void {
   for (const id of ['intro', 'result', 'paused', 'danger']) $(id).hidden = true;
   $('hud').hidden = false; $('abilities').hidden = false; $('error').hidden = true;
   $('gate-flash').classList.remove('show-gate'); $('gate-flash').textContent = ''; $('toast').textContent = ''; $('damage-flash').classList.remove('show-damage');
+  $('army-loss').textContent = ''; $('army-loss').classList.remove('show-loss'); $('time-power').hidden = true;
   $('toast').classList.remove('show-toast'); clearTimeout(toastTimer); document.body.classList.remove('boss-warning', 'destroying');
   $('ability-name').textContent = names[selected]; $('ability-symbol').textContent = symbols[selected];
   $('ability-effect').textContent = abilityEffects[selected];
@@ -118,14 +119,14 @@ function activate(): void {
 function showIntro(): void {
   clearInput(); intro = true; playing = false; paused = false; defeating = false; defeatRemaining = 0; previewLevel();
   audio.reset(); clearDialogue();
-  for (const id of ['hud', 'abilities', 'result', 'paused', 'danger']) $(id).hidden = true;
+  for (const id of ['hud', 'abilities', 'result', 'paused', 'danger', 'time-power']) $(id).hidden = true;
   $('intro').hidden = false; $('toast').classList.remove('show-toast'); $('gate-flash').classList.remove('show-gate'); document.body.classList.remove('boss-warning', 'destroying');
 }
 function finish(s: Snapshot): void {
   if (!playing) return;
   playing = false; paused = false; defeating = false; defeatRemaining = 0; clearInput();
   audio.silence(); clearDialogue();
-  for (const id of ['hud', 'abilities', 'paused', 'danger']) $(id).hidden = true;
+  for (const id of ['hud', 'abilities', 'paused', 'danger', 'time-power']) $(id).hidden = true;
   document.body.classList.remove('boss-warning', 'destroying');
   const won = s.phase === 'won';
   const level = Math.max(0, Math.min(2, s.level));
@@ -145,7 +146,7 @@ function finish(s: Snapshot): void {
   if (won) audio.speak('commander-win', promoted ? 'New arsenal. Next front.' : 'The front is ours. Forward.');
 }
 function effects(s: Snapshot): void {
-  let recruited = 0, gateCleared = false, damage = false, bossDied = false, pickedUp = '';
+  let recruited = 0, casualties = 0, gateCleared = false, damage = false, bossDied = false, pickedUp = 0;
   for (const event of s.effects) {
     if (seenEffects.has(event.id)) continue;
     seenEffects.add(event.id); effectOrder.push(event.id);
@@ -154,14 +155,18 @@ function effects(s: Snapshot): void {
     audio.event(event);
     if (event.kind === 'recruit' && event.value > 0) recruited += event.value;
     else if (event.kind === 'gate') gateCleared = true;
-    else if (event.kind === 'damage' || event.kind === 'commanderHit') damage = true;
+    else if (event.kind === 'damage') { damage = true; casualties += Math.abs(event.value); }
+    else if (event.kind === 'commanderHit') { damage = true; pulse($('commander-health'), 'health-hit'); }
     else if (event.kind === 'bossDeath') bossDied = true;
-    else if (event.kind === 'pickup') pickedUp = ['','GUIDED MISSILES','HAND CANNONS','RAIL BURST'][Math.round(event.value)] || powerNames[s.weaponPower];
+    else if (event.kind === 'pickup') pickedUp = event.value;
+    else if (event.kind === 'coreExpose') toast(s.bossRevives ? 'CORE OPEN · FINISH THE TYRANT' : 'CORE OPEN · DESTROY IT BEFORE REBUILD', 1800);
+    else if (event.kind === 'bossRevive') { secondPhaseAnnounced = true; dialogue('boss-revive', 'FORGE TYRANT', 'My core still burns. Face the furnace.', true); }
   }
   if (bossDied) { clearDialogue(); $('toast').classList.remove('show-toast'); $('gate-flash').classList.remove('show-gate'); clearTimeout(toastTimer); lastWeapon = s.weapon; return; }
   if (damage) pulse($('damage-flash'), 'show-damage');
+  if (casualties) { $('army-loss').textContent = `−${casualties}`; pulse($('army-loss'), 'show-loss'); }
   // One reward notification per frame: an upgrade takes priority over gate growth.
-  if (pickedUp) { flash(`${pickedUp} · ${Math.ceil(s.powerTime)}s`); lastWeapon = s.weapon; }
+  if (pickedUp) { const info = powers[powerKind(pickedUp)]; toast(`${info.symbol} ${info.name} · ${info.effect}`, 1700); pulse($('temporary-power'), 'power-gained'); pulse($('time-power'), 'power-gained'); lastWeapon = s.weapon; }
   else if (s.weapon > lastWeapon) {
     flash(`${tierNames[Math.min(3, s.weapon - 1)]} FIRE · LV ${s.weapon}`); audio.play('rank', .7, .5); lastWeapon = s.weapon;
   } else if (recruited > 0) flash(`+${recruited} TROOPS`);
@@ -178,33 +183,38 @@ function effects(s: Snapshot): void {
 function hud(s: Snapshot): void {
   const boss = s.phase === 'boss', destroying = s.phase === 'destroying';
   const distanceRemaining = Math.max(0, s.travelGoal - s.travelDistance), route = Math.max(0, Math.min(1, s.travelDistance / Math.max(1, s.travelGoal)));
-  const percent = s.bossMax > 0 ? Math.max(0, Math.min(100, Math.round(100 * s.bossHp / s.bossMax))) : 0;
+  const exposed = boss && s.bossState === 'exposed', rebuilding = boss && s.bossState === 'rebuilding';
+  const health = exposed ? s.bossCoreHp : s.bossArmor, healthMax = exposed ? s.bossCoreMax : s.bossArmorMax;
+  const percent = healthMax > 0 ? Math.max(0, Math.min(100, Math.round(100 * health / healthMax))) : 0;
   const incoming = s.phase === 'run' && distanceRemaining <= 18 && distanceRemaining > 0;
   const projectiles = boss && s.enemyShots.some(shot => shot.z > -.5 && shot.z < 10), windup = boss && s.bossAction === 'windup';
-  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? 'FORGE TYRANT' : s.levelName.toUpperCase();
-  $('objective').textContent = destroying ? '' : boss ? (windup ? 'CHARGING' : projectiles ? 'INCOMING' : `${percent}% HP`) : s.engagement ? 'KEEP MOVING' : incoming ? 'TYRANT AHEAD' : `${Math.floor(route * 100)}% ADVANCE`;
+  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? exposed ? 'TYRANT · CORE' : s.bossRevives ? 'TYRANT · REFORGED' : 'TYRANT · ARMOR' : s.levelName.toUpperCase();
+  $('objective').textContent = destroying ? '' : boss ? (rebuilding ? 'REBUILDING' : exposed ? s.bossCoreTime > 0 ? `${percent}% · ${s.bossCoreTime.toFixed(1)}s` : `${percent}% · FINISH IT` : windup ? 'CHARGING' : projectiles ? 'INCOMING' : `${percent}% ARMOR`) : s.engagement ? 'KEEP MOVING' : incoming ? 'TYRANT AHEAD' : `${Math.floor(route * 100)}% ADVANCE`;
   $('route-fill').style.width = `${boss ? percent : destroying ? 0 : route * 100}%`;
+  $('route-fill').classList.toggle('core-exposed', exposed); $('route-fill').classList.toggle('rebuilding', rebuilding);
   document.body.classList.toggle('destroying', destroying); $('abilities').hidden = destroying;
   $('army-count').textContent = String(s.army); $('kills').textContent = String(s.kills); $('kill-label').textContent = 'ELIMINATED'; $('weapon-level').textContent = String(s.weapon);
   $('weapon-name').textContent = tierNames[Math.max(0, Math.min(3, s.weapon - 1))];
   const powerActive = s.weaponPower !== 'none' && s.powerTime > 0;
   $('temporary-power').hidden = !powerActive;
-  if (powerActive) { $('power-name').textContent = powerNames[s.weaponPower]; $('power-time').textContent = `${s.powerTime.toFixed(1)}s`; $('power-fill').style.width = `${Math.min(100, s.powerTime / 10 * 100)}%`; }
+  if (powerActive && s.weaponPower !== 'none') { const info = powers[s.weaponPower]; $('power-name').textContent = info.name; $('power-symbol').textContent = info.symbol; $('temporary-power').style.setProperty('--power-color', info.color); $('power-time').textContent = `${s.powerTime.toFixed(1)}s`; $('power-fill').style.width = `${Math.min(100, s.powerTime / info.duration * 100)}%`; }
+  const timeActive = (s.phase === 'run' || boss) && s.timePower !== 'none' && s.timePowerTime > 0; $('time-power').hidden = !timeActive;
+  if (timeActive && s.timePower !== 'none') { const info = powers[s.timePower]; $('time-symbol').textContent = info.symbol; $('time-name').textContent = s.timePower === 'freeze' ? 'HOSTILES FROZEN' : info.name; $('time-left').textContent = `${s.timePowerTime.toFixed(1)}s`; $('time-power').style.setProperty('--power-color', info.color); }
   const maxTier = s.weapon >= 4 || s.weaponNeed <= 0;
   $('weapon-xp-fill').style.width = `${maxTier ? 100 : Math.max(0, Math.min(100, s.weaponXP / s.weaponNeed * 100))}%`;
   $('weapon-xp').textContent = maxTier ? 'MAX ARSENAL' : `${Math.floor(s.weaponXP)}/${s.weaponNeed} XP → ${tierNames[Math.min(3, s.weapon)]}`;
-  const healthMax = Math.max(1, s.commanderMaxHp), health = Math.max(0, Math.min(healthMax, s.commanderHp));
-  $('commander-health-value').textContent = `${Math.ceil(health)}/${Math.ceil(healthMax)}`;
-  $('commander-health-fill').style.width = `${health / healthMax * 100}%`;
-  $('commander-health').classList.toggle('critical', health / healthMax <= .3);
-  $('commander-health').setAttribute('aria-valuemax', String(healthMax)); $('commander-health').setAttribute('aria-valuenow', String(Math.ceil(health)));
+  const leaderMax = Math.max(1, s.commanderMaxHp), leaderHp = Math.max(0, Math.min(leaderMax, s.commanderHp));
+  $('commander-health-value').textContent = `${Math.ceil(leaderHp)}/${Math.ceil(leaderMax)}`;
+  $('commander-health-fill').style.width = `${leaderHp / leaderMax * 100}%`;
+  $('commander-health').classList.toggle('critical', leaderHp / leaderMax <= .3);
+  $('commander-health').setAttribute('aria-valuemax', String(leaderMax)); $('commander-health').setAttribute('aria-valuenow', String(Math.ceil(leaderHp)));
   if (lastArmy !== s.army) { pulse($('army-count').parentElement!, 'pop'); lastArmy = s.army; }
   $('danger').hidden = true; document.body.classList.toggle('boss-warning', boss);
   const button = $<HTMLButtonElement>('ability'); button.disabled = paused || destroying || s.energy < 100 || s.ability > 0; button.classList.toggle('ready', !button.disabled);
   $('energy-fill').style.width = `${Math.max(0, Math.min(100, s.energy))}%`;
   $('ability-caption').textContent = s.ability > 0 ? `ACTIVE · ${s.ability.toFixed(1)}s` : s.energy >= 100 ? 'READY · TAP / SPACE' : `${Math.floor(s.energy)}% CHARGED`;
   button.setAttribute('aria-label', `${names[selected]}: ${descriptions[selected]} ${$('ability-caption').textContent}`);
-  $('combat-hint').textContent = s.ability > 0 ? abilityEffects[selected] : boss ? 'MOVE TO DODGE · KEEP FIRING' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'BREAK CRATES · EARN WEAPON XP';
+  $('combat-hint').textContent = exposed ? 'AIM AT THE CORE · STOP THE REBUILD' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'MOVE TO DODGE · KEEP FIRING' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'BREAK CRATES · EARN WEAPON XP';
 }
 document.querySelectorAll<HTMLButtonElement>('[data-relic]').forEach(button => button.addEventListener('click', () => {
   selected = Number(button.dataset.relic) as Relic;
@@ -262,7 +272,7 @@ function frame(now: number): void {
     if (playing) {
       if (snapshot.phase === 'lost') {
         if (!defeating) {
-          defeating = true; defeatRemaining = 1.5; clearInput(); clearDialogue(); $('hud').hidden = true; $('abilities').hidden = true;
+          defeating = true; defeatRemaining = 1.5; clearInput(); clearDialogue(); $('hud').hidden = true; $('abilities').hidden = true; $('time-power').hidden = true;
           clearTimeout(toastTimer); $('toast').classList.remove('show-toast'); $('gate-flash').classList.remove('show-gate');
         }
         if (!paused) defeatRemaining -= dt;

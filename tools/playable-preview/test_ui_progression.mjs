@@ -23,8 +23,8 @@ await build({entryPoints:[path.join(here,'main.ts')],bundle:true,platform:'node'
       constructor(){globalThis.testCore=this;this.steps=0;this.calls=[];}async load(){}
       start(relic,level=0,rank=0){
         this.calls.push({relic,level,rank});this.s={phase:'run',time:0,duration:40,level,levelName:['Relic Causeway','Roller Foundry','Citadel Breach'][level],rank,rankReward:1,
-        weaponPower:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',powerTime:rank?6:0,x:0,army:8+rank*2,commanderHp:100+rank*5,commanderMaxHp:100+rank*5,energy:30,ability:0,relic,weapon:1,weaponXP:0,weaponNeed:40,kills:0,
-        bossHp:100,bossMax:100,bossAttack:0,bossLane:0,bossX:0,bossZ:20,bossY:0,bossPhase:1,bossPattern:'heavy',bossAction:'strafe',deathProgress:0,travelDistance:0,travelGoal:100,
+        weaponPower:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',powerTime:rank?6:0,timePower:'none',timePowerTime:0,x:0,army:8+rank*2,commanderHp:100+rank*5,commanderMaxHp:100+rank*5,energy:30,ability:0,relic,weapon:1,weaponXP:0,weaponNeed:40,kills:0,
+        bossHp:100,bossMax:100,bossArmor:100,bossArmorMax:100,bossCoreHp:40,bossCoreMax:40,bossCoreTime:0,bossState:'armored',bossRevives:0,bossAttack:0,bossLane:0,bossX:0,bossZ:20,bossY:0,bossPhase:1,bossPattern:'heavy',bossAction:'strafe',deathProgress:0,travelDistance:0,travelGoal:100,
         engagement:false,frontline:2.6,score:100,targets:[],shots:[],enemyShots:[],pickups:[],effects:[]};
       }
       pause(v){this.paused=v;}activate(){return false;}step(){this.steps++;}snapshot(){return {...this.s};}
@@ -36,7 +36,7 @@ class Classes {
   toggle(v,b){if(b===undefined)b=!this.values.has(v);b?this.values.add(v):this.values.delete(v);}
 }
 class Element {
-  hidden=false;textContent='';style={};classList=new Classes();dataset={};listeners={};attributes={};offsetWidth=100;parentElement={classList:new Classes(),offsetWidth:100};
+  hidden=false;textContent='';style={setProperty(k,v){this[k]=v;}};classList=new Classes();dataset={};listeners={};attributes={};offsetWidth=100;parentElement={classList:new Classes(),offsetWidth:100};
   addEventListener(k,f){this.listeners[k]=f;}setAttribute(k,v){this.attributes[k]=v;}click(){this.listeners.click?.({});}
   hasPointerCapture(){return false;}releasePointerCapture(){}setPointerCapture(){}getBoundingClientRect(){return{width:412};}
 }
@@ -85,11 +85,25 @@ console.log('PASS: earned XP, exactly-once rewards, ranks 1–4, next-stage/retr
 const healthCase=await harness();healthCase.elements.get('start').click();testCore.s.army=1;testCore.s.commanderHp=57;healthCase.frame();
 assert.equal(healthCase.elements.get('commander-health-value').textContent,'57/100');assert(Math.abs(parseFloat(healthCase.elements.get('commander-health-fill').style.width)-57)<.000001);assert.equal(healthCase.elements.get('abilities').hidden,false);
 testCore.s.army=0;testCore.s.commanderHp=23;healthCase.frame();assert.equal(healthCase.elements.get('commander-health').attributes['aria-valuenow'],'23');assert(healthCase.elements.get('commander-health').classList.values.has('critical'));
-testCore.s.phase='boss';testCore.s.bossHp=40;testCore.s.kills=19;healthCase.frame();assert.equal(healthCase.elements.get('route-fill').style.width,'40%');assert.equal(healthCase.elements.get('kills').textContent,'19');assert.equal(healthCase.elements.get('kill-label').textContent,'ELIMINATED');assert(!ids.includes('boss-hud'),'Only the top mission health bar remains');
+testCore.s.phase='boss';testCore.s.bossHp=40;testCore.s.bossArmor=40;testCore.s.kills=19;healthCase.frame();assert.equal(healthCase.elements.get('route-fill').style.width,'40%');assert.equal(healthCase.elements.get('kills').textContent,'19');assert.equal(healthCase.elements.get('kill-label').textContent,'ELIMINATED');assert(!ids.includes('boss-hud'),'Only the top mission health bar remains');
 testCore.s.phase='lost';testCore.s.commanderHp=0;healthCase.frame();assert.equal(healthCase.elements.get('abilities').hidden,true);assert.equal(healthCase.elements.get('result').hidden,true);
 const deadSteps=testCore.steps;for(let i=0;i<20;i++)healthCase.frame();assert.equal(testCore.steps,deadSteps,'No new core combat during cosmetic death');assert.equal(healthCase.elements.get('result').hidden,true);
 for(let i=0;i<80;i++)healthCase.frame();assert.equal(healthCase.elements.get('result').hidden,false);assert.equal(healthCase.saved().commanderXP,0);healthCase.elements.get('back').click();
 console.log('PASS: commander HP with no troops, critical health, one top boss health bar, delayed defeat and no combat/XP during death.');
+
+const battleUI=await harness();battleUI.elements.get('start').click();
+for(const [kind,label,symbol] of [['freeze','HOSTILES FROZEN','❄'],['slow','SLOW FIELD','◷'],['haste','HASTE · RISK','»']]){
+  testCore.s.timePower=kind;testCore.s.timePowerTime=2.4;battleUI.frame();
+  assert.equal(battleUI.elements.get('time-power').hidden,false);assert.equal(battleUI.elements.get('time-name').textContent,label);assert.equal(battleUI.elements.get('time-symbol').textContent,symbol);assert.equal(battleUI.elements.get('time-left').textContent,'2.4s');
+}
+testCore.s.timePower='none';testCore.s.timePowerTime=0;battleUI.frame();assert.equal(battleUI.elements.get('time-power').hidden,true);
+testCore.s.army=25;testCore.s.commanderHp=92;testCore.s.effects=[{id:1,kind:'damage',value:8},{id:2,kind:'commanderHit',value:1}];battleUI.frame();assert.equal(battleUI.elements.get('army-loss').textContent,'−8');assert.equal(battleUI.elements.get('commander-health-value').textContent,'92/100');assert(battleUI.elements.get('commander-health').classList.values.has('health-hit'));
+testCore.s.effects=[{id:3,kind:'pickup',value:6}];battleUI.frame();assert.match(battleUI.elements.get('toast').textContent,/HASTE · RISK/);assert(!battleUI.elements.get('gate-flash').classList.values.has('show-gate'),'Pickup does not cover the battlefield with a large banner');
+testCore.s.phase='boss';testCore.s.bossState='exposed';testCore.s.bossCoreHp=20;testCore.s.bossCoreTime=4.2;battleUI.frame();assert.equal(battleUI.elements.get('route-fill').style.width,'50%');assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · CORE');assert.equal(battleUI.elements.get('objective').textContent,'50% · 4.2s');
+testCore.s.bossState='rebuilding';testCore.s.bossRevives=1;testCore.s.bossArmor=40;battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'REBUILDING');assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · REFORGED');
+battleUI.elements.get('pause-levels').click();battleUI.elements.get('start').click();battleUI.frame();assert.equal(battleUI.elements.get('army-loss').textContent,'');assert.equal(battleUI.elements.get('time-power').hidden,true);battleUI.elements.get('back').click();
+console.log('PASS: independent time-power icons and expiry, permanent casualty feedback, commander damage with surviving troops, compact pickup toast, single armor/core/rebuild bar and retry cleanup.');
+
 
 for(const value of ['{broken',JSON.stringify({schema:2,cleared:['true',false,0],best:['bad',null,-20],lastLevel:'2',commanderXP:'450'}),JSON.stringify({schema:2,commanderXP:-100,lastLevel:99})]){
   const x=await harness(value);x.elements.get('start').click();assert.equal(testCore.calls.at(-1).rank,0);assert.equal(testCore.s.army,8);x.elements.get('back').click();

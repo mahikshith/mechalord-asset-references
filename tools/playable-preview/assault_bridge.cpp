@@ -2,7 +2,7 @@
 #define API(Name) extern "C" __attribute__((export_name(Name)))
 static mech::assault::Battle Battle;
 static float Formation[24*3];
-static float State[40],Targets[256*11],Shots[256*7],EnemyShots[96*8],Pickups[24*5],Effects[192*8];
+static float State[49],Targets[256*11],Shots[256*7],EnemyShots[96*8],Pickups[24*5],Effects[192*8];
 API("start_run") void Start(int Relic,int Level,int Rank) { Battle.Start(static_cast<mech::assault::Relic>(std::clamp(Relic,0,2)),Level,Rank); }
 API("level_name") const char* LevelName() { return Battle.LevelName(); }
 API("step") void Step(double Dt,double X) { Battle.Advance(Dt,X); }
@@ -20,7 +20,10 @@ API("state") float* GetState()
     State[25]=Battle.deathProgress; State[26]=Battle.travelDistance; State[27]=Battle.travelGoal;
     State[28]=Battle.engagement; State[29]=Battle.Frontline;
     State[30]=Battle.rank; State[31]=Battle.rankReward; State[32]=int(Battle.weaponPower); State[33]=Battle.powerTime;
-    State[34]=Battle.bossY; State[35]=Battle.bossPhase; State[36]=int(Battle.bossPattern); State[37]=Battle.PickupCount(); State[38]=Battle.commanderHp; State[39]=Battle.commanderMaxHp; return State;
+    State[34]=Battle.bossY; State[35]=Battle.bossPhase; State[36]=int(Battle.bossPattern); State[37]=Battle.PickupCount(); State[38]=Battle.commanderHp; State[39]=Battle.commanderMaxHp;
+    State[40]=int(Battle.timePower); State[41]=Battle.timePowerTime;
+    State[42]=Battle.bossArmor; State[43]=Battle.bossArmorMax; State[44]=Battle.bossCoreHp; State[45]=Battle.bossCoreMax;
+    State[46]=Battle.bossCoreTime; State[47]=int(Battle.bossState); State[48]=Battle.bossRevives; return State;
 }
 API("target_count") int TargetCount() { return Battle.TargetCount(); }
 API("targets") float* GetTargets()
@@ -51,7 +54,7 @@ API("pickups") float* GetPickups()
 API("enemy_shot_count") int EnemyShotCount() { return Battle.EnemyShotCount(); }
 API("enemy_shots") float* GetEnemyShots()
 {
-    const double Slow=Battle.ability>0 && Battle.relic==mech::assault::Relic::EMP ? .38 : 1;
+    const double Slow=Battle.HostileSpeed();
     int N=0; for(const auto& S:Battle.enemyShots) if(S.active)
     {
         float* O=EnemyShots+N++*8;
@@ -71,7 +74,7 @@ API("drain_effects") float* EffectsOnce()
 }
 
 API("formation_count") int FormationCount()
-{ int N=0; for(int I=0;I<std::min(24,Battle.army-1);++I) if(Battle.casualtyCooldown[I]<=0) ++N; return N; }
+{ int N=0; for(int I=0;I<24;++I) if(Battle.formationAlive[I]) ++N; return N; }
 API("formation") float* GetFormation()
-{ int N=0; for(int I=0;I<std::min(24,Battle.army-1);++I) if(Battle.casualtyCooldown[I]<=0)
+{ int N=0; for(int I=0;I<24;++I) if(Battle.formationAlive[I])
     { double X,Z; Battle.TroopPosition(I,X,Z); float* O=Formation+N++*3; O[0]=I; O[1]=X; O[2]=Z; } return Formation; }

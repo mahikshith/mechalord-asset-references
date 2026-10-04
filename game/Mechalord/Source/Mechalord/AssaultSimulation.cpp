@@ -10,8 +10,10 @@ const char* Battle::LevelName() const
 void Battle::Start(Relic Equipped,int Level,int Rank)
 {
     *this=Battle{}; level=std::clamp(Level,0,2); rank=std::clamp(Rank,0,5);
-    duration=55+level*5; travelGoal=duration*3.7; bossMax=3200+level*850;
-    army=8+rank*2; commanderHp=commanderMaxHp=100+rank*5; relic=Equipped; phase=Phase::Run;
+    duration=55+level*5; travelGoal=duration*3.7; bossArmorMax=1250+level*300; bossCoreMax=450+level*100; bossCoreHp=bossCoreMax; bossMax=bossArmorMax+bossCoreMax;
+    army=8+rank*2; visualStrength=army-1; formationSpan=std::min(24,army-1);
+    for(int I=0;I<formationSpan;++I) formationAlive[I]=true;
+    commanderHp=commanderMaxHp=100+rank*5; relic=Equipped; phase=Phase::Run;
     if(rank>0) { weaponPower=rank==1?WeaponPower::Cannons:rank==2?WeaponPower::Guided:WeaponPower::Railburst; powerTime=6; }
     GatePair(0,40);
     for(double Lane:{-1.8,0.,1.8}) Spawn(Kind::Enemy,Lane,42,5+level,1,0,.3);
@@ -41,9 +43,7 @@ bool Battle::Activate()
             HitTarget(T,5+weapon*2.5);
         if(phase==Phase::Boss && bossZ<14 && std::abs(bossX-x)<3.2)
         {
-            bossHp=std::max(0.,bossHp-35-weapon*15.);
-            Emit(EffectKind::Hit,bossX,bossZ,35+weapon*15,0,3,2.4);
-            if(bossHp<=0) BeginBossDeath();
+            DamageBoss(35+weapon*15.,bossX);
         }
     }
     return true;
@@ -113,7 +113,7 @@ void Battle::SpawnTimeline()
     for(int I=0;I<13;++I) if(2+I*3.6<duration-11 && At(22+I,2+I*3.6))
         Wave(I%3==0?5:4,4.8+I*.65+level*.6,1+I/6,(I+level)%4,42);
     for(int I=0;I<7;++I) if(4+I*6<duration-10 && At(36+I,4+I*6))
-        Spawn(Kind::Orb,I%2?1.8:-1.8,40,10+level*2,1+I%3,0,.55,-3,.35);
+        Spawn(Kind::Orb,I%2?1.8:-1.8,40,10+level*2,1+I%6,0,.55,-3,.35);
     for(int I=0;I<7;++I) if(9+I*7<duration-11 && At(44+I,9+I*7))
         Spawn(Kind::Hazard,level==0?0:(I%2?1.3:-1.3),40,0,14+level*3+I*2,0,
             level==0?.85:.95,0,level==0?.65:level==1?1.35:1.6);
@@ -126,7 +126,7 @@ void Battle::SpawnTimeline()
 }
 void Battle::TroopPosition(int Slot,double& X,double& Z) const
 {
-    const int Count=std::min(24,army-1),Columns=std::min(4,Count),Row=Slot/std::max(1,Columns);
+    const int Count=formationSpan,Columns=std::min(4,Count),Row=Slot/std::max(1,Columns);
     const int Width=std::min(Columns,Count-Row*Columns);
     const double Limit=std::max(.3,3.9-(Columns-1)*.35);
     X=std::clamp(x,-Limit,Limit)+(Slot%std::max(1,Columns)-(Width-1)*.5)*.70;
@@ -146,7 +146,7 @@ bool Battle::FormationHit(double X0,double Z0,double X1,double Z1,double Radius,
         if(F>=0 && F<=1 && F<Best) { Best=F; Slot=Index; HitX=X; HitZ=Z; Found=true; }
     };
     if(Leader) Circle(x,0,.4,-1);
-    for(int I=0;I<std::min(24,army-1);++I) if(casualtyCooldown[I]<=0)
+    for(int I=0;I<24;++I) if(formationAlive[I])
     { double X,Z; TroopPosition(I,X,Z); Circle(X,Z,.36,I); }
     return Found;
 }
@@ -156,7 +156,7 @@ void Battle::DamageCommander(int Damage)
     if(ability>0 && relic==Relic::Shield) { Emit(EffectKind::Block,x,0,Damage,0,-5,.6); return; }
     const int Actual=std::min(int(std::ceil(commanderHp)),Damage);
     commanderHp=std::max(0.,commanderHp-Actual); Emit(EffectKind::CommanderHit,x,0,Actual,0,-5,.65);
-    if(commanderHp<=0) { army=0; phase=Phase::Lost; Emit(EffectKind::CommanderDeath,x,0,0,0,-5,1.2); }
+    if(commanderHp<=0) { army=0; formationAlive.fill(false); visualStrength=0; phase=Phase::Lost; Emit(EffectKind::CommanderDeath,x,0,0,0,-5,1.2); }
 }
 void Battle::DamageArmy(int Loss,double AtX,double AtZ,int Attacker,int Slot)
 {
@@ -165,20 +165,66 @@ void Battle::DamageArmy(int Loss,double AtX,double AtZ,int Attacker,int Slot)
     if(Slot<0)
     {
         double Best=1e9;
-        for(int I=0;I<std::min(24,army-1);++I) { double X,Z; TroopPosition(I,X,Z); const double D=std::hypot(X-AtX,Z-AtZ);
+        for(int I=0;I<24;++I) if(formationAlive[I]) { double X,Z; TroopPosition(I,X,Z); const double D=std::hypot(X-AtX,Z-AtZ);
             if(D<Best) { Best=D; Slot=I; } }
         if(Slot>=0) TroopPosition(Slot,AtX,AtZ);
     }
-    const int Actual=std::min(army-1,std::max(0,Loss));
-    for(int N=0;N<std::min(8,Actual);++N)
+    const int Before=army,Actual=std::min(army-1,std::max(0,Loss)); army-=Actual;
+    ResizeFormation(visualStrength*(army-1.)/std::max(1,Before-1),AtX,AtZ);
+    if(Actual>0) Emit(EffectKind::Damage,AtX,AtZ,Actual,Slot+1,-2,.45);
+    commanderChip+=Actual*.10;
+    const int Chip=int(commanderChip+1e-9); commanderChip-=Chip;
+    if(Chip>0) DamageCommander(Chip);
+}
+void Battle::ResizeFormation(double Strength,double AtX,double AtZ)
+{
+    visualStrength=std::clamp(Strength,0.,24.);
+    const int Wanted=army<=1?0:std::min(army-1,std::max(1,int(std::ceil(visualStrength-1e-9))));
+    int Count=0; for(bool Alive:formationAlive) Count+=Alive;
+    while(Count>Wanted)
     {
         int Nearest=-1; double Best=1e9;
-        for(int I=0;I<std::min(24,army-1);++I) if(casualtyCooldown[I]<=0)
-        { double X,Z; TroopPosition(I,X,Z); const double D=std::hypot(X-AtX,Z-AtZ); if(D<Best) { Best=D; Nearest=I; } }
-        if(Nearest>=0) casualtyCooldown[Nearest]=.7;
+        for(int I=0;I<24;++I) if(formationAlive[I]) { double X,Z; TroopPosition(I,X,Z); const double D=std::hypot(X-AtX,Z-AtZ); if(D<Best){Best=D;Nearest=I;} }
+        if(Nearest<0) break;
+        double X,Z; TroopPosition(Nearest,X,Z); formationAlive[Nearest]=false; --Count;
+        Emit(EffectKind::TroopDeath,X,Z,1,Nearest+1,-2,.45);
     }
-    army-=Actual;
-    if(Actual>0) Emit(EffectKind::Damage,AtX,AtZ,Actual,Slot+1,-2,.45);
+    for(int I=0;I<24 && Count<Wanted;++I) if(!formationAlive[I]) { formationAlive[I]=true; ++Count; formationSpan=std::max(formationSpan,I+1); }
+}
+void Battle::Recruit(int Gain)
+{
+    const int Before=army; army=std::min(160,army+std::max(0,Gain));
+    ResizeFormation(visualStrength+(army-Before)*24./std::max(24,army-1),x,0);
+}
+double Battle::HostileSpeed() const
+{
+    double Speed=timePower==TimePower::Freeze?0:timePower==TimePower::Slow?.5:timePower==TimePower::Haste?1.35:1;
+    if(ability>0 && relic==Relic::EMP) Speed*=.38;
+    return Speed;
+}
+void Battle::UpdateBossHealth() { bossHp=bossArmor+bossCoreHp; }
+void Battle::DamageBoss(double Damage,double AtX)
+{
+    if(phase!=Phase::Boss || bossState==BossState::Rebuilding) return;
+    const bool CoreHit=bossState==BossState::Exposed;
+    double Actual=0;
+    if(bossState==BossState::Armored)
+    {
+        Actual=std::min({bossArmor,Damage*(bossRevives?.50:.65),armorBudget});
+        bossArmor-=Actual; armorBudget-=Actual;
+        if(bossArmor<=1e-8)
+        {
+            bossArmor=0; bossState=BossState::Exposed; bossCoreTime=bossRevives?0:6.5;
+            Emit(EffectKind::CoreExpose,bossX,bossZ,int(bossCoreTime*10),0,4,.9);
+        }
+    }
+    else if(std::abs(AtX-bossX)<.9)
+    {
+        Actual=std::min(bossCoreHp,Damage*.95); bossCoreHp-=Actual;
+    }
+    if(Actual>0) { Charge(Actual*.12); Emit(EffectKind::Hit,AtX,bossZ,int(std::ceil(Actual)),0,CoreHit?4:3,CoreHit?.9:2.4); }
+    UpdateBossHealth();
+    if(bossCoreHp<=0) BeginBossDeath();
 }
 void Battle::AwardWeaponXP(int Amount)
 {
@@ -204,7 +250,7 @@ void Battle::Fire()
     { return A->z+std::abs(A->x-x)*1.4 < B->z+std::abs(B->x-x)*1.4; });
     const int Spread=std::max(1,std::min(6,CandidateCount));
     std::array<int,24> AliveSlots{}; int Alive=0;
-    for(int I=0;I<std::min(24,army-1);++I) if(casualtyCooldown[I]<=0) AliveSlots[Alive++]=I;
+    for(int I=0;I<24;++I) if(formationAlive[I]) AliveSlots[Alive++]=I;
     for(int I=0;I<Count;++I) for(auto& S:shots) if(!S.active)
     {
         double Origin=std::clamp(x+(I==0?-.16:.16),-3.4,3.4),OriginZ=.4;
@@ -235,12 +281,12 @@ void Battle::HitTarget(Target& T,double Damage)
         return;
     }
     if(T.hp>0) return;
-    T.active=false; ++kills; const int Reward=T.kind==Kind::Crate?30:T.kind==Kind::Orb?35:10+T.variant*10; score+=Reward;
+    T.active=false; ++kills; const int BaseReward=T.kind==Kind::Crate?30:T.kind==Kind::Orb?35:10+T.variant*10; const int Reward=timePower==TimePower::Haste?int(BaseReward*1.5):BaseReward; score+=Reward;
     Charge(T.kind==Kind::Crate || T.kind==Kind::Orb?15:5);
     Emit(EffectKind::Kill,T.x,T.z,Reward,T.id,T.variant,T.size);
-    if(T.kind==Kind::Crate) AwardWeaponXP(T.value);
+    if(T.kind==Kind::Crate) AwardWeaponXP(timePower==TimePower::Haste?int(T.value*1.25):T.value);
     if(T.kind==Kind::Orb || (T.kind==Kind::Enemy && T.variant>0))
-        DropPickup(T.x,std::max(.9,T.z),static_cast<WeaponPower>(T.kind==Kind::Orb?T.value:1+(T.id+level)%3),T.id);
+        DropPickup(T.x,std::max(.9,T.z),static_cast<PickupKind>(T.kind==Kind::Orb?T.value:1+(T.id+level)%6),T.id);
 }
 void Battle::MoveShots(double Dt)
 {
@@ -285,9 +331,8 @@ void Battle::MoveShots(double Dt)
             const double HitX=BeforeX+(S.x-BeforeX)*F;
             if(std::abs(HitX-bossX)<2.4)
             {
-                const double Damage=S.damage*.65; bossHp=std::max(0.,bossHp-Damage); Charge(Damage*.12);
-                Emit(EffectKind::Hit,HitX,bossZ,int(std::ceil(Damage)),0,3,2.4); S.active=false;
-                if(bossHp<=0) { BeginBossDeath(); return; }
+                DamageBoss(S.damage,HitX); S.active=false;
+                if(phase==Phase::Destroying) return;
             }
         }
         if(S.z>28 || S.z< -5 || std::abs(S.x)>9) S.active=false;
@@ -301,7 +346,7 @@ void Battle::SpawnEnemyShot(double OriginX,double OriginZ,double AimX,double Spe
 }
 void Battle::MoveEnemyShots(double Dt)
 {
-    const double Slow=ability>0 && relic==Relic::EMP?.38:1;
+    const double Slow=HostileSpeed();
     for(auto& S:enemyShots)
     {
         if(!S.active) continue;
@@ -315,23 +360,27 @@ void Battle::MoveEnemyShots(double Dt)
         if(phase==Phase::Lost) return;
     }
 }
-void Battle::DropPickup(double X,double Z,WeaponPower Power,int Source)
+void Battle::DropPickup(double X,double Z,PickupKind Power,int Source)
 {
     for(auto& P:pickups) if(!P.active)
     {
-        P={nextPickupId++,Power,X,Z,1.1,true}; Emit(EffectKind::Drop,X,Z,int(Power),Source,-4,1.1); return;
+        if(Power==PickupKind::Haste) X=x>=0?-2.7:2.7;
+        const double Radius=Power==PickupKind::Haste?.65:1.1;
+        P={nextPickupId++,Power,X,Z,Radius,true}; Emit(EffectKind::Drop,X,Z,int(Power),Source,-4,Radius); return;
     }
 }
 void Battle::MovePickups(double Dt)
 {
     for(auto& P:pickups) if(P.active)
     {
-        P.z-=3.7*Dt;
+        P.z-=3.7*Dt*(phase==Phase::Run?(timePower==TimePower::Slow?.5:timePower==TimePower::Haste?1.35:1):1);
         if(P.z>.8) continue;
         P.active=false;
         if(std::abs(P.x-x)<=P.radius+.15)
         {
-            weaponPower=P.kind; powerTime=10+rank*.3; Charge(25); score+=15;
+            if(int(P.kind)<=3) { weaponPower=static_cast<WeaponPower>(P.kind); powerTime=10+rank*.3; }
+            else { timePower=static_cast<TimePower>(int(P.kind)-3); timePowerTime=P.kind==PickupKind::Freeze?3:5; }
+            Charge(25); score+=15;
             Emit(EffectKind::Pickup,P.x,.8,int(P.kind),P.id,-4,P.radius);
         }
         else Emit(EffectKind::Missed,P.x,.8,int(P.kind),P.id,-4,P.radius);
@@ -353,7 +402,8 @@ void Battle::MoveTargets(double Dt,double TravelDelta)
             double Near=-10;
             for(int J=0;J<I;++J) if(Ordered[J]->active && Ordered[J]->kind==Kind::Enemy && std::abs(Ordered[J]->x-T.x)<.38)
                 Near=std::max(Near,Ordered[J]->z+.72);
-            T.z=std::max(Near,T.z-TravelDelta-Dt*(Emp?.05:.25));
+            const double Approach=timePower==TimePower::Freeze && T.z<18?0:(Emp?.2:1);
+            T.z=std::max(Near,T.z-TravelDelta*Approach-Dt*.25*Approach);
             int Slot=-1; double HitX=0,HitZ=0;
             if(T.op==0 && FormationHit(T.x,BeforeZ,T.x,T.z,T.size,true,Slot,HitX,HitZ))
             {
@@ -365,9 +415,9 @@ void Battle::MoveTargets(double Dt,double TravelDelta)
                 // cannot slide through the protected army while disengaging.
                 T.op=2; T.z=std::max(1.8,T.z+2.2); T.originX=T.x>=x?6:-6; engagement=true;
             }
-            else if(T.variant==2 && !Emp && T.z>Frontline && T.z<20)
+            else if(T.variant==2 && !Emp && timePower!=TimePower::Freeze && T.z>Frontline && T.z<20)
             {
-                T.fireClock+=Dt;
+                T.fireClock+=Dt*(timePower==TimePower::Slow?.5:timePower==TimePower::Haste?1.35:1);
                 if(T.fireClock>=3.5) { T.fireClock=0; SpawnEnemyShot(T.x,T.z,x,7,.22,4,ProjectileKind::Orb,false); }
             }
             if(T.op==2)
@@ -381,8 +431,12 @@ void Battle::MoveTargets(double Dt,double TravelDelta)
             continue;
         }
         const double BeforeX=T.x,BeforeZ=T.z;
-        if((T.kind==Kind::Hazard || T.kind==Kind::Orb) && T.motion>0) T.x=std::clamp(T.originX+T.motion*std::sin(time*T.motionRate+T.id*.37),-2.9,2.9);
-        T.z-=TravelDelta;
+        if(T.motion>0)
+        {
+            T.motionPhase+=Dt*T.motionRate*(T.kind==Kind::Hazard?HostileSpeed():1);
+            T.x=std::clamp(T.originX+T.motion*std::sin(T.motionPhase+T.id*.37),-2.9,2.9);
+        }
+        T.z-=TravelDelta*(T.kind==Kind::Hazard && timePower==TimePower::Freeze?0:1);
         if(T.kind==Kind::Hazard)
         {
             int Slot=-1; double HitX=0,HitZ=0;
@@ -404,10 +458,12 @@ void Battle::MoveTargets(double Dt,double TravelDelta)
         if(T.kind==Kind::Gate)
         {
             if(std::abs(T.x-x)>T.size+.08) { Emit(EffectKind::Missed,T.x,0,0,T.id,0,T.size); continue; }
-            const int Before=army; army=std::clamp(T.op==1?army*T.value:army+T.value,0,160);
+            const int Before=army,After=std::clamp(T.op==1?army*T.value:army+T.value,0,160);
+            if(After>=Before) Recruit(After-Before);
+            else { DamageArmy(Before-After,T.x,0,T.id); if(After==0 && phase!=Phase::Lost) { commanderHp=0; army=0; formationAlive.fill(false); visualStrength=0; phase=Phase::Lost; Emit(EffectKind::CommanderDeath,x,0,0,0,-5,1.2); } }
             score+=army-Before; Charge(15); Emit(EffectKind::Gate,T.x,0,T.value,T.id,0,T.size);
-            if(army!=Before) Emit(army<Before?EffectKind::Damage:EffectKind::Recruit,T.x,0,std::abs(army-Before),T.id,-2,.3);
-            if(army==0) { commanderHp=0; phase=Phase::Lost; Emit(EffectKind::CommanderDeath,x,0,0,0,-5,1.2); return; }
+            if(army>Before) Emit(EffectKind::Recruit,T.x,0,army-Before,T.id,-2,.3);
+            if(army==0) return;
         }
     }
 }
@@ -432,28 +488,46 @@ void Battle::BossVolley()
 void Battle::BeginBossDeath()
 {
     if(phase!=Phase::Boss) return;
-    phase=Phase::Destroying; bossHp=0; bossAction=BossAction::Dying; bossAttack=0; deathClock=deathProgress=0;
+    phase=Phase::Destroying; bossState=BossState::Destroying; bossHp=0; bossAction=BossAction::Dying; bossAttack=0; deathClock=deathProgress=0;
     for(auto& S:shots) S.active=false; for(auto& S:enemyShots) S.active=false;
     Emit(EffectKind::BossDeath,bossX,bossZ,0,0,3,2.7);
 }
 void Battle::BossStep(double Dt)
 {
-    bossAge+=Dt; bossY=1.2+(bossPhase==2?.85:.55)*(1+std::sin(bossAge*1.5));
+    const double BossDt=Dt*(timePower==TimePower::Freeze?0:timePower==TimePower::Slow?.5:timePower==TimePower::Haste?1.35:1);
+    armorBudget=std::min(45.,armorBudget+(110+level*20)*(bossRevives?.8:1)*Dt);
+    if(bossState==BossState::Exposed && bossRevives==0)
+    {
+        bossCoreTime=std::max(0.,bossCoreTime-BossDt);
+        if(bossCoreTime<=0)
+        {
+            bossRevives=1; bossState=BossState::Rebuilding; rebuildClock=1.8;
+            bossArmorMax=(1250+level*300)*.55; bossArmor=bossArmorMax; UpdateBossHealth();
+            Emit(EffectKind::BossRevive,bossX,bossZ,1,0,3,2.7);
+        }
+    }
+    if(bossState==BossState::Rebuilding)
+    {
+        rebuildClock=std::max(0.,rebuildClock-BossDt); bossAction=BossAction::Windup; bossAttack=0;
+        if(rebuildClock<=0) { bossState=BossState::Armored; bossClock=0; bossLaneLocked=false; }
+        return;
+    }
+    bossAge+=BossDt; bossY=1.2+(bossPhase==2?.85:.55)*(1+std::sin(bossAge*1.5));
     if(bossZ>12.01 && bossAge<3)
     {
-        bossZ=std::max(12.,bossZ-9.8*Dt); bossAction=BossAction::Advance; bossY=2.8; bossAttack=0; return;
+        bossZ=std::max(12.,bossZ-9.8*BossDt); bossAction=BossAction::Advance; bossY=2.8; bossAttack=0; return;
     }
     if(bossPhase==1 && bossHp<=bossMax*.5)
     { bossPhase=2; Emit(EffectKind::BossPhase,bossX,bossZ,2,0,3,2.7); }
     const double Cycle=std::fmod(std::max(0.,bossAge-3.),16.);
     const double DesiredZ=Cycle>5 && Cycle<9?8.5:12.;
-    bossZ+=std::clamp(DesiredZ-bossZ,-2.2*Dt,2.2*Dt); bossX=1.6*std::sin(std::max(0.,bossAge-3.)*.6);
+    bossZ+=std::clamp(DesiredZ-bossZ,-2.2*BossDt,2.2*BossDt); bossX=1.6*std::sin(std::max(0.,bossAge-3.)*.6);
     bossAction=std::abs(DesiredZ-bossZ)>.1?(DesiredZ<bossZ?BossAction::Advance:BossAction::Retreat):BossAction::Strafe;
-    firePose=std::max(0.,firePose-Dt); bossClock+=Dt*(ability>0 && relic==Relic::EMP?.5:1);
+    firePose=std::max(0.,firePose-BossDt); bossClock+=BossDt*(ability>0 && relic==Relic::EMP?.5:1);
     if(firePose<=0 && !bossLaneLocked) bossPattern=static_cast<BossPattern>((bossVolleys+level)%3);
     if(sweepIndex>=0)
     {
-        sweepClock+=Dt;
+        sweepClock+=BossDt;
         while(sweepClock>=.14 && sweepIndex<=6)
         {
             sweepClock-=.14;
@@ -480,7 +554,7 @@ void Battle::Step(double Dt)
         if(deathClock+1e-9>=2.5) { phase=Phase::Won; rankReward=rank<5?1:0; score+=200+level*100; Emit(EffectKind::Win,bossX,bossZ,score,0,3,2.7); }
         return;
     }
-    for(auto& Cooldown:casualtyCooldown) Cooldown=std::max(0.,Cooldown-Dt);
+    timePowerTime=std::max(0.,timePowerTime-Dt); if(timePowerTime<=0) timePower=TimePower::None;
     ability=std::max(0.,ability-Dt); x+=std::clamp(desiredX-x,-9*Dt,9*Dt);
     powerTime=std::max(0.,powerTime-Dt); if(powerTime<=0) weaponPower=WeaponPower::None;
     if(phase==Phase::Boss)
@@ -494,7 +568,7 @@ void Battle::Step(double Dt)
     }
     if(phase==Phase::Run)
     {
-        const double Delta=std::min(3.7*Dt,travelGoal-travelDistance);
+        const double Delta=std::min(3.7*Dt*(timePower==TimePower::Slow?.5:timePower==TimePower::Haste?1.35:1),travelGoal-travelDistance);
         travelDistance+=Delta; SpawnTimeline(); MoveTargets(Dt,Delta);
         if(phase==Phase::Lost) return;
     }
@@ -509,7 +583,7 @@ void Battle::Step(double Dt)
         // Regroup on arrival regardless of distant surviving foes. Retirement
         // is explicit and earns no kill score, loot or weapon experience.
         {
-            phase=Phase::Boss; bossHp=bossMax; bossZ=40; bossX=0; bossClock=bossAge=0; bossLaneLocked=false; engagement=false;
+            phase=Phase::Boss; bossArmor=bossArmorMax; bossCoreHp=bossCoreMax; UpdateBossHealth(); bossZ=40; bossX=0; bossClock=bossAge=0; bossLaneLocked=false; engagement=false;
             bossPattern=static_cast<BossPattern>(level%3);
             for(auto& T:targets) if(T.active)
             {
