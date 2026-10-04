@@ -1,0 +1,26 @@
+{
+  "file": "C:\\Users\\mahik\\Desktop\\mechalord\\assets\\exports\\relic-marshal-repaired-v4.glb",
+  "bytes": 4571592,
+  "sha256": "26fcaa301aacbe41e287369cb46e67bdc8ff481edb951c5233a9b9d4f3e98aa4",
+  "validGLB2": true,
+  "blenderReimport": "passed",
+  "finiteCoordinates": true,
+  "meshValidationModifiedData": false,
+  "triangles": 156678,
+  "meshObjects": 23,
+  "heightMetres": 2.0159728471189737,
+  "materials": [
+    "Authored body paint",
+    "Brushed bronze",
+    "Cyan relic light",
+    "Deep teal enamel",
+    "Ivory enamel",
+    "Recessed gunmetal"
+  ],
+  "coloredPrimitives": 1,
+  "totalPrimitives": 23,
+  "emissiveMaterials": 1,
+  "rigged": false,
+  "animations": 0,
+  "mobileProductionReady": false
+}
