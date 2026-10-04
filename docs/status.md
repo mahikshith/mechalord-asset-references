@@ -2,15 +2,19 @@
 
 ## Current rebuild: Iron Front
 
+Local TRELLIS generation and Blender repair work was canceled by the user on 4 October 2026. Do not resume it. The user ran `tools/remove_local_trellis.ps1`, removing all 35 inventoried targets totaling 4,096,286,002 bytes. A subsequent read-only check confirmed zero remaining cleanup targets and zero TRELLIS processes. The playable game, original concept reference and Blender remain present. No system-wide Python packages were installed for this portable pipeline; pre-existing shared libraries were preserved. Git history was not rewritten.
+
 The active branch is `feature/iron-front-lanes-and-arsenal`; `main` at `7975736` preserves the preceding build. The browser preview now contains three selectable authored stages: Relic Causeway, Roller Foundry and Citadel Breach, with saved completion/best scores, immediate retries and a Next Level flow.
 
-This iteration adds clear paired gates, moving rollers, larger rounded troop formations, denser enemy waves, Reaver elites/ranged units, four earned weapon tiers, restricted relic recharge, and actual incoming boss shells/orbs/rockets. Environment palettes and roadside props change per stage. New Cinder Reaver and Forge Tyrant assets have editable Blender sources, measured geometry and verified articulated pivots. They are provisional local modeling interpretations of original generated concepts; they are not TRELLIS conversions or accepted final production art.
+The current frontline rebuild resolves contact combat instead of scrolling enemies through the army. Progression follows travelled distance and stops for close engagements or aimed upgrade crates. Regular enemies are modeled clockwork robots. Solid missiles, impact flashes, falling armor, whole-legion Shield, targeted EMP arcs and Overdrive trails make combat consequences visible. The boss strafes, advances, winds up its weapons and fires from its actual location. Its 2.5-second destruction sequence leaves a bounded static wreck until retry.
 
-The current C++/WASM combat passed 30 automated checks, including all nine stage/relic combinations, projectile hits and misses, gate operations, XP, roller collisions, pause/resume, fixed-step equivalence and 250 retries. These are automated feasibility results, not evidence of first-time-player comprehension, native engine integration or mobile performance. See `rebuild-validation.md` and `villain-assets-v3.md`.
+The raised causeway uses segmented beveled masonry, service ledges, arches, supports, gears and three stage palettes, with shared original stone textures. A lower perspective camera, larger troops and compact boss HUD protect the playable area. These remain provisional original game assets, not accepted final production art or new TRELLIS conversions.
+
+Current validation: 31 actual C++/WASM checks and 18 combat-visual resource/behavior checks pass. All nine stage/relic automated routes win. The live browser Causeway run also reached victory; steering, Shield, earned weapon progression, pause/resume and Next Level were exercised. See `frontline-v4-validation.md` for evidence and boundaries.
 
 The first Relic Causeway preview was rejected by the user. Its visual presentation is superseded, not accepted art. Open http://127.0.0.1:8077/playable/index.html for the rebuilt Iron Front encounter.
 
-The rebuild uses portable C++ AssaultSimulation and actual projectile collision. Approaches last 55, 60 or 65 seconds before the boss, with immediate enemies, dense formations, breakable weapon crates, shootable positive/negative gates, and Shield/EMP/Overdrive. The centered portrait camera and compact HUD keep the battle visible.
+The rebuild uses portable C++ AssaultSimulation and actual projectile collision. Approach duration varies with encounter resolution; the previous fixed 55/60/65-second progression is superseded. Current automated full runs range from approximately 45 to 94 seconds. Shield/EMP/Overdrive and weapon XP are earned without purchases.
 
 The four user-supplied clips and another Top Lords gameplay clip were visually inspected. Some are labeled Top War Ads Review; they are design references, not verified Top Lords shipping-level evidence. See top-lords-rebuild-study.md.
 
@@ -28,11 +32,9 @@ The new AssaultSimulation is portable C++ and is compiled to assault.wasm for th
 
 ## Evidence and limits
 
-- A separate Blender repair/color study is now delivered as relic-marshal-repaired-v4. Fragmented surfaces were closed, the palette was painted, and key armor pieces were rebuilt. The 156,678-triangle GLB passed Blender reimport and was visually reviewed, but remains softer and more simplified than the reference. It is not installed into the game or accepted for mobile production. See commander-blender-repair.md.
-- Local quantized TRELLIS conversion now works on the RTX 3050: a normal 12-step geometry pass completed in 262.8 seconds with 1,473 MiB highest sampled whole-device GPU memory. The original commander reference produced a dense untextured GLB, inspected directly in Blender. Armor and weapon forms are recognizable, with contour noise and thin/open edges requiring cleanup. A fast clustered preview was rejected for surface defects. This source candidate has not replaced the current game character. See trellis-local-attempt.md.
-- Rebuilt-core checks are recorded in builds/rebuild-test-results.json with the actual binary hash. See rebuild-validation.md. Older BattleSimulation results are retained as historical evidence only; they do not validate the new combat.
+- Rebuilt-core checks are recorded in builds/rebuild-test-results.json with the actual binary hash. See frontline-v4-validation.md. Older BattleSimulation results are retained as historical evidence only; they do not validate the new combat.
 - Browser checks cover boot, actual drag movement, projectile impacts, troop growth, weapon progression to level 3, pause/resume, retry, Shield and the runner-to-boss transition. Final camera and responsive-layout inspection are recorded in rebuild-validation.md.
-- The source commander retains its 19,537 triangles and first-pass local animation. The crowd uses instanced reduced commander meshes. Enemy crawler, boss and scenery remain provisional; the rejected earlier environment is not approved art.
+- The source commander retains its 19,537 triangles and first-pass local animation. The crowd uses instanced reduced commander meshes. Regular enemies now use instanced modeled robots; boss and scenery remain provisional; the rejected earlier environment is not approved art.
 - Desktop preview density exceeds the original 80-representative mobile target. That target requires a native quality profile and device measurements before acceptance; there is no mobile performance claim.
 - The original sample GLB remains preserved byte-for-byte. No paid generation or conversion service was submitted. Meshy remains discontinued.
 - No Unreal build, asset import, Android packaging or physical-device performance validation has run.

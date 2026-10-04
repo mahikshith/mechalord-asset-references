@@ -1,0 +1,110 @@
+/** CPU scene/resource checks. Does not claim WebGL rendering or device FPS. */
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import Module, {createRequire} from 'node:module';
+
+const here=path.dirname(fileURLToPath(import.meta.url));
+const dependencyRoot=path.resolve(here,'../asset-viewer');
+const require=createRequire(path.join(dependencyRoot,'package.json'));
+const T=require('three'),esbuild=require('esbuild');
+const bundle=await esbuild.build({entryPoints:[path.join(here,'combat-visuals.ts')],bundle:true,
+  platform:'node',format:'cjs',nodePaths:[path.join(dependencyRoot,'node_modules')],write:false});
+const module=new Module('combat-visuals-cpu-check');
+module._compile(bundle.outputFiles[0].text,path.join(dependencyRoot,'combat-check-inline.cjs'));
+const {CombatVisuals,CombatMissiles,RobotFormation,ArmyAbilityVisuals}=module.exports;
+let failures=0,passed=0;
+function test(name,run){try{run();passed++;console.log('PASS '+name);}catch(error){failures++;console.error('FAIL '+name+'\n'+error.stack);}}
+function allEffectsExpire(fx){for(let i=0;i<45;i++)fx.update(.15);}
+const scene=new T.Scene(),fx=new CombatVisuals(scene),missiles=new CombatMissiles(scene),robots=new RobotFormation(scene,200),abilities=new ArmyAbilityVisuals(scene);
+const emptyCount=scene.children.length;
+
+test('500 explosions keep shared chunks and particles bounded',()=>{
+  for(let i=0;i<500;i++)fx.enemyDeath(i%4,-5,1,1.4);fx.update(1/60);
+  const stats=fx.stats();assert(stats.debris<=384);assert(stats.fire+stats.smoke<=256);
+  assert.equal(scene.children.length,emptyCount);
+});
+test('zero dt freezes chunks and particles exactly',()=>{
+  const chunk=fx.chunks[0],puff=fx.puffs[0],before=[...chunk.p.toArray(),chunk.life,...puff.p.toArray(),puff.life];
+  fx.update(0);assert.deepEqual([...chunk.p.toArray(),chunk.life,...puff.p.toArray(),puff.life],before);
+});
+test('debris falls, bounces, remains finite, and expires',()=>{
+  fx.reset();fx.enemyDeath(0,-3);for(let i=0;i<120;i++){fx.update(1/60);for(const c of fx.chunks)if(c.life>0){assert(c.p.y>=0);assert(c.p.toArray().every(Number.isFinite));}}
+  assert(fx.chunks.some(c=>c.bounce>0));allEffectsExpire(fx);assert.deepEqual([fx.stats().debris,fx.stats().smoke,fx.stats().fire],[0,0,0]);
+});
+test('ally casualties make at most eight ivory/dark chunks per event',()=>{
+  fx.reset();fx.allyLoss(1,2,80);fx.update(0);assert.equal(fx.stats().debris,8);
+  assert(fx.chunks.slice(0,384).filter(c=>c.life>0).some(c=>c.color.equals(new T.Color(0xd5c9a9))));fx.reset();fx.allyLoss(1,2,0);assert.equal(fx.stats().debris,0);
+});
+
+const boss=new T.Group();boss.position.set(2,0,-12);boss.rotation.y=.4;boss.scale.setScalar(1.3);scene.add(boss);
+const bossMaterial=new T.MeshStandardMaterial(),bossGeometry=new T.BoxGeometry(.5,.7,.4);let sourceGeometryDisposed=false;
+bossGeometry.addEventListener('dispose',()=>sourceGeometryDisposed=true);
+for(let i=0;i<14;i++){const mesh=new T.Mesh(bossGeometry,bossMaterial);mesh.name=i===0?'Torso_MobileMesh':'Arm_R_MobileMesh';mesh.position.set(i*.1,1+i*.05,0);boss.add(mesh);}
+const invisibleGlow=new T.Mesh(new T.SphereGeometry(.2),new T.MeshBasicMaterial({opacity:0,transparent:true,blending:T.AdditiveBlending}));boss.add(invisibleGlow);
+test('boss fragments match actual source world bounds and omit muzzle glow',()=>{
+  boss.updateWorldMatrix(true,true);const original=new T.Box3().setFromObject(boss.children[0]);
+  assert(fx.bossDeath(boss));assert.equal(fx.stats().bossFragments,14);assert.equal(fx.bossDeath(boss),false);
+  const fragment=new T.Box3().setFromObject(fx.fragments[0].group);
+  assert(original.min.distanceTo(fragment.min)<1e-6);assert(original.max.distanceTo(fragment.max)<1e-6);
+  assert(fx.fragments[0].delay>.5);assert(fx.fragments[1].delay<.5);
+});
+test('boss settles by the result overlay and keeps a bounded wreck until retry',()=>{
+  let disposed=0;for(const f of fx.fragments)for(const m of f.materials)m.addEventListener('dispose',()=>disposed++);
+  for(let i=0;i<17;i++)fx.update(.15);assert.equal(fx.stats().bossFragments,14);assert(fx.fragments.every(f=>f.settled));
+  const positions=fx.fragments.map(f=>f.group.position.toArray());
+  for(let i=0;i<6;i++)fx.update(.15);assert.deepEqual(fx.fragments.map(f=>f.group.position.toArray()),positions);assert.equal(disposed,0);
+  fx.reset();assert.equal(fx.stats().bossFragments,0);assert.equal(disposed,14);assert.equal(sourceGeometryDisposed,false);
+});
+test('boss dismantling caps at 24 pieces',()=>{
+  fx.reset();for(let i=0;i<30;i++)boss.add(new T.Mesh(bossGeometry,bossMaterial));fx.bossDeath(boss);assert.equal(fx.stats().bossFragments,24);fx.reset();
+});
+test('300 retries do not accumulate scene objects or fragments',()=>{
+  const base=scene.children.length;for(let i=0;i<300;i++){fx.enemyDeath(0,-3);fx.bossDeath(boss);fx.update(.02);fx.reset();robots.reset();missiles.reset();abilities.reset();assert.equal(scene.children.length,base);assert.equal(fx.stats().bossFragments,0);}
+});
+test('enemy wave uses modeled geometry, bounded to 200 robots',()=>{
+  robots.begin();for(let i=0;i<250;i++)robots.add(i*.1,-5);robots.end();assert.equal(robots.body.count,200);assert.equal(robots.eyes.count,200);
+  assert.equal((robots.body.geometry.getAttribute('position').count+robots.eyes.geometry.getAttribute('position').count)/3,444);
+  const matrix=new T.Matrix4();robots.body.getMatrixAt(0,matrix);const scale=new T.Vector3().setFromMatrixScale(matrix);assert(Math.abs(scale.x-.82)<1e-6);assert(Math.abs(scale.y-1.1)<1e-6);
+});
+const missileOptions={depthScale:1,bossPhase:true,bossZ:9,overdrive:true,weapon:3};
+test('1,000 missiles stay inside the 768 slot pool',()=>{
+  missiles.update(Array.from({length:1000},()=>({x:0,z:2,heavy:true,dx:1,dz:2,kind:'arc'})),[],missileOptions);assert.equal(missiles.bodies.count,768);assert.equal(missiles.exhaust.count,768);
+});
+test('missile orientation follows real dx/dz and boss launch height follows bossZ',()=>{
+  missiles.update([{x:1,z:2,heavy:true,dx:2,dz:3,kind:'rail'}],[{id:3,x:2,z:9,dx:0,dz:-4,radius:.2,kind:'rocket'}],missileOptions);
+  const matrix=new T.Matrix4();missiles.bodies.getMatrixAt(0,matrix);const forward=new T.Vector3(0,0,1).transformDirection(matrix),expected=new T.Vector3(2,0,-3).normalize();assert(forward.distanceTo(expected)<1e-6);
+  missiles.bodies.getMatrixAt(1,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-3)<1e-6);
+});
+test('already-launched projectile height does not jump when boss moves',()=>{
+  missiles.reset();const projectile={id:7,x:0,z:10,dx:0,dz:-4,radius:.2,kind:'rocket'};
+  missiles.update([], [projectile], {...missileOptions,bossZ:12});const matrix=new T.Matrix4();missiles.bodies.getMatrixAt(0,matrix);const before=new T.Vector3().setFromMatrixPosition(matrix).y;
+  missiles.update([], [projectile], {...missileOptions,bossZ:7});missiles.bodies.getMatrixAt(0,matrix);assert.equal(new T.Vector3().setFromMatrixPosition(matrix).y,before);
+  missiles.update([], [], missileOptions);assert.equal(missiles.hostileLaunchZ.size,0);
+});
+const state={x:3,ability:3,relic:0,targets:[]},abilityOptions={depthScale:1,armyRadius:3,armyCenterX:1.4,armyCenterZ:3.17};
+test('shield encloses clamped army centroid and the tall commander',()=>{
+  abilities.update(state,abilityOptions,.016);assert(abilities.dome.visible);assert.equal(abilities.group.position.x,1.4);
+  const radius=abilities.dome.scale.x,height=abilities.dome.scale.y,heroDistance=Math.hypot(3-1.4,3.17);
+  assert(radius>=3.65);assert((heroDistance/radius)**2+(2.8/height)**2<1);
+});
+test('EMP arcs attach only to authoritative affected enemy positions',()=>{
+  state.relic=1;state.targets=[{id:1,kind:'enemy',hp:3,x:3,z:7},{id:2,kind:'enemy',hp:3,x:-3,z:7},{id:3,kind:'enemy',hp:3,x:3,z:14},{id:4,kind:'crate',hp:3,x:3,z:5}];
+  abilities.update(state,abilityOptions,.016);assert(abilities.arcs.visible);assert.equal(abilities.arcs.geometry.drawRange.count,6);assert(abilities.wave.visible);assert.equal(abilities.dome.visible,false);
+  assert(Math.abs(abilities.arcPositions[2]+7+3.17)<.4);assert.equal(abilities.wave.position.z,-3.17);
+});
+test('Overdrive has its own visible signal and pause freezes ability clock',()=>{
+  state.relic=2;abilities.update(state,abilityOptions,.016);assert(abilities.overdrive.visible);const clock=abilities.clock;abilities.update(state,abilityOptions,0);assert.equal(abilities.clock,clock);
+});
+test('nearby boss receives its separate EMP visual cue',()=>{
+  const bossState={...state,relic:1,phase:'boss',bossHp:100,bossX:3,bossZ:13.5,targets:[]};abilities.update(bossState,abilityOptions,.016);assert(abilities.arcs.visible);assert.equal(abilities.arcs.geometry.drawRange.count,16);
+  bossState.bossZ=14;abilities.update(bossState,abilityOptions,.016);assert.equal(abilities.arcs.visible,false);
+});
+test('per-instance fading preserves shader chunk hooks and alpha capacity',()=>{
+  for(const mesh of [fx.debris,fx.smoke,fx.fire]){const shader={vertexShader:'#include <common>\n#include <begin_vertex>',fragmentShader:'#include <common>\n#include <color_fragment>'};mesh.material.onBeforeCompile(shader);assert(shader.vertexShader.includes('vInstanceOpacity = instanceOpacity'));assert(shader.fragmentShader.includes('diffuseColor.a *= vInstanceOpacity'));assert.equal(mesh.geometry.getAttribute('instanceOpacity').count,mesh===fx.debris?384:256);}
+});
+test('all owned resources dispose without deleting source boss geometry',()=>{
+  fx.dispose();missiles.dispose();robots.dispose();abilities.dispose();assert.equal(scene.children.length,1);assert.equal(sourceGeometryDisposed,false);
+});
+console.log(`${passed}/${passed+failures} combat visual CPU checks passed; WebGL screenshots and device FPS remain unverified.`);
+if(failures)process.exitCode=1;

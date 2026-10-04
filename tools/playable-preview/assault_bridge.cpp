@@ -1,7 +1,7 @@
 #include "AssaultSimulation.h"
 #define API(Name) extern "C" __attribute__((export_name(Name)))
 static mech::assault::Battle Battle;
-static float State[22],Targets[256*11],Shots[256*3],EnemyShots[96*8],Effects[192*6];
+static float State[30],Targets[256*11],Shots[256*6],EnemyShots[96*8],Effects[192*8];
 API("start_run") void Start(int Relic,int Level) { Battle.Start(static_cast<mech::assault::Relic>(std::clamp(Relic,0,2)),Level); }
 API("level_name") const char* LevelName() { return Battle.LevelName(); }
 API("step") void Step(double Dt,double X) { Battle.Advance(Dt,X); }
@@ -14,7 +14,10 @@ API("state") float* GetState()
     State[8]=Battle.weapon; State[9]=Battle.kills; State[10]=Battle.bossHp; State[11]=Battle.bossMax;
     State[12]=Battle.bossAttack; State[13]=Battle.bossLane; State[14]=Battle.score;
     State[15]=Battle.TargetCount(); State[16]=Battle.ShotCount(); State[17]=Battle.paused;
-    State[18]=Battle.level; State[19]=Battle.weaponXP; State[20]=Battle.weaponNeed; State[21]=Battle.EnemyShotCount(); return State;
+    State[18]=Battle.level; State[19]=Battle.weaponXP; State[20]=Battle.weaponNeed; State[21]=Battle.EnemyShotCount();
+    State[22]=Battle.bossX; State[23]=Battle.bossZ; State[24]=int(Battle.bossAction);
+    State[25]=Battle.deathProgress; State[26]=Battle.travelDistance; State[27]=Battle.travelGoal;
+    State[28]=Battle.engagement; State[29]=Battle.Frontline; return State;
 }
 API("target_count") int TargetCount() { return Battle.TargetCount(); }
 API("targets") float* GetTargets()
@@ -31,14 +34,14 @@ API("shots") float* GetShots()
 {
     int N=0; for(const auto& S:Battle.shots) if(S.active)
     {
-        float* O=Shots+N++*3; O[0]=S.x; O[1]=S.z; O[2]=S.heavy;
+        float* O=Shots+N++*6; O[0]=S.x; O[1]=S.z; O[2]=S.dx; O[3]=S.dz; O[4]=S.heavy; O[5]=int(S.kind);
     } return Shots;
 }
 API("effect_count") int EffectCount() { return Battle.effectCount; }
 API("enemy_shot_count") int EnemyShotCount() { return Battle.EnemyShotCount(); }
 API("enemy_shots") float* GetEnemyShots()
 {
-    const double Slow=Battle.ability>0 && Battle.relic==mech::assault::Relic::EMP ? .42 : 1;
+    const double Slow=Battle.ability>0 && Battle.relic==mech::assault::Relic::EMP ? .38 : 1;
     int N=0; for(const auto& S:Battle.enemyShots) if(S.active)
     {
         float* O=EnemyShots+N++*8;
@@ -50,8 +53,9 @@ API("drain_effects") float* EffectsOnce()
 {
     for(int I=0;I<Battle.effectCount;++I)
     {
-        const auto& E=Battle.effects[I]; float* O=Effects+I*6;
-        O[0]=E.id; O[1]=int(E.kind); O[2]=E.x; O[3]=E.z; O[4]=E.value; O[5]=0;
+        const auto& E=Battle.effects[I]; float* O=Effects+I*8;
+        O[0]=E.id; O[1]=int(E.kind); O[2]=E.x; O[3]=E.z; O[4]=E.value;
+        O[5]=E.entityId; O[6]=E.variant; O[7]=E.size;
     }
     Battle.ConsumeEffects(); return Effects;
 }

@@ -1,143 +1,59 @@
-// Real shipped C++/WASM and its browser adapter, driven only through public controls.
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import {fileURLToPath} from 'node:url';
-import {createHash} from 'node:crypto';
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const binaryPath=path.join(root,'delivery/playable/assault.wasm');
-const bytes=fs.readFileSync(binaryPath);
-const fetchOriginal=globalThis.fetch;
-globalThis.fetch=async(r,o)=>/(?:^|\/)assault\.wasm(?:\?.*)?$/.test(String(r))?new Response(bytes):fetchOriginal(r,o);
-const {AssaultCore}=await import('./assault-core.ts');
-const core=new AssaultCore();await core.load();
-const results=[],winningRuns=[];const snap=()=>core.snapshot();
-const persistent=s=>{const{effects,...rest}=s;return rest;};
+// Actual shipped C++/WASM through its browser adapter; public controls only.
+import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import{fileURLToPath}from'node:url';import{createHash}from'node:crypto';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');const binaryPath=path.join(root,'delivery/playable/assault.wasm'),bytes=fs.readFileSync(binaryPath);let loadCache;
+globalThis.fetch=async(r,o)=>{assert.match(String(r),/assault\.wasm$/);loadCache=o?.cache;return new Response(bytes);};
+const{AssaultCore}=await import('./assault-core.ts');const core=new AssaultCore();await core.load();
+const results=[],winningRuns=[];const snap=()=>core.snapshot(),persistent=s=>{const{effects,...rest}=s;return rest;};
 function test(name,fn){try{fn();results.push({name,status:'pass'});console.log('PASS '+name);}catch(e){results.push({name,status:'fail',error:e.message});console.error('FAIL '+name+' — '+e.message);}}
-function start(relic=0,level=0){core.start(relic,level);return snap();}
-function stepFor(seconds,input=0,hz=60,observe){let state=snap();for(let f=0;f<Math.round(seconds*hz);f++){const before=state;core.step(1/hz,typeof input==='function'?input(state):input);state=snap();observe?.(state,before);}return state;}
-// This bounded controller sees the same snapshot as the renderer. It chooses a
-// useful offer, avoids nearby rollers/machines and predicts visible shot impact.
-// It is automated feasibility, not a first-time-player understanding claim.
+function start(r=0,l=0){core.start(r,l);return snap();}
+function stepFor(seconds,input=0,hz=60,observe){let s=snap();for(let f=0;f<Math.round(seconds*hz);f++){const b=s;core.step(1/hz,typeof input==='function'?input(s):input);s=snap();observe?.(s,b);}return s;}
+// Snapshot-only automated route. This demonstrates feasibility, not usability.
 function route(s){
- if(s.phase==='boss')return s.level===1?.7:s.bossAttack>0?(s.bossLane>=0?-1.8:1.8):0;
- const goals=s.targets.filter(t=>(t.kind==='crate'||t.kind==='gate')&&t.z>1).sort((a,b)=>a.z-b.z);
- let desired=goals[0]?.x??-1.8;const first=goals[0];
- if(first?.kind==='gate'){
-  const pair=goals.filter(t=>t.kind==='gate'&&Math.abs(t.z-first.z)<.02);
-  pair.sort((a,b)=>(b.op?s.army*(b.value-1):b.value)-(a.op?s.army*(a.value-1):a.value));desired=pair[0]?.x??desired;
+ if(s.phase==='boss'){
+  const shots=s.enemyShots.filter(t=>t.z<6).map(t=>({x:t.x-t.dx*t.z/t.dz,size:t.radius+.5}));
+  const desired=s.bossAction==='windup'?(s.bossLane>=0?-1.5:1.5):s.bossX;
+  return[desired,-2.7,2.7,-1.5,1.5,0].filter(x=>!shots.some(t=>Math.abs(t.x-x)<t.size)).sort((a,b)=>Math.abs(a-desired)-Math.abs(b-desired))[0]??desired;
  }
- const danger=s.targets.filter(t=>t.z<3&&(t.kind==='hazard'||t.kind==='enemy'));
- const bullets=s.enemyShots.filter(t=>t.z<7).map(t=>({x:t.x-t.dx*t.z/t.dz,size:t.radius+.35}));
- const safe=[desired,-2.8,2.8,-1.8,1.8,-.7,.7,0].filter(x=>!danger.some(t=>Math.abs(x-t.x)<t.size+.65)&&!bullets.some(t=>Math.abs(x-t.x)<t.size+.05));
- if(safe.length)desired=safe.sort((a,b)=>Math.abs(a-desired)-Math.abs(b-desired))[0];return desired;
+ const goals=s.targets.filter(t=>(t.kind==='crate'||t.kind==='gate')&&t.z>1).sort((a,b)=>a.z-b.z);let desired=goals[0]?.x??0;
+ if(goals[0]?.kind==='gate'){const pair=goals.filter(t=>t.kind==='gate'&&Math.abs(t.z-goals[0].z)<.02);pair.sort((a,b)=>(b.op?s.army*(b.value-1):b.value)-(a.op?s.army*(a.value-1):a.value));desired=pair[0]?.x??desired;}
+ const h=s.targets.find(t=>t.kind==='hazard'&&t.z<3&&Math.abs(t.x-desired)<t.size+.5);return h?(h.x>0?-1.8:1.8):desired;
 }
-function shouldActivate(s){return s.energy>=100&&s.ability<=0&&(s.relic===2||s.phase==='boss'||(s.relic===0&&s.targets.some(t=>t.z<4&&t.kind==='hazard'))||(s.relic===1&&s.targets.some(t=>t.kind==='enemy'&&t.z<10&&Math.abs(t.x-s.x)<1.3)));}
-function run(relic=0,level=0,{controls=route,ability=true,hz=60,seconds=130,observe,stop}={}){
- start(relic,level);let state=snap();for(let f=0;f<seconds*hz&&['run','boss'].includes(state.phase);f++){
-  if(ability&&shouldActivate(state))core.activate();const before=state;core.step(1/hz,controls(state));state=snap();observe?.(state,before);if(stop?.(state))break;
- }return state;
+function run(r=0,l=0,{controls=route,ability=true,hz=60,seconds=220,observe,stop}={}){
+ start(r,l);let s=snap();for(let f=0;f<seconds*hz&&['run','boss','destroying'].includes(s.phase);f++){
+  if(ability&&s.energy>=100&&s.ability===0&&s.phase!=='destroying'&&(r===2||s.engagement||s.phase==='boss'))core.activate();const b=s;core.step(1/hz,controls(s));s=snap();observe?.(s,b);if(stop?.(s))break;
+ }return s;
 }
-function boss(relic=2,level=0,ability=true){const state=run(relic,level,{ability,stop:s=>s.phase==='boss'});assert.equal(state.phase,'boss');return state;}
-function charged(relic=0,level=0){return run(relic,level,{ability:false,stop:s=>s.energy>=100});}
-
-test('actual browser adapter loads the rebuilt WASM without unexpected imports',()=>{
- assert.ok(core.api.memory instanceof WebAssembly.Memory);
- for(const i of WebAssembly.Module.imports(new WebAssembly.Module(bytes))){assert.equal(i.kind,'function');assert.equal(i.module,'wasi_snapshot_preview1');assert.ok(['fd_close','fd_seek','fd_write'].includes(i.name));}
-});
-test('three selectable stages reset with distinct names, duration and boss health',()=>{
- const names=['Relic Causeway','Roller Foundry','Citadel Breach'];for(let level=0;level<3;level++){
-  const s=start(level,level);assert.equal(s.phase,'run');assert.equal(s.level,level);assert.equal(s.levelName,names[level]);assert.equal(s.duration,55+level*5);assert.equal(s.bossMax,1400+level*350);
-  assert.equal(s.time,0);assert.equal(s.army,8);assert.equal(s.weapon,1);assert.equal(s.weaponXP,0);assert.equal(s.weaponNeed,40);assert.equal(s.energy,30);assert.equal(s.shots.length,0);assert.equal(s.enemyShots.length,0);assert.equal(s.effects.length,0);
- }
- assert.equal(start(0,99).level,2);assert.equal(start(0,-9).level,0);
-});
-test('portrait steering is bounded and obeys its movement speed',()=>{start();assert.ok(stepFor(1/60,100).x<=.15001);assert.equal(stepFor(2,100).x,3);assert.equal(stepFor(2,-100).x,-3);});
-test('all stages introduce paired alternatives at the same distance',()=>{
- for(let l=0;l<3;l++){const gates=start(0,l).targets.filter(t=>t.kind==='gate');assert.equal(gates.length,2);assert.equal(gates[0].z,gates[1].z);assert.deepEqual(gates.map(t=>t.x),[Math.fround(-1.8),Math.fround(1.8)]);assert.equal(gates[0].size,Math.fround(1.2));}
-});
-test('choosing left or right collects only one of a pair and never repeats it',()=>{
- for(const x of [-1.8,1.8]){start();let applications=0;stepFor(5,x,60,s=>{applications+=s.effects.filter(e=>e.kind==='gate').length;});assert.equal(applications,1);stepFor(.5,x,60,s=>{applications+=s.effects.filter(e=>e.kind==='gate').length;});assert.equal(applications,1);}
-});
-test('center can miss both paired apertures, and off-lane shots do not alter them',()=>{
- const gates=start().targets.filter(t=>t.kind==='gate');const beforeCross=stepFor(3,0);for(const original of gates){const t=beforeCross.targets.find(t=>t.id===original.id);assert.equal(t.hp,original.hp);assert.equal(t.value,original.value);}
- let collected=0;stepFor(1.4,0,60,s=>{collected+=s.effects.filter(e=>e.kind==='gate').length;});assert.equal(collected,0);
-});
-test('actual moving allied shots damage and improve the selected gate',()=>{
- const first=start().targets.find(t=>t.kind==='gate');let moved=false,improved=false;
- stepFor(3.6,-1.8,60,(s,b)=>{const t=s.targets.find(t=>t.id===first.id);improved ||= !!t&&t.value>first.value&&t.hp<first.hp;moved ||= b.shots.some(a=>s.shots.some(q=>Math.abs(a.x-q.x)<.01&&q.z>a.z+.02));});assert.ok(moved);assert.ok(improved);
-});
-test('negative gates can be shot toward positive value before passage',()=>{
- let seen=false,improved=false;run(2,0,{controls:s=>s.phase==='run'&&s.time>=10&&s.time<15?-1.8:route(s),observe:s=>{const t=s.targets.find(t=>t.kind==='gate'&&t.maxHp===56);if(t){seen ||= t.value<0;improved ||= t.value>=0&&t.hp<t.maxHp;}}});assert.ok(seen);assert.ok(improved);
-});
-test('causeway rapid paired chain contains sixteen gates with separate crossings',()=>{
- const ids=new Set(),times=[];run(2,0,{observe:(s,b)=>{for(const t of s.targets.filter(t=>t.kind==='gate'&&t.maxHp===12))ids.add(t.id);for(const e of s.effects.filter(e=>e.kind==='gate'))if(b.targets.some(t=>t.kind==='gate'&&t.maxHp===12&&t.z<.07&&Math.abs(t.x-e.x)<.01))times.push(s.time);}});assert.equal(ids.size,16);assert.ok(times.length>=5);for(let i=1;i<times.length;i++)assert.ok(times[i]-times[i-1]>.7);
-});
-test('dense authored hordes persist and later stages have distinct elites',()=>{
- for(let level=0;level<3;level++){let max=0,brute=false,ranged=false;run(2,level,{observe:s=>{const enemies=s.targets.filter(t=>t.kind==='enemy');max=Math.max(max,enemies.length);brute ||= enemies.some(t=>t.variant===1);ranged ||= enemies.some(t=>t.variant===2);}});assert.ok(max>=60);assert.equal(brute,true);assert.equal(ranged,level===2);}
-});
-test('weapon upgrades require crate damage and accumulated XP, never time alone',()=>{
- let damaged=false,partial=false,upgrades=[],crateKills=0,lastTier=1;
- const end=run(0,0,{observe:(s,b)=>{
-  for(const t of b.targets.filter(t=>t.kind==='crate')){const now=s.targets.find(q=>q.id===t.id);damaged ||= !!now&&now.hp<t.hp;}
-  crateKills+=s.effects.filter(e=>e.kind==='kill'&&e.value===30).length;
-  partial ||= s.weapon===1&&s.weaponXP===30&&s.weaponNeed===40;
-  if(s.weapon>lastTier){upgrades.push({tier:s.weapon,time:s.time,crates:crateKills});lastTier=s.weapon;}
- }});assert.ok(damaged&&partial);assert.equal(end.weapon,4);assert.deepEqual(upgrades.map(v=>v.tier),[2,3,4]);assert.ok(upgrades[0].crates>=2);assert.ok(upgrades[2].time>30);assert.equal(end.weaponNeed,0);assert.equal(end.weaponXP,0);
- const withoutCrates=run(0,0,{controls:()=>0,ability:false});assert.equal(withoutCrates.weapon,1);assert.equal(withoutCrates.weaponXP,0);
-});
-test('strong fifty-health barrier is destroyed by shots and grants extra XP',()=>{
- let seen=false,damaged=false,loot=false;run(2,0,{observe:(s,b)=>{const t=s.targets.find(q=>q.kind==='crate'&&q.maxHp===50);if(t){seen=true;damaged ||= t.hp<50;}const old=b.targets.find(q=>q.kind==='crate'&&q.maxHp===50);if(old&&!s.targets.some(q=>q.id===old.id)&&s.effects.some(e=>e.kind==='kill'&&e.value===30&&Math.abs(e.x-old.x)<.01))loot=true;}});assert.ok(seen&&damaged&&loot);
-});
-test('rollers actually traverse sideways with different authored patterns',()=>{
- for(let level=0;level<3;level++){const positions=new Map();let maxTravel=0;run(2,level,{observe:s=>{for(const t of s.targets.filter(q=>q.kind==='hazard')){const range=positions.get(t.id)??[t.x,t.x];range[0]=Math.min(range[0],t.x);range[1]=Math.max(range[1],t.x);positions.set(t.id,range);maxTravel=Math.max(maxTravel,range[1]-range[0]);}}});assert.ok(positions.size>=5);assert.ok(maxTravel>(level===0?1:2));}
-});
-test('steering into a roller loses troops while steering around it avoids that impact',()=>{
- function encounter(hit){start(2,1);let rollerId,roller;let damaged=false;for(let f=0;f<18*60;f++){const s=snap();roller ??= s.targets.find(t=>t.kind==='hazard');const live=s.targets.find(t=>t.id===roller?.id);if(live)roller=live;const input=live?(hit?live.x:live.x>=0?-2.8:2.8):route(s);if(s.energy>=100&&s.ability===0&&!live)core.activate();core.step(1/60,input);const now=snap();if(now.effects.some(e=>e.kind==='damage'&&e.value>=21&&Math.abs(e.x-(roller?.x??100))<.06))damaged=true;if(roller&&!now.targets.some(t=>t.id===roller.id))return damaged;}return damaged;}
- assert.equal(encounter(true),true);assert.equal(encounter(false),false);
-});
-test('earned charge gates relic activation, prevents duplicates and expires',()=>{
- for(let r=0;r<3;r++){start(r);assert.equal(core.activate(),false);const full=charged(r);assert.equal(full.energy,100);assert.equal(core.activate(),true);assert.equal(core.activate(),false);assert.ok(snap().ability>0);const after=stepFor(7,route);assert.equal(after.ability,0);}
-});
-test('EMP slows approaching machines but not gates',()=>{
- let before=charged(1);for(let f=0;f<600&&!(before.targets.some(t=>t.kind==='gate'&&t.z>2)&&before.targets.some(t=>t.kind==='enemy'&&t.z>12));f++){core.step(1/60,route(before));before=snap();}const gate=before.targets.find(t=>t.kind==='gate'&&t.z>2);const enemy=before.targets.find(t=>t.kind==='enemy'&&t.z>12);assert.ok(gate&&enemy);assert.ok(core.activate());const after=stepFor(.3,3);const g=after.targets.find(t=>t.id===gate.id),e=after.targets.find(t=>t.id===enemy.id);assert.ok(g&&e);assert.ok(Math.abs((gate.z-g.z)-1.11)<.002);assert.ok(Math.abs((enemy.z-e.z)-1.11*.42)<.002);
-});
-test('Overdrive increases the actual allied projectile stream',()=>{
- charged(0);core.activate();const ordinary=stepFor(.7,3).shots.length;charged(2);core.activate();const boosted=stepFor(.7,3).shots.length;assert.ok(boosted>ordinary);
-});
-test('runner transitions preserve troop/weapon/relic state for all three bosses',()=>{
- for(let level=0;level<3;level++){let preceding;const b=run(2,level,{observe:(s,p)=>{if(s.phase==='boss')preceding=p;},stop:s=>s.phase==='boss'});assert.equal(b.phase,'boss');assert.ok(b.time>=b.duration&&b.time<b.duration+.04);assert.equal(b.army,preceding.army);assert.equal(b.weapon,preceding.weapon);assert.equal(b.relic,2);assert.equal(b.targets.length,0);assert.equal(b.shots.length,0);assert.equal(b.bossHp,b.bossMax);}
-});
-test('each boss visibly fires its own travelling shell, orb fan or rocket volley',()=>{
- for(let level=0;level<3;level++){boss(2,level);let volley;stepFor(4,3,60,s=>{if(!volley&&s.enemyShots.length)volley=s;});assert.ok(volley);assert.equal(volley.enemyShots.length,[1,5,3][level]);assert.ok(volley.enemyShots.every(q=>q.kind===['shell','orb','rocket'][level]&&q.dz<0&&q.z>17));const old=volley.enemyShots[0];const later=stepFor(.1,3).enemyShots.find(q=>q.id===old.id);if(later)assert.ok(later.z<old.z);assert.equal(volley.bossAttack,1);}
-});
-test('real incoming boss shots hit an occupied lane and miss a dodged lane',()=>{
- for(let level=0;level<3;level++){
-  const unsafeStart=boss(2,level);let damage=0;const unsafe=stepFor(6,s=>level===1?(s.bossAttack>=1&&s.enemyShots.some(t=>t.z<7)?0:3):3,60,s=>{damage+=s.effects.filter(e=>e.kind==='damage').reduce((a,e)=>a+e.value,0);});assert.ok(damage>0,`Level${level} never hit`);assert.ok(unsafe.army<unsafeStart.army);
-  const safeStart=boss(2,level);let avoided=0;const safe=stepFor(6,route,60,s=>{avoided+=s.effects.filter(e=>e.kind==='damage').reduce((a,e)=>a+e.value,0);});assert.equal(avoided,0);assert.equal(safe.army,safeStart.army);
- }
-});
-test('Shield blocks a real boss shell and EMP slows real incoming projectiles',()=>{
- boss(0,0);let state=snap();for(let f=0;f<4*60;f++){core.step(1/60,3);state=snap();if(state.bossAttack>.8&&state.energy>=100&&state.ability===0){assert.ok(core.activate());break;}}
- const protectedArmy=snap().army;let lost=0;stepFor(2.5,3,60,s=>{lost+=s.effects.filter(e=>e.kind==='damage').reduce((a,e)=>a+e.value,0);});assert.equal(lost,0);assert.equal(snap().army,protectedArmy);
- boss(1,0,false);state=snap();for(let f=0;f<9*60&&!(state.enemyShots.length&&state.energy>=100&&state.ability===0);f++){core.step(1/60,3);state=snap();}assert.ok(state.enemyShots.length);assert.equal(state.energy,100);const shell=state.enemyShots[0];assert.ok(core.activate());const active=snap().enemyShots[0];assert.ok(Math.abs(active.dz/shell.dz-.42)<.0001);const after=stepFor(.2,3).enemyShots.find(t=>t.id===shell.id);assert.ok(after);assert.ok(Math.abs(after.z-shell.z-active.dz*.2)<.002);
-});
-test('Citadel ranged elites fire collision-bearing projectiles during the run',()=>{let seen=false;run(2,2,{observe:s=>{seen ||= s.phase==='run'&&s.enemyShots.some(q=>q.kind==='orb'&&q.dz<0);}});assert.ok(seen);});
-test('every stage is beatable with every relic and no purchased upgrades',()=>{
- for(let l=0;l<3;l++)for(let r=0;r<3;r++){let activeFrames=0;const s=run(r,l,{observe:s=>{if(s.ability>0)activeFrames++;}});assert.equal(s.phase,'won',`Level ${l}/relic ${r}: ${s.phase} army${s.army} time${s.time}`);assert.equal(s.bossHp,0);assert.ok(s.army>0);winningRuns.push({level:l,relic:r,time:s.time,army:s.army,weapon:s.weapon,kills:s.kills,score:s.score,abilityUptime:activeFrames/(s.time*60)});}
-});
-test('relic energy cannot regenerate during its active tactical window',()=>{
- for(let r=0;r<3;r++){charged(r);assert.ok(core.activate());stepFor(2,route,60,s=>{assert.ok(s.ability>0);assert.equal(s.energy,0);});}
-});
-test('missing gate choices and never dodging can lose all stages',()=>{for(let l=0;l<3;l++){const s=run(0,l,{controls:()=>0,ability:false});assert.equal(s.phase,'lost');assert.equal(s.army,0);const stopped=persistent(s);assert.deepEqual(persistent(stepFor(3,-3)),stopped);assert.equal(core.activate(),false);}});
-test('pause freezes steering, ability, machines, allied and enemy shots',()=>{boss(1,2);stepFor(4,3);core.activate();snap();core.pause(true);const before=persistent(snap());assert.deepEqual(persistent(stepFor(10,-3)),before);assert.equal(core.activate(),false);core.pause(false);assert.ok(stepFor(.5,3).time>before.time);});
-test('fixed-step outcomes agree at 30, 60 and 120 Hz in all stages',()=>{for(let l=0;l<3;l++){const replay=hz=>{start(0,l);return persistent(stepFor(15,1.8,hz));};const ref=replay(60);assert.deepEqual(replay(30),ref);assert.deepEqual(replay(120),ref);}});
-test('all state pools and numeric values stay finite and bounded through full runs',()=>{
- for(let l=0;l<3;l++)run(1,l,{observe:s=>{assert.ok(s.targets.length<=256);assert.ok(s.shots.length<=256);assert.ok(s.enemyShots.length<=96);assert.ok(s.effects.length<=192);assert.ok(s.weapon>=1&&s.weapon<=4);assert.ok(s.army>=0&&s.army<=160);for(const key of ['time','x','energy','weaponXP','weaponNeed','bossAttack'])assert.ok(Number.isFinite(s[key]));for(const q of s.enemyShots)assert.ok(q.radius>0&&Number.isFinite(q.dx)&&Number.isFinite(q.dz));}});
-});
-test('effects drain once per snapshot without changing ongoing state',()=>{start();core.step(.25,-1.8);core.step(.25,-1.8);const one=snap(),two=snap();assert.ok(one.effects.length>0||one.shots.length>0);assert.equal(two.effects.length,0);assert.deepEqual(persistent(one),persistent(two));});
-test('250 retries clear transient objects and do not increase WASM allocation',()=>{
- const resets=[start(0,0),start(0,1),start(0,2)].map(persistent);const memory=core.api.memory.buffer.byteLength;for(let i=0;i<250;i++){start(i%3,i%3);stepFor(3,1.8);core.pause(true);assert.deepEqual(persistent(start(0,i%3)),resets[i%3]);assert.equal(core.api.memory.buffer.byteLength,memory);core.step(1/60,0);assert.ok(snap().time>0);}
-});
-const report={schema:2,scope:'Actual three-level Assault browser adapter and shipped WASM. Automated controls only; no Unreal, physical-device or first-time-player validation.',binary:binaryPath,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),memoryBytes:core.api.memory.buffer.byteLength,testedAt:new Date().toISOString(),winningRuns,tests:results.length,passed:results.filter(r=>r.status==='pass').length,failed:results.filter(r=>r.status==='fail').length,results};
-fs.mkdirSync(path.join(root,'builds'),{recursive:true});fs.writeFileSync(path.join(root,'builds/rebuild-test-results.json'),JSON.stringify(report,null,2));console.log(`${report.passed}/${report.tests} checks passed.`);if(report.failed)process.exitCode=1;
+function boss(r=2,l=0,ability=true){let s=run(r,l,{ability:l>0?true:ability,stop:s=>s.phase==='boss'});assert.equal(s.phase,'boss');if(!ability&&s.ability>0)s=stepFor(s.ability+.02,route);return s;}
+function charged(r=0){const s=run(r,0,{ability:false,stop:s=>s.energy>=100});assert.equal(s.energy,100);return s;}
+test('adapter loads the current actual WASM without caching or unexpected imports',()=>{assert.equal(loadCache,'no-store');assert.ok(core.api.memory instanceof WebAssembly.Memory);for(const i of WebAssembly.Module.imports(new WebAssembly.Module(bytes))){assert.equal(i.kind,'function');assert.equal(i.module,'wasi_snapshot_preview1');assert.ok(['fd_close','fd_seek','fd_write'].includes(i.name));}});
+test('all three stages reset explicit traversal, army and boss state',()=>{for(let l=0;l<3;l++){const s=start(l,l);assert.equal(s.levelName,['Relic Causeway','Roller Foundry','Citadel Breach'][l]);assert.equal(s.travelGoal,120+l*15);assert.equal(s.travelDistance,0);assert.equal(s.army,8);assert.equal(s.weapon,1);assert.equal(s.energy,55);assert.equal(s.bossMax,2200+l*400);assert.equal(s.bossZ,12);assert.equal(s.deathProgress,0);assert.equal(s.engagement,false);assert.equal(s.enemyShots.length,0);}assert.equal(start(0,99).level,2);});
+test('steering respects speed, bounds and invalid input',()=>{start();assert.ok(stepFor(1/60,100).x<=.15001);assert.equal(stepFor(2,100).x,3);assert.equal(stepFor(2,-100).x,-3);core.step(NaN,NaN);assert.equal(snap().x,-3);});
+test('paired gates apply only the chosen alternative once',()=>{for(const lane of[-1.8,1.8]){const gates=start().targets.filter(t=>t.kind==='gate');assert.equal(gates.length,2);assert.equal(gates[0].z,gates[1].z);let count=0;stepFor(10,lane,60,s=>{count+=s.effects.filter(e=>e.kind==='gate'&&gates.some(t=>t.id===e.entityId)).length;});assert.equal(count,1);}});
+test('gate damage comes from actual swept projectile collisions and improves arithmetic',()=>{let collisions=0;start();stepFor(8,3,60,(s,b)=>{for(const t of s.targets.filter(t=>t.kind==='gate'&&t.z>1.5)){const old=b.targets.find(q=>q.id===t.id);if(old&&t.hp<old.hp){assert.ok(s.effects.some(e=>e.kind==='hit'&&e.entityId===t.id));assert.ok(b.shots.some(p=>{const z=p.z+p.dz/60;if(p.z>t.z+t.size||z<t.z-t.size)return false;const f=Math.max(0,Math.min(1,(t.z-p.z)/(z-p.z)));return Math.abs(t.x-(p.x+p.dx/60*f))<=t.size+.081;}),'Gate lost HP without a crossing shot');collisions++;}}});assert.ok(collisions>0);const g=start().targets.find(t=>t.kind==='gate');let improved=false,moving=false;stepFor(5,-1.8,60,(s,b)=>{const t=s.targets.find(t=>t.id===g.id);improved ||= !!t&&t.value>g.value;moving ||= b.shots.some(p=>s.shots.some(q=>Math.abs(q.dx-p.dx)<.001&&q.z>p.z+.05));});assert.ok(improved&&moving);});
+test('removed enemies always have real kill events and never cross through the army',()=>{let checked=0;for(let l=0;l<3;l++)run(0,l,{observe:(s,b)=>{const live=new Set(s.targets.filter(t=>t.kind==='enemy').map(t=>t.id));for(const t of b.targets.filter(t=>t.kind==='enemy'))if(!live.has(t.id)){const e=s.effects.find(e=>e.kind==='kill'&&e.entityId===t.id);assert.ok(e,`Enemy${t.id} vanished in${s.phase}`);assert.equal(e.variant,t.variant);assert.equal(e.size,t.size);checked++;}for(const t of s.targets.filter(t=>t.kind==='enemy')){assert.ok(t.hp>0);assert.ok(t.z>=s.frontline-.0001);}}});assert.ok(checked>500);});
+test('engagement stops progression without spawning a timed flood',()=>{let stopped=0,contacts=0;run(0,2,{observe:(s,b)=>{contacts+=s.effects.filter(e=>e.kind==='contact').length;if(s.phase==='run'&&s.engagement&&b.phase==='run'&&s.travelDistance===b.travelDistance){stopped++;const ids=new Set(b.targets.map(t=>t.id));assert.ok(s.targets.every(t=>ids.has(t.id)));}}});assert.ok(stopped>300);assert.ok(contacts>0);});
+test('contact combat produces real losses and Shield protects the whole legion',()=>{let contact=false,damage=false;run(0,0,{ability:false,observe:s=>{contact ||= s.effects.some(e=>e.kind==='contact');damage ||= s.effects.some(e=>e.kind==='damage'&&e.z>2.5);}});assert.ok(contact&&damage);let blocked=0;run(0,2,{observe:s=>{blocked+=s.effects.filter(e=>e.kind==='block'&&e.z>2.5).length;if(s.ability>0&&s.phase==='run')assert.ok(!s.effects.some(e=>e.kind==='damage'));}});assert.ok(blocked>0);});
+test('dense formations retain role identity and bounded visible armies',()=>{for(let l=0;l<3;l++){let max=0,brute=false,ranged=false;run(2,l,{observe:s=>{max=Math.max(max,s.targets.filter(t=>t.kind==='enemy').length);brute ||= s.targets.some(t=>t.kind==='enemy'&&t.variant===1);ranged ||= s.targets.some(t=>t.kind==='enemy'&&t.variant===2);}});assert.ok(max>=40);assert.ok(brute);assert.equal(ranged,l===2);}});
+test('crate destruction earns partial XP and all four weapon tiers',()=>{let partial=false,damaged=false,tiers=new Set([1]),crates=0;const s=run(0,0,{observe:(s,b)=>{tiers.add(s.weapon);partial ||= s.weapon===1&&s.weaponXP===30;for(const t of b.targets.filter(t=>t.kind==='crate')){const q=s.targets.find(q=>q.id===t.id);damaged ||= !!q&&q.hp<t.hp;}crates+=s.effects.filter(e=>e.kind==='kill'&&e.variant===-1).length;if(s.weaponXP!==b.weaponXP||s.weapon!==b.weapon)assert.ok(s.effects.some(e=>e.kind==='kill'&&e.variant===-1),'XP appeared without a destroyed crate');}});assert.ok(partial&&damaged);assert.deepEqual([...tiers],[1,2,3,4]);assert.ok(crates>=6);assert.equal(s.weaponNeed,0);assert.equal(s.weaponXP,0);});
+test('close aimed crates can hold position without teleporting, missed crates yield no loot',()=>{let hold=false,miss=false;run(0,0,{controls:s=>{const crate=s.targets.find(t=>t.kind==='crate'&&t.hp>8&&t.z<4.3&&t.z>1);return crate?crate.x:0;},observe:(s,b)=>{for(const t of s.targets.filter(t=>t.kind==='crate')){const old=b.targets.find(q=>q.id===t.id);if(old)assert.ok(t.z<=old.z+.001,'Crate teleported toward the player');hold ||= s.engagement&&t.z<=4&&Math.abs(t.x-s.x)<1.25;}}});assert.ok(hold);run(2,0,{controls:()=>0,ability:false,observe:s=>{for(const e of s.effects.filter(e=>e.kind==='missed'&&e.variant===-1)){miss=true;assert.equal(e.value,0);assert.ok(!s.effects.some(q=>q.kind==='kill'&&q.entityId===e.entityId));}}});assert.ok(miss);});
+test('hit and kill effects carry actual entity roles and dimensions',()=>{const variants=new Set();run(2,2,{observe:s=>{for(const e of s.effects.filter(e=>e.kind==='kill')){assert.ok(e.entityId>0);assert.ok(e.size>0);variants.add(e.variant);}}});for(const v of[-1,0,1,2])assert.ok(variants.has(v));});
+test('higher weapons expose real arc and penetrating rail shots',()=>{const kinds=new Set();run(0,0,{observe:s=>{for(const p of s.shots){assert.ok(p.dz>0&&Number.isFinite(p.dx));kinds.add(p.kind);assert.equal(p.heavy,p.kind!=='pulse');}}});assert.deepEqual([...kinds],['pulse','arc','rail']);});
+test('rollers move across lanes and retain actual collision damage',()=>{let moved=false,damaged=false;const positions=new Map();run(2,1,{ability:false,controls:s=>{const t=s.targets.find(t=>t.kind==='hazard');return t?.z<5?t.x:route(s);},observe:s=>{for(const t of s.targets.filter(t=>t.kind==='hazard')){const old=positions.get(t.id);if(old!==undefined&&Math.abs(old-t.x)>1)moved=true;if(old===undefined)positions.set(t.id,t.x);}damaged ||= s.effects.some(e=>e.kind==='damage'&&e.z===0&&e.value>=17);}});assert.ok(moved&&damaged);});
+test('relics earn charge, prevent repeated activation and expire',()=>{for(let r=0;r<3;r++){start(r);assert.equal(core.activate(),false);charged(r);assert.ok(core.activate());assert.equal(core.activate(),false);assert.equal(snap().energy,0);assert.ok(snap().ability>=4);assert.equal(stepFor(6,route).ability,0);}});
+test('EMP visibly damages nearby enemies and slows actual incoming projectiles',()=>{let s=charged(1);for(let f=0;f<900&&!s.targets.some(t=>t.kind==='enemy'&&t.z<12);f++){core.step(1/60,route(s));s=snap();}const near=s.targets.filter(t=>t.kind==='enemy'&&t.z<13&&Math.abs(t.x-s.x)<3.2);assert.ok(near.length);assert.ok(core.activate());const after=snap();assert.ok(near.some(t=>{const q=after.targets.find(q=>q.id===t.id);return!q||q.hp<t.hp;}));boss(1,0,false);s=snap();for(let f=0;f<5*60&&!s.enemyShots.length;f++){core.step(1/60,3);s=snap();}assert.ok(s.enemyShots.length&&s.energy>=100);const p=s.enemyShots[0];assert.ok(core.activate());const slow=snap().enemyShots.find(q=>q.id===p.id);assert.ok(Math.abs(slow.dz/p.dz-.38)<.0001);const later=stepFor(.2,3).enemyShots.find(q=>q.id===p.id);assert.ok(later);assert.ok(Math.abs(later.z-p.z-slow.dz*.2)<.002);});
+test('Overdrive increases actual firing damage',()=>{function dealt(active){const b=boss(2,0,false);if(active)assert.ok(core.activate());return b.bossHp-stepFor(1,s=>s.bossX).bossHp;}assert.ok(dealt(true)>dealt(false)*1.4);});
+test('active relics cannot regenerate charge',()=>{for(let r=0;r<3;r++){charged(r);assert.ok(core.activate());stepFor(2,route,60,s=>{assert.ok(s.ability>0);assert.equal(s.energy,0);});}});
+test('runner transitions preserve the army and require all enemies to be defeated',()=>{for(let l=0;l<3;l++){let previous;const s=run(2,l,{observe:(s,b)=>{if(s.phase==='boss')previous=b;},stop:s=>s.phase==='boss'});assert.equal(s.phase,'boss');assert.equal(s.travelDistance,s.travelGoal);assert.equal(s.army,previous.army);assert.equal(s.weapon,previous.weapon);assert.equal(s.bossHp,s.bossMax);assert.equal(s.bossZ,12);assert.ok(!s.targets.some(t=>t.kind==='enemy'));}});
+test('boss strafing and advancing move the actual damageable hitbox',()=>{boss(0,2,false);const xs=[],zs=[],actions=new Set();let hit=false;stepFor(16,s=>s.bossX,60,s=>{xs.push(s.bossX);zs.push(s.bossZ);actions.add(s.bossAction);hit ||= s.effects.some(e=>e.kind==='hit'&&e.variant===3&&Math.abs(e.z-s.bossZ)<.1);});assert.ok(Math.max(...xs)-Math.min(...xs)>3);assert.ok(Math.min(...zs)<9);assert.ok(Math.max(...zs)>11.9);assert.ok(actions.has('advance')&&actions.has('retreat'));assert.ok(hit);});
+test('model windup precedes distinct shots launched at the actual boss position',()=>{for(let l=0;l<3;l++){boss(0,l,false);let told=false,volley;stepFor(4,3,60,s=>{told ||= s.bossAction==='windup'&&s.bossAttack>0&&s.bossAttack<1;if(!volley&&s.effects.some(e=>e.kind==='bossShot'))volley=s;});assert.ok(told&&volley);assert.equal(volley.enemyShots.length,[1,5,3][l]);for(const p of volley.enemyShots){assert.equal(p.kind,['shell','orb','rocket'][l]);assert.ok(Math.abs(p.z-volley.bossZ)<.2);assert.ok(Math.abs(p.x-volley.bossX)<=1);assert.ok(p.dz<0);}assert.equal(volley.bossAction,'fire');}});
+test('real boss projectiles hit occupied lanes and miss dodged lanes',()=>{for(let l=0;l<3;l++){const b=boss(2,l,false);let hits=0;const unsafe=stepFor(6,3,60,s=>{hits+=s.effects.filter(e=>e.kind==='damage').length;});assert.ok(hits>0);assert.ok(unsafe.army<b.army);const safe=boss(2,l,false);let miss=0;const end=stepFor(6,route,60,s=>{miss+=s.effects.filter(e=>e.kind==='damage').length;});assert.equal(miss,0);assert.equal(end.army,safe.army);}});
+test('Shield blocks an incoming boss shell without troop loss',()=>{boss(0,0,false);let s=snap();for(let f=0;f<5*60&&s.bossAttack<.8;f++){core.step(1/60,3);s=snap();}assert.ok(core.activate());const army=snap().army;let blocked=0;stepFor(2.5,3,60,s=>{blocked+=s.effects.filter(e=>e.kind==='block').length;assert.ok(!s.effects.some(e=>e.kind==='damage'));});assert.ok(blocked>0);assert.equal(snap().army,army);});
+test('zero boss HP triggers2.5 seconds of destruction before victory',()=>{const dying=run(2,0,{stop:s=>s.phase==='destroying'});assert.equal(dying.phase,'destroying');assert.equal(dying.bossHp,0);assert.equal(dying.bossAction,'dying');assert.equal(dying.deathProgress,0);assert.ok(dying.effects.some(e=>e.kind==='bossDeath'));assert.ok(!dying.effects.some(e=>e.kind==='win'));assert.equal(core.activate(),false);const mid=stepFor(2);assert.equal(mid.phase,'destroying');assert.ok(mid.deathProgress>.79&&mid.deathProgress<.81);assert.equal(mid.bossX,dying.bossX);assert.equal(mid.bossZ,dying.bossZ);const end=stepFor(.5);assert.equal(end.phase,'won');assert.equal(end.deathProgress,1);assert.ok(end.effects.some(e=>e.kind==='win'));assert.ok(Math.abs(end.time-dying.time-2.5)<.001);});
+test('all nine stage/relic routes are beatable with free public controls',()=>{for(let l=0;l<3;l++)for(let r=0;r<3;r++){let active=0,stopped=0,contacts=0;const s=run(r,l,{observe:s=>{if(s.ability>0&&s.phase!=='destroying')active++;if(s.engagement)stopped++;contacts+=s.effects.filter(e=>e.kind==='contact').length;}});assert.equal(s.phase,'won',`Level${l}/relic${r} ended${s.phase}`);assert.ok(s.army>0);winningRuns.push({level:l,relic:r,time:s.time,army:s.army,weapon:s.weapon,kills:s.kills,abilityUptime:active/(s.time*60),stoppedSeconds:stopped/60,contactAttacks:contacts});}});
+test('poor play can lose and terminal state then freezes',()=>{for(let l=0;l<3;l++){const s=run(0,l,{controls:()=>0,ability:false});assert.equal(s.phase,'lost');assert.equal(s.army,0);assert.deepEqual(persistent(stepFor(3,-3)),persistent(s));assert.equal(core.activate(),false);}});
+test('pause freezes combat, moving boss and destruction countdown',()=>{boss(1,2);core.pause(true);const b=persistent(snap());assert.deepEqual(persistent(stepFor(6,-3)),b);core.pause(false);assert.ok(stepFor(.5,3).time>b.time);run(2,0,{stop:s=>s.phase==='destroying'});core.pause(true);const d=persistent(snap());assert.deepEqual(persistent(stepFor(6)),d);core.pause(false);assert.equal(stepFor(2.5).phase,'won');});
+test('fixed simulation matches30,60 and120Hz through stopped engagements',()=>{for(let l=0;l<3;l++){const replay=hz=>{start(0,l);return persistent(stepFor(30,-1.8,hz));};const b=replay(60);assert.deepEqual(replay(30),b);assert.deepEqual(replay(120),b);}});
+test('combat pools stay bounded and numerically finite',()=>{for(let l=0;l<3;l++)run(1,l,{observe:s=>{assert.ok(s.targets.length<=256&&s.shots.length<=256&&s.enemyShots.length<=96&&s.effects.length<=192);for(const k of['time','x','energy','travelDistance','bossX','bossZ','deathProgress'])assert.ok(Number.isFinite(s[k]));assert.ok(s.travelDistance<=s.travelGoal);for(const p of s.shots)assert.ok(p.z>=-2&&p.z<=38&&p.dz>0&&Number.isFinite(p.dx));}});});
+test('effects drain exactly once without modifying persistent state',()=>{start();core.step(.25,-1.8);core.step(.25,-1.8);const a=snap(),b=snap();assert.equal(b.effects.length,0);assert.deepEqual(persistent(a),persistent(b));for(const e of a.effects)assert.ok(e.size>0&&Number.isInteger(e.entityId));});
+test('250 retries reset all transient state without growing WASM allocation',()=>{const resets=[start(0,0),start(0,1),start(0,2)].map(persistent),memory=core.api.memory.buffer.byteLength;for(let i=0;i<250;i++){start(i%3,i%3);stepFor(3,1.8);core.pause(true);assert.deepEqual(persistent(start(0,i%3)),resets[i%3]);assert.equal(core.api.memory.buffer.byteLength,memory);core.step(1/60,0);assert.ok(snap().time>0);}});
+const report={schema:3,scope:'Actual frontline-combat Assault browser adapter and current WASM. Automated controls only; no Unreal, physical-device or first-time-player validation.',binary:binaryPath,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),memoryBytes:core.api.memory.buffer.byteLength,testedAt:new Date().toISOString(),winningRuns,tests:results.length,passed:results.filter(r=>r.status==='pass').length,failed:results.filter(r=>r.status==='fail').length,results};fs.mkdirSync(path.join(root,'builds'),{recursive:true});fs.writeFileSync(path.join(root,'builds/rebuild-test-results.json'),JSON.stringify(report,null,2));console.log(`${report.passed}/${report.tests} checks passed.`);if(report.failed)process.exitCode=1;
