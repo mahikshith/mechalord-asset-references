@@ -15,5 +15,11 @@
     "rawSourceUnmodified": true,
     "peakWorkingSetBytes": 1801072640,
     "workingSetBytes": 647274496
+  },
+  "visualReview": {
+    "status": "reconstruction starting point only",
+    "observed": "Recognizable helmet, shoulder armor, chest relic, weapon, hands and legs; dense contour/ripple noise and thin/open edges remain",
+    "orientation": "Raw glTF Y-up, character faces +X; camera is +X oblique",
+    "gameReady": false
   }
 }
