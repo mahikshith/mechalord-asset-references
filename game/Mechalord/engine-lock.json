@@ -1,0 +1,8 @@
+{
+  "requestedVersion": "5.8.3",
+  "verifiedReleaseDate": "2026-09-22",
+  "checkedOn": "2026-10-04",
+  "source": "https://forums.unrealengine.com/tag/hotfix/11407",
+  "installedVersion": null,
+  "notes": "Pin target to this stable patch; installation tool records actual Build.version separately. No local engine build is claimed."
+}
