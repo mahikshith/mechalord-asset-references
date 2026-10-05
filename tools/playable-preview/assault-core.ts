@@ -4,6 +4,7 @@ const phases:Phase[]=['ready','run','boss','destroying','won','lost','lastStand'
 const targetKinds:Target['kind'][]=['enemy','crate','gate','hazard','orb'];
 const effectKinds:Effect['kind'][]=['hit','kill','recruit','gate','damage','relic','bossShot','win','contact','block','bossDeath','missed','drop','pickup','pass','retreat','bossPhase','commanderHit','commanderDeath','hazardBreak','troopDeath','coreExpose','bossRevive','bossPartBreak','troopSacrifice','heal','revive','commanderDown','enemyFire'];
 const projectileKinds:EnemyShot['kind'][]=['shell','rocket','orb'];
+const emitters:EnemyShot['emitter'][]=['gunner','armL','armR','shoulderL','shoulderR','core'];
 const friendlyKinds:Shot['kind'][]=['pulse','arc','rail','missile','cannon'];
 const bossActions:BossAction[]=['strafe','advance','retreat','windup','fire','dying'];
 const powers:WeaponPower[]=['none','guided','cannons','railburst'];
@@ -49,8 +50,8 @@ export class AssaultCore implements GameCore {
     for(let i=0;i<ts.length;i+=16)targets.push({id:ts[i],kind:targetKinds[ts[i+1]],x:ts[i+2],z:ts[i+3],hp:ts[i+4],maxHp:ts[i+5],value:ts[i+6],op:ts[i+7],size:ts[i+8],hit:ts[i+9],variant:ts[i+10],depth:ts[i+11],fireState:['idle','tracking','locked','fire','reload'][ts[i+12]] as Target['fireState'],aimX:ts[i+13],charge:ts[i+14],role:(ts[i+15]?['grunt','gunner','battery','carrier'][ts[i+15]]:ts[i+10]>0?'elite':'grunt') as Target['role'],guidedArmor:s[18]===0&&(ts[i+15]===1||ts[i+15]===2)&&(ts[i+12]===1||ts[i+12]===2)});
     const ss=this.read('shots',this.api.shot_count()*7);
     for(let i=0;i<ss.length;i+=7)shots.push({x:ss[i],z:ss[i+1],dx:ss[i+2],dz:ss[i+3],heavy:Boolean(ss[i+4]),kind:friendlyKinds[ss[i+5]],owner:ss[i+6]?'troop':'commander'});
-    const hostile=this.read('enemy_shots',this.api.enemy_shot_count()*9);
-    for(let i=0;i<hostile.length;i+=9)enemyShots.push({id:hostile[i],x:hostile[i+1],z:hostile[i+2],dx:hostile[i+3],dz:hostile[i+4],radius:hostile[i+5],kind:projectileKinds[hostile[i+6]],guided:hostile[i+7]>0,homingTime:hostile[i+7],sourceId:hostile[i+8]});
+    const hostile=this.read('enemy_shots',this.api.enemy_shot_count()*13);
+    for(let i=0;i<hostile.length;i+=13)enemyShots.push({id:hostile[i],x:hostile[i+1],z:hostile[i+2],dx:hostile[i+3],dz:hostile[i+4],radius:hostile[i+5],kind:projectileKinds[hostile[i+6]],guided:hostile[i+7]>0,homingTime:hostile[i+7],sourceId:hostile[i+8],emitter:emitters[hostile[i+9]],launchX:hostile[i+10],launchZ:hostile[i+11],launchY:hostile[i+12]});
     const lasers:Snapshot['lasers']=[],ls=this.read('lasers',this.api.laser_count()*7);
     for(let i=0;i<ls.length;i+=7)lasers.push({id:ls[i],x:ls[i+1],z:ls[i+2],endX:ls[i+3],endZ:ls[i+4],width:ls[i+5],time:ls[i+6]});
     const count=this.api.effect_count();

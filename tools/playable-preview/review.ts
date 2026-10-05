@@ -78,6 +78,10 @@ document.querySelector('#revive')!.addEventListener('click',()=>{start();missCor
 document.querySelector('#collect')!.addEventListener('click',()=>{start();seekPower=(document.querySelector('#pickup') as HTMLSelectElement).value as PickupPower;replayUntil(s=>s.effects.some(e=>e.kind==='pickup'&&powerKind(e.value)===seekPower));seekPower=undefined;});
 document.querySelector('#part')!.addEventListener('click',()=>{start();replayUntil(s=>s.effects.some(e=>e.kind==='bossPartBreak'));});
 document.querySelector('#laser')!.addEventListener('click',()=>{start();replayUntil(s=>s.lasers.length>0);});
+document.querySelector('#arrival')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.bossZ<22&&s.bossZ>13);});
+document.querySelector('#rockets')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.enemyShots.some(p=>p.kind==='rocket'));});
+document.querySelector('#shells')!.addEventListener('click',()=>{start();replayUntil(s=>s.enemyShots.some(p=>p.sourceId>0&&p.z<22));});
+document.querySelector('#charge')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.bossPattern==='laser'&&s.bossAction==='windup'&&s.bossAttack>.7);});
 document.querySelector('#powered')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.bossZ<22&&s.ability>0&&s.shots.length>0);});
 document.querySelector('#stand')!.addEventListener('click',()=>{
  start();for(let i=0;i<18000&&state.phase==='run';i++)tick(1/60,false);let preceding=state;
@@ -90,8 +94,10 @@ document.querySelector('#save')!.addEventListener('click',()=>act(()=>core.reviv
 document.querySelector('#decline')!.addEventListener('click',()=>act(()=>core.declineRevive()));
 await Promise.all([core.load(),world.load()]);start();
 function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=now;
- if(!paused){for(let i=0;i<speed;i++)tick(dt,true,i===speed-1);}else world.update(state,0,'paused');
+ if(!paused){const steps=Math.max(1,Math.ceil(speed));for(let i=0;i<steps;i++)tick(dt*speed/steps,true,i===steps-1);}else world.update(state,0,'paused');
  status.textContent=`${state.phase} · ${state.time.toFixed(1)}s · army ${state.army} (${state.formation.length} visible) · Marshal ${state.commanderHp.toFixed(0)}HP · kills ${state.kills} · weapon ${state.weapon} · ${state.weaponPower} ${state.weaponPermanent?'full run':state.powerTime.toFixed(1)+'s'} · ${state.timePower} ${state.timePowerTime.toFixed(1)}s · ${state.bossState} ${state.bossCoreTime.toFixed(1)}s · armor ${state.bossArmor.toFixed(0)} · core ${state.bossCoreHp.toFixed(0)} · broken mask ${state.bossPartsMask} · next ${state.bossPart} · beams ${state.lasers.length} · heal ${state.canHeal} · revive ${state.reviveAvailable} · revives ${state.bossRevives} · phase ${state.bossPhase} ${state.bossPattern}`;
  status.textContent+=` · relic active ${state.ability.toFixed(1)}s · energy ${state.energy.toFixed(0)}`;
+ status.textContent+=` · airborne ${state.bossY.toFixed(2)}m · enemy rounds ${state.enemyShots.length} · ${[...new Set(state.enemyShots.map(shot=>shot.emitter??'legacy'))].join(', ')}`;
+ const info=world.renderer.info;status.textContent+=` · draw calls ${info.render.calls} · triangles ${info.render.triangles} · geometries ${info.memory.geometries} · textures ${info.memory.textures}`;
  canvas.dataset.phase=state.phase;requestAnimationFrame(frame);
 }requestAnimationFrame(frame);

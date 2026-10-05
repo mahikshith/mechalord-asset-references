@@ -1,0 +1,35 @@
+{
+  "scope": "CPU actual GLB position/joint verification; browser render and Android not tested here.",
+  "testedAt": "2026-10-05T19:39:05.396Z",
+  "passed": 9,
+  "failed": 0,
+  "maxSampledPoseDisplacementMetres": 2.245260379233216,
+  "tests": 9,
+  "neutralOffsets": {
+    "armL": [
+      1.7248,
+      3.74926,
+      2.0996
+    ],
+    "armR": [
+      -1.7248,
+      3.74926,
+      2.0996
+    ],
+    "shoulderL": [
+      1.432465,
+      5.367958,
+      0.641911
+    ],
+    "shoulderR": [
+      -1.432465,
+      5.367958,
+      0.641911
+    ],
+    "core": [
+      0,
+      4.312,
+      0.847
+    ]
+  }
+}

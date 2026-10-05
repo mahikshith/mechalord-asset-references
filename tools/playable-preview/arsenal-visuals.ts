@@ -1,6 +1,7 @@
 import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {Snapshot} from './contract';
+import {WeaponSockets,flightAttitude,type EmitterPositions} from './weapon-sockets';
 
 export type ArsenalPickupKind='guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste';
 export const PICKUP_COLORS={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639} as const;
@@ -40,8 +41,12 @@ export class ArsenalVisuals {
   private hands:HandRig[]=[];private wings:BossWing[]=[];private powerGlow:T.Mesh[]=[];
   private clock=0;private bossClock=0;private bossSpin=0;private spin=0;private unfolded=0;private previousFire=0;private recoil=0;private lastNearShotZ?:number;
   private railFlash:T.Mesh;
+  readonly sockets:WeaponSockets;
+  private socketCharges=new Map<string,T.Mesh>();private socketFlashes=new Map<string,T.Mesh>();private flashTimes=new Map<string,number>();private shotIDs=new Set<number>();
+  private boosters:{group:T.Group,plumes:T.Mesh[]}[]=[];private previousBoss=new T.Vector3();private previousVelocityZ=0;private hasBossPosition=false;
   private bossCharge:T.Mesh;private laserCharges:T.Mesh[]=[];private faceRig=new T.Group();private faceHead?:T.Object3D;
   constructor(private hero:T.Group,private boss:T.Group){
+    this.sockets=new WeaponSockets(boss);
     this.heroRig.name='Arsenal_Hero';this.bossRig.name='Arsenal_Boss';this.heroRig.add(this.cannons,this.guided,this.rail);hero.add(this.heroRig);boss.add(this.bossRig);
     for(const side of [-1,1]){
       const group=new T.Group();group.name='HandCannon_'+(side<0?'L':'R');group.position.set(side*.90,1.42,-.22);group.rotation.y=Math.PI;this.cannons.add(group);
@@ -107,8 +112,17 @@ export class ArsenalVisuals {
     face.push(paint(new T.BoxGeometry(.205,.116,.021),BLACK,0,.178,-.429));
     for(let i=0;i<5;i++)face.push(paint(new T.BoxGeometry(.013,.10,.021),BRONZE,(i-2)*.035,.177,-.445));
     this.faceRig.add(assembly(face),assembly(eyes,true));this.faceRig.visible=false;
+    for(const key of ['armL','armR','shoulderL','shoulderR','core']){const anchor=this.sockets.node(key);if(!anchor)continue;
+      const charge=glow(key==='core'?.22:.13,key==='core'?0xffbd5c:0xff6d2c);charge.name='SocketCharge_'+key;charge.visible=false;anchor.add(charge);this.socketCharges.set(key,charge);
+      const flash=glow(key==='core'?.18:.17,0xffe1ac);flash.name='SocketFlash_'+key;flash.visible=false;anchor.add(flash);this.socketFlashes.set(key,flash);
+    }
+    for(const key of ['boosterL','boosterR']){const anchor=this.sockets.node(key);if(!anchor)continue;const group=new T.Group();group.name='OriginalBoosterExhaust_'+key;anchor.add(group);
+      const side=key.endsWith('L')?1:-1;const collar=assembly([paint(new T.TorusGeometry(.18,.04,5,16),BRONZE,0,0,0,Math.PI/2),paint(new T.CylinderGeometry(.18,.23,.24,12),STEEL,0,.085,0),paint(new T.BoxGeometry(.76,.16,.20),BRONZE,side*.36,.12,0),paint(new T.BoxGeometry(.16,.35,.26),STEEL,side*.67,.20,0)]);group.add(collar);
+      const plumes=[glow(.14,0xe8fbff),glow(.21,0x65dfff),glow(.28,0x337dd9)];plumes.forEach((mesh,i)=>{mesh.name='BoosterPlasmaStage_'+i;mesh.position.y=[-.28,-.65,-1.0][i];(mesh.material as T.MeshBasicMaterial).opacity=[.85,.42,.12][i];mesh.visible=false;group.add(mesh);});this.boosters.push({group,plumes});
+    }
     this.reset();
   }
+  emitters(out?:EmitterPositions){return this.sockets.positions(out);}
   update(s:Snapshot,dt:number){
     const head=this.boss.getObjectByName('Head');if(head&&head!==this.faceHead){this.faceRig.removeFromParent();head.add(this.faceRig);this.faceHead=head;}this.faceRig.visible=!!head;
     if(this.heroRig.parent!==this.hero)this.hero.add(this.heroRig);if(this.bossRig.parent!==this.boss)this.boss.add(this.bossRig);
@@ -134,22 +148,25 @@ export class ArsenalVisuals {
     const battleizer=inBoss&&((state.bossPhase??1)>=2||(state.bossRevives??0)>0||state.bossPattern==='heavy'&&(s.bossAction==='windup'||s.bossAction==='fire'));
     this.bossRig.visible=s.phase==='boss'||s.phase==='destroying'||((s.phase==='lost'||down)&&s.bossHp>0);this.unfolded+=((battleizer?1:0)-this.unfolded)*(1-Math.exp(-bossDelta*5));
     syncBossParts(this.boss,state.bossPartsMask??0);
-    this.bossCharge.visible=inBoss&&state.bossState!=='guarded'&&s.bossAction==='windup'&&state.bossPattern!=='laser';
-    this.boss.updateWorldMatrix(true,true);
-    for(let i=0;i<this.laserCharges.length;i++){const charge=this.laserCharges[i];charge.visible=false;}
-    // Laser energy comes from the surviving original reactor, not detached barrels.
-    if(inBoss&&state.bossPattern==='laser'&&s.bossAction==='windup'){
-      const charge=this.laserCharges[0];charge.visible=true;charge.position.set(0,3.08,.605);charge.scale.setScalar(.45+Math.max(0,s.bossAttack)*1.35+.06*Math.sin(this.bossClock*20));
-    }
-    // Brighten the original reactor opening only; there is no added door or chest wheel.
-    if(inBoss&&state.bossState==='exposed'){const opening=this.laserCharges[1];opening.visible=true;opening.position.set(0,3.08,.605);opening.scale.setScalar(.85+.08*Math.sin(this.bossClock*8));}
-    this.bossCharge.scale.setScalar(.7+Math.max(0,s.bossAttack)*1.2+.08*Math.sin(this.bossClock*24));
-    for(const wing of this.wings){wing.hinge.position.x=wing.side*(.64+this.unfolded*.70);wing.hinge.position.y=3.15+this.unfolded*.24;wing.hinge.rotation.z=wing.side*(.12+this.unfolded*.95);wing.hinge.rotation.x=-this.unfolded*.28;wing.rotor.rotation.z=-this.bossSpin;
-      wing.flash.visible=inBoss&&s.bossAction==='fire'&&state.bossPattern==='heavy';wing.flash.scale.setScalar(1.2+.25*Math.sin(this.bossClock*40));
-      wing.jet.visible=(inBoss||(s.phase==='lost'||down)&&s.bossHp>0)&&(state.bossY??0)>.08;wing.jet.scale.set(1,1+.25*Math.sin(this.bossClock*30),1);}
+    // Original weapon sockets drive charge and launch flashes; no generic chest muzzle.
+    this.bossCharge.visible=false;this.laserCharges.forEach(c=>c.visible=false);
+    for(const shot of s.enemyShots){const emitter=(shot as typeof shot & {emitter?:string}).emitter;if(!this.shotIDs.has(shot.id)&&emitter&&this.sockets.node(emitter))this.flashTimes.set(emitter,.10);}
+    this.shotIDs=new Set(s.enemyShots.map(p=>p.id));
+    const mask=state.bossPartsMask??0;
+    const arms=['armL','armR'].filter((_,i)=>(mask&(1<<i))===0),shoulders=['shoulderL','shoulderR'].filter((_,i)=>(mask&(1<<(i+2)))===0);
+    const activeWeapons=state.bossPattern==='laser'?['core']:state.bossPattern==='rockets'?(shoulders.length?shoulders:['core']):(arms.length?arms:['core']);
+    for(const [key,charge] of this.socketCharges){const present=!!this.sockets.position(key);charge.visible=present&&inBoss&&state.bossState!=='guarded'&&s.bossAction==='windup'&&activeWeapons.includes(key);if(key==='core'&&inBoss&&state.bossState==='exposed')charge.visible=present;charge.scale.setScalar(key==='core'&&state.bossState==='exposed'?1.0:.55+Math.max(0,s.bossAttack)*1.0);}
+    for(const [key,flash] of this.socketFlashes){const time=Math.max(0,(this.flashTimes.get(key)??0)-bossDelta);this.flashTimes.set(key,time);flash.visible=inBoss&&time>0&&!!this.sockets.position(key);flash.scale.setScalar(.6+time*9);}
+    this.boss.updateWorldMatrix(true,true);const position=this.boss.getWorldPosition(new T.Vector3());
+    const vx=this.hasBossPosition&&delta>0?(position.x-this.previousBoss.x)/delta:0,vz=this.hasBossPosition&&delta>0?(position.z-this.previousBoss.z)/delta:0;
+    const flying=inBoss&&(state.bossY??0)>.12&&(mask&12)!==12;const attitude=flightAttitude(vx,vz,this.previousVelocityZ,delta,flying);
+    this.previousBoss.copy(position);this.previousVelocityZ=vz;this.hasBossPosition=true;
+    for(const booster of this.boosters)for(let i=0;i<booster.plumes.length;i++){const plume=booster.plumes[i];plume.visible=flying;const pulse=1+Math.sin(this.bossClock*(23+i*4)+i)*.055;plume.scale.set((1-i*.12)*pulse,([1.8,2.6,2.8][i]+attitude.thrust*.35)*pulse,1-i*.12);}
+    for(const wing of this.wings){wing.hinge.position.x=wing.side*(.64+this.unfolded*.70);wing.hinge.position.y=3.15+this.unfolded*.24;wing.hinge.rotation.z=wing.side*(.12+this.unfolded*.95);wing.hinge.rotation.x=-this.unfolded*.28;wing.rotor.rotation.z=-this.bossSpin;wing.flash.visible=false;wing.jet.visible=false;}
+
   }
-  reset(){this.faceRig.visible=false;this.clock=0;this.bossClock=0;this.bossSpin=0;this.spin=0;this.unfolded=0;this.previousFire=0;this.recoil=0;this.lastNearShotZ=undefined;this.heroRig.visible=false;this.bossRig.visible=false;this.bossCharge.visible=false;this.laserCharges.forEach(c=>c.visible=false);for(const hand of this.hands){hand.rotor.rotation.z=0;hand.group.rotation.x=0;hand.group.position.z=-.22;hand.flash.visible=false;}this.railFlash.visible=false;this.rail.position.z=-.40;this.rail.rotation.x=0;for(const rack of this.guided.children)rack.rotation.x=0;for(const wing of this.wings){wing.hinge.rotation.set(0,0,0);wing.flash.visible=false;wing.jet.visible=false;}}
-  dispose(){disposeTree(this.heroRig);disposeTree(this.bossRig);disposeTree(this.faceRig);this.faceRig.removeFromParent();this.faceHead=undefined;this.hero.remove(this.heroRig);this.boss.remove(this.bossRig);}
+  reset(){this.shotIDs.clear();this.flashTimes.clear();this.hasBossPosition=false;this.previousVelocityZ=0;this.socketCharges.forEach(c=>c.visible=false);this.socketFlashes.forEach(f=>f.visible=false);for(const booster of this.boosters)booster.plumes.forEach(p=>p.visible=false);this.faceRig.visible=false;this.clock=0;this.bossClock=0;this.bossSpin=0;this.spin=0;this.unfolded=0;this.previousFire=0;this.recoil=0;this.lastNearShotZ=undefined;this.heroRig.visible=false;this.bossRig.visible=false;this.bossCharge.visible=false;this.laserCharges.forEach(c=>c.visible=false);for(const hand of this.hands){hand.rotor.rotation.z=0;hand.group.rotation.x=0;hand.group.position.z=-.22;hand.flash.visible=false;}this.railFlash.visible=false;this.rail.position.z=-.40;this.rail.rotation.x=0;for(const rack of this.guided.children)rack.rotation.x=0;for(const wing of this.wings){wing.hinge.rotation.set(0,0,0);wing.flash.visible=false;wing.jet.visible=false;}}
+  dispose(){for(const mesh of [...this.socketCharges.values(),...this.socketFlashes.values()]){mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.removeFromParent();}for(const booster of this.boosters){disposeTree(booster.group);booster.group.removeFromParent();}this.sockets.dispose();disposeTree(this.heroRig);disposeTree(this.bossRig);disposeTree(this.faceRig);this.faceRig.removeFromParent();this.faceHead=undefined;this.hero.remove(this.heroRig);this.boss.remove(this.bossRig);}
 }
 
 /** The parent positions the root at the authoritative target/pickup x and world Z. */

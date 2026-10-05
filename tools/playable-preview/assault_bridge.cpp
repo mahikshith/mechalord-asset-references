@@ -3,7 +3,7 @@
 static mech::assault::Battle Battle;
 static float Formation[24*3];
 static float LaserData[2*7];
-static float State[64],Targets[256*16],Shots[256*7],EnemyShots[96*9],Pickups[24*6],Effects[192*8];
+static float State[64],Targets[256*16],Shots[256*7],EnemyShots[96*13],Pickups[24*6],Effects[192*8];
 API("start_run") void Start(int Relic,int Level,int Rank) { Battle.Start(static_cast<mech::assault::Relic>(std::clamp(Relic,0,2)),Level,Rank); }
 API("level_name") const char* LevelName() { return Battle.LevelName(); }
 API("step") void Step(double Dt,double X) { Battle.Advance(Dt,X); }
@@ -66,9 +66,9 @@ API("enemy_shots") float* GetEnemyShots()
     const double Slow=Battle.HostileSpeed();
     int N=0; for(const auto& S:Battle.enemyShots) if(S.active)
     {
-        float* O=EnemyShots+N++*9;
+        float* O=EnemyShots+N++*13;
         O[0]=S.id; O[1]=S.x; O[2]=S.z; O[3]=S.dx*Slow; O[4]=S.dz*Slow;
-        O[5]=S.radius; O[6]=int(S.kind); O[7]=S.homing; O[8]=S.sourceId;
+        O[5]=S.radius; O[6]=int(S.kind); O[7]=S.homing; O[8]=S.sourceId; O[9]=int(S.emitter); O[10]=S.launchX; O[11]=S.launchZ; O[12]=S.launchY;
     } return EnemyShots;
 }
 API("drain_effects") float* EffectsOnce()

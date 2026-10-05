@@ -12,6 +12,7 @@ enum class Kind { Enemy, Crate, Gate, Hazard, Orb };
 enum class Relic { Shield, EMP, Overdrive };
 enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire };
 enum class ProjectileKind { Shell, Rocket, Orb };
+enum class WeaponEmitter { Gunner, ArmL, ArmR, ShoulderL, ShoulderR, Core };
 enum class FriendlyKind { Pulse, Arc, Rail, Missile, Cannon };
 enum class WeaponPower { None, Guided, Cannons, Railburst };
 enum class TimePower { None, Freeze, Slow, Haste };
@@ -38,6 +39,7 @@ struct EnemyShot
 {
     int id=0; double x=0,z=0,dx=0,dz=0,radius=.3; int damage=0;
     ProjectileKind kind=ProjectileKind::Shell; bool active=false,boss=false; double homing=0; int sourceId=0;
+    WeaponEmitter emitter=WeaponEmitter::Gunner; double launchX=0,launchZ=0,launchY=1.65;
 };
 struct Laser { int id=0; double x=0,z=0,endX=0,endZ=-5,width=.36,time=0,tick=0; bool active=false; };
 struct Pickup { int id=0; PickupKind kind=PickupKind::Guided; double x=0,z=0,radius=1.05; bool active=false; int choiceGroup=0; };
@@ -125,7 +127,8 @@ private:
     void MoveEnemyShots(double Dt);
     void DropPickup(double X,double Z,PickupKind Power,int Source,int ChoiceGroup=0);
     void MovePickups(double Dt);
-    void SpawnEnemyShot(double OriginX,double OriginZ,double AimX,double Speed,double Radius,int Damage,ProjectileKind Type,bool Boss,int Source=0);
+    void SpawnEnemyShot(double OriginX,double OriginZ,double AimX,double Speed,double Radius,int Damage,ProjectileKind Type,bool Boss,int Source=0,WeaponEmitter Emitter=WeaponEmitter::Gunner,double LaunchHeight=1.65);
+    void BossProjectile(WeaponEmitter Emitter,double AimX,double Speed,double Radius,int Damage,ProjectileKind Type);
     void BossVolley();
     void GatePair(int Index,double Forward=40);
     void AwardWeaponXP(int Amount);

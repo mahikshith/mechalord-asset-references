@@ -257,42 +257,41 @@ export class CombatVisuals {
   dispose(){this.reset();for(const m of [this.debris,this.rotors,this.struts,this.sparkMesh,this.smoke,this.fire,this.acquireRing,this.acquireTrace,this.streamBodies,this.streamHeads]){this.scene.remove(m);m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}}
 }
 
-/** One recognizable ~1.1m robot per actual target; two draw calls for a whole wave. */
+export type RobotMotion={id:number;dt:number;velocityX?:number;velocityZ?:number;aimYaw?:number};
+/** Original tracked silhouette, with independent shoulder and leg/tread suspensions. */
 export class RobotFormation {
-  private body:T.InstancedMesh;private eyes:T.InstancedMesh;private treadMark:T.InstancedMesh;private count=0;private dummy=new T.Object3D();
+  private body:T.InstancedMesh;private eyes:T.InstancedMesh;private treadMark:T.InstancedMesh;
+  private arms:T.InstancedMesh;private legs:T.InstancedMesh;private count=0;private dummy=new T.Object3D();private local=new T.Object3D();private matrix=new T.Matrix4();
+  private poses=new Map<number,{yaw:number;phase:number;speed:number}>();private seen=new Set<number>();
   constructor(private scene:T.Scene,readonly capacity=200){
     const dark=0x25323c,red=0x963729,bronze=0x96754a,parts:T.BufferGeometry[]=[];
-    for(const side of [-1,1]){
-      parts.push(painted(new T.CapsuleGeometry(.14,.36,2,6),dark,side*.32,.20,0,Math.PI/2));
-      parts.push(painted(new T.CylinderGeometry(.105,.105,.31,6),bronze,side*.32,.20,.19,0,0,Math.PI/2));
-      parts.push(painted(new T.SphereGeometry(.20,6,4),red,side*.31,.73,0));
-    }
-    parts.push(painted(new T.CylinderGeometry(.29,.35,.35,6),dark,0,.46,0));
-    parts.push(painted(new T.SphereGeometry(.34,8,5),red,0,.66,0));
-    parts.push(painted(new T.CylinderGeometry(.16,.20,.25,6),dark,0,.95,0));
-    parts.push(painted(new T.BoxGeometry(.35,.11,.04),dark,0,.98,.16));
-    parts.push(painted(new T.CylinderGeometry(.065,.085,.55,6),dark,.16,.70,.39,Math.PI/2));
-    parts.push(painted(new T.TorusGeometry(.075,.025,3,6),bronze,.16,.70,.68));
-    const material=standard(0xffffff);material.vertexColors=true;
-    this.body=pool(scene,joined(parts),material,capacity);this.body.castShadow=true;
+    for(const side of [-1,1])parts.push(painted(new T.SphereGeometry(.20,10,6),red,side*.31,.73,0));
+    parts.push(painted(new T.CylinderGeometry(.29,.35,.35,10),dark,0,.46,0),painted(new T.SphereGeometry(.34,12,8),red,0,.66,0),painted(new T.CylinderGeometry(.16,.20,.25,8),dark,0,.95,0),painted(new T.BoxGeometry(.35,.11,.04),dark,0,.98,.16),painted(new T.CylinderGeometry(.065,.085,.55,8),dark,.16,.70,.39,Math.PI/2),painted(new T.TorusGeometry(.075,.025,4,8),bronze,.16,.70,.68));
+    const material=standard(0xffffff);material.vertexColors=true;this.body=pool(scene,joined(parts),material,capacity);this.body.castShadow=true;
     const glow=joined([painted(new T.BoxGeometry(.24,.035,.045),0xffae37,0,.99,.19),painted(new T.OctahedronGeometry(.09),0xff5a22,0,.67,.30)]);
     const eyes=basic(0xffffff);eyes.vertexColors=true;eyes.toneMapped=false;this.eyes=pool(scene,glow,eyes,capacity);
+    const limbMaterial=standard(0xffffff);limbMaterial.vertexColors=true;
+    this.arms=pool(scene,joined([painted(new T.CylinderGeometry(.075,.075,.28,8),bronze,0,-.10,0),painted(new T.CapsuleGeometry(.10,.19,3,8),dark,0,-.29,.035),painted(new T.SphereGeometry(.115,8,6),red,0,-.23,.015),painted(new T.BoxGeometry(.14,.12,.18),dark,0,-.43,.07)]),limbMaterial,capacity*2);
+    this.legs=pool(scene,joined([painted(new T.CapsuleGeometry(.14,.36,3,8),dark,0,-.25,0,Math.PI/2),painted(new T.CylinderGeometry(.105,.105,.31,8),bronze,0,-.25,.19,0,0,Math.PI/2),painted(new T.CylinderGeometry(.055,.055,.24,8),bronze,0,-.075,0),painted(new T.SphereGeometry(.10,8,6),red,0,-.13,0)]),limbMaterial.clone(),capacity*2);
     this.treadMark=pool(scene,new T.BoxGeometry(.27,.055,.065),standard(0xa48c63),capacity*2);
   }
-  begin(){this.count=0;}
-  add(x:number,worldZ:number,scale=1,yaw=0,hit=false,phase=0){if(this.count>=this.capacity)return;
-    const sized=scale;
-    const bounce=Math.abs(Math.sin(phase*9))*.055,lean=Math.sin(phase*9)*.035;
-    this.dummy.position.set(x,.025+bounce,worldZ);this.dummy.rotation.set(lean-(hit?.11:0),yaw,Math.sin(phase*9)*.045);this.dummy.scale.set(sized*.82,sized*1.1,sized);this.dummy.updateMatrix();
-    this.body.setMatrixAt(this.count,this.dummy.matrix);this.eyes.setMatrixAt(this.count,this.dummy.matrix);
-    for(const side of [-1,1]){const travel=((phase*2.4+(side>0?.5:0))%1+1)%1,z=(travel-.5)*.5;
-      this.dummy.position.set(x+Math.cos(yaw)*side*.32*sized*.82+Math.sin(yaw)*z*sized,.32*sized+Math.sin(travel*Math.PI)*.035,worldZ-Math.sin(yaw)*side*.32*sized*.82+Math.cos(yaw)*z*sized);
-      this.dummy.rotation.set(0,yaw,0);this.dummy.scale.set(sized*.82,sized,sized);this.dummy.updateMatrix();this.treadMark.setMatrixAt(this.count*2+(side>0?1:0),this.dummy.matrix);}
-    this.count++;
+  begin(){this.count=0;this.seen.clear();}
+  add(x:number,worldZ:number,scale=1,yaw=0,hit=false,phase=0,motion?:RobotMotion){if(this.count>=this.capacity)return;
+    let cycle=phase*7.5,speed=1,turn=yaw;
+    if(motion){this.seen.add(motion.id);let pose=this.poses.get(motion.id);if(!pose){if(this.poses.size>=this.capacity)this.poses.delete(this.poses.keys().next().value!);pose={yaw,phase:phase*7.5,speed:0};this.poses.set(motion.id,pose);}
+      const dt=T.MathUtils.clamp(motion.dt,0,.15),velocity=Math.hypot(motion.velocityX??0,motion.velocityZ??0),desired=motion.aimYaw??(velocity>.08?Math.atan2(motion.velocityX??0,motion.velocityZ??0):yaw),difference=Math.atan2(Math.sin(desired-pose.yaw),Math.cos(desired-pose.yaw));
+      pose.yaw+=difference*(1-Math.exp(-dt*9));pose.speed+=(T.MathUtils.clamp(velocity/1.5,0,1.25)-pose.speed)*(1-Math.exp(-dt*12));pose.phase+=dt*7.5*pose.speed;turn=pose.yaw;cycle=pose.phase;speed=pose.speed;
+    }
+    this.dummy.position.set(x,.025,worldZ);this.dummy.rotation.set(hit?-.10:0,turn,0);this.dummy.scale.set(scale*.82,scale*1.1,scale);this.dummy.updateMatrix();this.body.setMatrixAt(this.count,this.dummy.matrix);this.eyes.setMatrixAt(this.count,this.dummy.matrix);
+    const part=(mesh:T.InstancedMesh,index:number,px:number,py:number,pz:number,rx:number)=>{this.local.position.set(px,py,pz);this.local.rotation.set(rx,0,0);this.local.scale.setScalar(1);this.local.updateMatrix();this.matrix.multiplyMatrices(this.dummy.matrix,this.local.matrix);mesh.setMatrixAt(index,this.matrix);};
+    for(const [j,side] of [-1,1].entries()){const swing=Math.sin(cycle+(side>0?Math.PI:0))*speed,index=this.count*2+j;
+      part(this.arms,index,side*.34,.73,0,-swing*.24-(hit?.13:0));part(this.legs,index,side*.32,.45,0,swing*.10);
+      const travel=((cycle/(Math.PI*2)+(side>0?.5:0))%1+1)%1;part(this.treadMark,index,side*.32,.28,-.25+travel*.50,0);
+    }this.count++;
   }
-  end(){changed(this.body,this.count);changed(this.eyes,this.count);changed(this.treadMark,this.count*2);}
-  reset(){this.begin();this.end();}
-  dispose(){for(const mesh of [this.body,this.eyes,this.treadMark]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
+  end(){changed(this.body,this.count);changed(this.eyes,this.count);for(const mesh of [this.arms,this.legs,this.treadMark])changed(mesh,this.count*2);for(const id of this.poses.keys())if(!this.seen.has(id))this.poses.delete(id);}
+  reset(){this.poses.clear();this.begin();this.end();}
+  dispose(){for(const mesh of [this.body,this.eyes,this.arms,this.legs,this.treadMark]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}this.poses.clear();}
 }
 
 /** Rings mark charging weapons; corner brackets mark the committed lane, never an invented ray. */
@@ -304,11 +303,11 @@ export class EnemyWeaponCues {
     this.locks=pool(scene,corners,new T.MeshBasicMaterial({color:0xff743e,transparent:true,opacity:.72,depthWrite:false,toneMapped:false}),capacity);
     instanceFade(this.charges,capacity);instanceFade(this.locks,capacity);
   }
-  update(targets:ReadonlyArray<Target>,visible=true){
+  update(targets:ReadonlyArray<Target>,visible=true,emitters?:Partial<Record<string,T.Vector3>>){
     let charges=0,locks=0;for(const target of targets){const t=target as Target&{fireState?:string;aimX?:number;charge?:number};if(!visible||t.kind!=='enemy'||t.variant!==2||t.hp<=0||t.z<0||t.z>28)continue;
       const charge=T.MathUtils.clamp(t.charge??0,0,1),active=t.fireState==='tracking'||t.fireState==='locked'||t.fireState==='fire';
       if(active&&charges<this.capacity){const yaw=Math.atan2((t.aimX??t.x)-t.x,t.z),scale=.7+charge*.65;
-        this.dummy.position.set(t.x+Math.sin(yaw)*.62,1.65,-t.z+Math.cos(yaw)*.62);this.dummy.rotation.set(0,yaw,0);this.dummy.scale.setScalar(scale);this.dummy.updateMatrix();this.charges.setMatrixAt(charges,this.dummy.matrix);this.charges.geometry.getAttribute('instanceOpacity').setX(charges++,.3+.7*charge);}
+        const socket=emitters?.['gunner:'+t.id];if(socket)this.dummy.position.copy(socket);else this.dummy.position.set(t.x+Math.sin(yaw)*.62,1.65,-t.z+Math.cos(yaw)*.62);this.dummy.rotation.set(0,yaw,0);this.dummy.scale.setScalar(scale);this.dummy.updateMatrix();this.charges.setMatrixAt(charges,this.dummy.matrix);this.charges.geometry.getAttribute('instanceOpacity').setX(charges++,.3+.7*charge);}
       if((t.fireState==='locked'||t.fireState==='fire')&&locks<this.capacity){this.dummy.position.set(t.aimX??t.x,.065,0);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.locks.setMatrixAt(locks,this.dummy.matrix);this.locks.geometry.getAttribute('instanceOpacity').setX(locks++,.82);}
     }changed(this.charges,charges);changed(this.locks,locks);
   }
@@ -316,7 +315,7 @@ export class EnemyWeaponCues {
   dispose(){for(const mesh of [this.charges,this.locks]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 
-export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
+export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;emitters?:Partial<Record<string,T.Vector3>>;bossCharging?:boolean;bossCharge?:number;hostileRate?:number;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
 type FriendlyPath={shot:Shot;originZ:number;launch:number;targetZ:number;targetHeight:number;targetId?:number;boss:boolean};
 /** The core owns X/Z collision. These anchors lift that same plane onto visible geometry. */
 function targetHeight(kind:Target['kind'],variant=0){return kind==='enemy'?(variant>0?1.65:.78):kind==='crate'?.68:kind==='orb'?1.1:kind==='hazard'?.7:1.1;}
@@ -347,12 +346,17 @@ function presentPath(shot:Shot,path:FriendlyPath,options:MissileOptions){
 }
 /** Pure projection for tests and other render adapters; preserves every simulated X/Z. */
 export function friendlyProjectilePose(shot:Shot,options:MissileOptions){return presentPath(shot,acquirePath(shot,options,options.dt??1/60),options);}
+type HostileLaunch={z:number;height:number;x:number;offset:T.Vector3;trailClock:number;lastTrail:T.Vector3};
+type MissileTrail={p:T.Vector3;life:number;color:T.Color;size:number};
 export class CombatMissiles {
   private bodies:T.InstancedMesh;private exhaust:T.InstancedMesh;private orbs:T.InstancedMesh;private orbCores:T.InstancedMesh;
   private bullets:T.InstancedMesh;private tips:T.InstancedMesh;private wakes:T.InstancedMesh;private dummy=new T.Object3D();
   private color=new T.Color();readonly capacity=768;
-  private beamShells:T.InstancedMesh;private beamCores:T.InstancedMesh;private hostileLaunchZ=new Map<number,{z:number;height:number}>();
+  private beamShells:T.InstancedMesh;private beamCores:T.InstancedMesh;private hostileLaunchZ=new Map<number,HostileLaunch>();
   private hostileShells:T.InstancedMesh;private hostileTips:T.InstancedMesh;
+  private trails:T.InstancedMesh;private trailParticles:MissileTrail[]=Array.from({length:192},()=>({p:new T.Vector3(),life:0,color:new T.Color(),size:0}));private trailIndex=0;
+  private beamFlow:T.InstancedMesh;private beamContact:T.InstancedMesh;private beamEmitter:T.InstancedMesh;private beamSheath:T.InstancedMesh;private beamCorona:T.InstancedMesh;private beamGround:T.InstancedMesh;private beamLight:T.PointLight;
+  private clock=0;private hostileClock=0;private plasmaTime={value:0};
   private friendlyPaths:FriendlyPath[]=[];private previousTime?:number;
   constructor(private scene:T.Scene){
     const parts=[painted(new T.CylinderGeometry(.09,.09,.47,8),0xbfc6c8,0,0,0,Math.PI/2),
@@ -361,32 +365,56 @@ export class CombatMissiles {
     for(const a of [0,Math.PI/2])parts.push(painted(new T.BoxGeometry(.32,.035,.19),0x3d4c56,0,0,-.18,0,0,a));
     const material=standard(0xffffff);material.vertexColors=true;this.bodies=pool(scene,joined(parts),material,this.capacity);
     const flame=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.48,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
-    this.exhaust=pool(scene,new T.ConeGeometry(.105,.85,6).rotateX(Math.PI/2).translate(0,0,-.64),flame,this.capacity);
+    this.exhaust=pool(scene,new T.SphereGeometry(.075,8,6).scale(1,1,2.3).translate(0,0,-.39),flame,this.capacity);
     const orb=standard(0xbf3820);orb.emissive.set(0x74170b);orb.emissiveIntensity=.65;this.orbs=pool(scene,new T.IcosahedronGeometry(.22,1),orb,96);
     const orbCore=basic(0xffa53e);orbCore.toneMapped=false;this.orbCores=pool(scene,new T.OctahedronGeometry(.17,1),orbCore,96);
     this.bullets=pool(scene,new T.CylinderGeometry(.048,.048,.30,6).rotateX(Math.PI/2),standard(0xffffff),this.capacity);
     const tip=basic(0xffffff);tip.toneMapped=false;this.tips=pool(scene,new T.SphereGeometry(.054,6,4).translate(0,0,.18),tip,this.capacity);
-    const shell=joined([painted(new T.CylinderGeometry(.075,.09,.38,8),0xffffff,0,0,0,Math.PI/2),painted(new T.ConeGeometry(.075,.14,8),0xffffff,0,0,.25,Math.PI/2),painted(new T.TorusGeometry(.095,.025,3,8),0xffffff,0,0,-.13)]);
-    this.hostileShells=pool(scene,shell,standard(0xb34b2d),96);this.hostileTips=pool(scene,new T.OctahedronGeometry(.065).translate(0,0,.29),basic(0xffa746),96);
-    this.beamShells=pool(scene,new T.CylinderGeometry(.5,.5,1,10).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xff7428,transparent:true,opacity:.62,depthWrite:false,toneMapped:false}),4);
-    this.beamCores=pool(scene,new T.CylinderGeometry(.18,.18,1,8).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffdc92,toneMapped:false}),4);
-    this.wakes=pool(scene,new T.ConeGeometry(.045,.55,5).rotateX(Math.PI/2).translate(0,0,-.37),new T.MeshBasicMaterial({color:0x76dcff,transparent:true,opacity:.35,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),this.capacity);
+    const shell=joined([painted(new T.CylinderGeometry(.075,.09,.38,10),0x60717a,0,0,0,Math.PI/2),painted(new T.ConeGeometry(.075,.14,10),0xd79650,0,0,.25,Math.PI/2),painted(new T.TorusGeometry(.095,.025,4,10),0x303c43,0,0,-.13)]);
+    const jacket=standard(0xffffff);jacket.vertexColors=true;this.hostileShells=pool(scene,shell,jacket,96);this.hostileTips=pool(scene,new T.OctahedronGeometry(.065).translate(0,0,.29),basic(0xffa746),96);
+    const plasma=new T.MeshBasicMaterial({color:0xff782c,transparent:true,opacity:.48,depthWrite:false,toneMapped:false,side:T.DoubleSide});
+    plasma.onBeforeCompile=shader=>{shader.uniforms.uCombatTime=this.plasmaTime;
+      shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vEnergyUv;').replace('#include <begin_vertex>','#include <begin_vertex>\nvEnergyUv = uv;');
+      shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vEnergyUv; uniform float uCombatTime;').replace('#include <color_fragment>','#include <color_fragment>\nfloat axial = 0.5 + 0.5 * sin(vEnergyUv.y * 95.0 - uCombatTime * 32.0 + vEnergyUv.x * 6.28);\nfloat helix = pow(0.5 + 0.5 * sin(vEnergyUv.x * 18.85 + vEnergyUv.y * 42.0 - uCombatTime * 16.0), 4.0);\ndiffuseColor.rgb = mix(vec3(1.0, 0.20, 0.035), vec3(1.0, 0.78, 0.32), helix * 0.75 + axial * 0.15);\ndiffuseColor.a *= 0.25 + axial * 0.25 + helix * 0.5;');};
+    plasma.customProgramCacheKey=()=> 'iron-front-flowing-plasma-v1';
+    this.beamShells=pool(scene,new T.CylinderGeometry(.5,.5,1,16,24,true).rotateX(Math.PI/2),plasma,4);
+    this.beamCores=pool(scene,new T.CylinderGeometry(.23,.23,1,12).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffefd2,transparent:true,opacity:.86,depthWrite:false,toneMapped:false}),4);
+    this.wakes=pool(scene,new T.CapsuleGeometry(.035,.22,2,6).rotateX(Math.PI/2).translate(0,0,-.30),new T.MeshBasicMaterial({color:0x76dcff,transparent:true,opacity:.35,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),this.capacity);
+    const trailMaterial=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.38,depthWrite:false,toneMapped:false});
+    this.trails=pool(scene,new T.IcosahedronGeometry(1,1),trailMaterial,192);instanceFade(this.trails,192);
+    this.beamFlow=pool(scene,new T.CylinderGeometry(.5,.5,1,5).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.88,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),288);instanceFade(this.beamFlow,288);
+    // The beam terminates on the road at its existing simulated far endpoint. Sparks spray above this contact.
+    this.beamContact=pool(scene,new T.CylinderGeometry(.018,.006,1,4).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.85,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),48);instanceFade(this.beamContact,48);
+    this.beamEmitter=pool(scene,new T.SphereGeometry(1,12,8),new T.MeshBasicMaterial({color:0xffde9c,transparent:true,opacity:.68,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),4);
+    this.beamCorona=pool(scene,new T.TorusGeometry(1,.045,4,24,Math.PI*1.55),new T.MeshBasicMaterial({color:0xffc875,transparent:true,opacity:.55,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),8);
+    const sheath=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.FrontSide,uniforms:{uCombatTime:this.plasmaTime},
+      vertexShader:'varying vec3 vEnergyNormal; varying vec3 vEnergyEye; varying vec2 vSheathUv; void main(){ mat4 world = modelMatrix * instanceMatrix; vec4 view = viewMatrix * world * vec4(position,1.0); vEnergyNormal = normalize(mat3(viewMatrix * world) * normal); vEnergyEye = -view.xyz; vSheathUv = uv; gl_Position = projectionMatrix * view; }',
+      fragmentShader:'uniform float uCombatTime; varying vec3 vEnergyNormal; varying vec3 vEnergyEye; varying vec2 vSheathUv; void main(){float facing = abs(dot(normalize(vEnergyNormal),normalize(vEnergyEye))); float radialFade = pow(facing,1.6); float noise = 0.65 + 0.2*sin(vSheathUv.y*35.0-uCombatTime*18.0)+0.15*sin(vSheathUv.y*83.0+uCombatTime*13.0); float ends = smoothstep(0.0,0.08,vSheathUv.y)*smoothstep(0.0,0.08,1.0-vSheathUv.y); gl_FragColor = vec4(1.0,0.30,0.045,radialFade*noise*ends*0.34); }'});
+    this.beamSheath=pool(scene,new T.CylinderGeometry(.5,.5,1,20,32,true).rotateX(Math.PI/2),sheath,4);
+    const contact=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide,
+      vertexShader:'varying vec2 vContactUv; void main(){vContactUv=uv;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.0);}',
+      fragmentShader:'varying vec2 vContactUv; void main(){float r=length(vContactUv-.5)*2.0;float a=pow(max(0.0,1.0-r),2.0);vec3 heat=mix(vec3(1.0,.19,.015),vec3(1.0,.87,.51),a);gl_FragColor=vec4(heat,a*.85);}' });
+    this.beamGround=pool(scene,new T.PlaneGeometry(2,2).rotateX(-Math.PI/2),contact,4);
+    this.beamLight=new T.PointLight(0xff8b36,0,3.5,2);this.beamLight.visible=false;scene.add(this.beamLight);
+
   }
   update(friendly:Shot[],hostile:EnemyShot[],options:MissileOptions){
     let count=0,bulletCount=0,wakeCount=0,orbCount=0,shellCount=0;if(options.visible===false){this.reset();return;}
-    const write=(position:T.Vector3,direction:T.Vector3,scale:number,enemy=false,kind:string='pulse',owner:'commander'|'troop'='commander')=>{
+    const delta=Math.max(0,Math.min(.25,options.simulationTime!==undefined&&this.previousTime!==undefined?options.simulationTime-this.previousTime:options.dt??0));
+    this.clock+=delta;const hostileDelta=delta*(options.hostileRate??1);this.hostileClock+=hostileDelta;this.plasmaTime.value=this.hostileClock;
+    for(const particle of this.trailParticles)particle.life=Math.max(0,particle.life-hostileDelta);
+    const write=(position:T.Vector3,direction:T.Vector3,scale:number,enemy=false,kind:string='pulse',owner:'commander'|'troop'='commander',dangerRadius=.2)=>{
       if(count+bulletCount>=this.capacity)return;this.dummy.position.copy(position);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction);this.dummy.scale.setScalar(scale);
       const rocket=kind==='missile'||kind==='rocket';
-      if(enemy&&!rocket){if(shellCount>=96)return;this.dummy.updateMatrix();this.hostileShells.setMatrixAt(shellCount,this.dummy.matrix);this.hostileTips.setMatrixAt(shellCount++,this.dummy.matrix);return;}
+      if(enemy&&!rocket){if(shellCount>=96)return;const width=Math.max(.7,dangerRadius/.12);this.dummy.scale.set(width,width,1.4+dangerRadius*2.4);this.dummy.updateMatrix();this.hostileShells.setMatrixAt(shellCount,this.dummy.matrix);this.hostileTips.setMatrixAt(shellCount++,this.dummy.matrix);return;}
       if(!rocket){this.dummy.scale.z*=kind==='rail'?1.65:kind==='cannon'?1.2:1;this.dummy.updateMatrix();this.bullets.setMatrixAt(bulletCount,this.dummy.matrix);this.tips.setMatrixAt(bulletCount,this.dummy.matrix);
         this.bullets.setColorAt(bulletCount,this.color.set(enemy?0xd86d39:owner==='troop'?0x2c93cd:0xd3a54e));
         this.tips.setColorAt(bulletCount,this.color.set(enemy?0xffa12b:owner==='troop'?0x53c9ff:0xffca54));bulletCount++;
         if(options.overdrive&&!enemy){this.wakes.setMatrixAt(wakeCount++,this.dummy.matrix);}return;
       }
       this.dummy.updateMatrix();this.bodies.setMatrixAt(count,this.dummy.matrix);this.bodies.setColorAt(count,this.color.set(enemy?0xff9262:owner==='troop'?0x69baff:0xffd18a));
-      this.dummy.scale.set(scale,scale,scale*(options.overdrive&&!enemy?2:1));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(enemy?0xff6024:owner==='troop'?0x59bcff:0xffc064));count++;
+      const flutter=enemy?this.hostileClock:this.clock;this.dummy.scale.set(scale,scale,scale*(.85+.12*Math.sin(flutter*55+position.x*2)));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(enemy?0xff6024:owner==='troop'?0x59bcff:0xffc064));count++;
     };
-    const delta=Math.max(0,Math.min(.25,options.simulationTime!==undefined&&this.previousTime!==undefined?options.simulationTime-this.previousTime:options.dt??0));
     this.previousTime=options.simulationTime;const used=new Set<FriendlyPath>(),paths:FriendlyPath[]=[];
     for(const p of friendly.slice(0,this.capacity)){
       let path:FriendlyPath|undefined,best=.3;
@@ -401,25 +429,54 @@ export class CombatMissiles {
     }this.friendlyPaths=paths;
     const live=new Set<number>();
     for(const p of hostile){if(live.size>=96)break;live.add(p.id);
-      if(!this.hostileLaunchZ.has(p.id)){const sourceId=(p as EnemyShot&{sourceId?:number}).sourceId??0,source=sourceId>0?options.targets?.find(t=>t.id===sourceId):undefined;
-        this.hostileLaunchZ.set(p.id,{z:Math.max(1,sourceId>0?(source?.z??p.z):(options.bossZ??p.z)),height:sourceId>0?1.65:options.bossPhase?(options.bossY??0)+(options.bossLaunchHeight??3):.85});}
-      const launch=this.hostileLaunchZ.get(p.id)!;
-      const height=.85+(launch.height-.85)*Math.max(0,Math.min(1,p.z/launch.z));
-      if(p.kind==='orb'){if(orbCount>=96)continue;this.dummy.position.set(p.x,height,-p.z*options.depthScale);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(Math.max(.8,p.radius/.18));this.dummy.updateMatrix();this.orbs.setMatrixAt(orbCount,this.dummy.matrix);this.dummy.position.z+=.13*this.dummy.scale.z;this.dummy.updateMatrix();this.orbCores.setMatrixAt(orbCount++,this.dummy.matrix);}
-      else write(new T.Vector3(p.x,height,-p.z*options.depthScale),new T.Vector3(p.dx,(launch.height-.85)/launch.z*p.dz,-p.dz*options.depthScale).normalize(),p.kind==='rocket'?1.45:1.8,true,p.kind);
+      const sourceId=p.sourceId??0,source=sourceId>0?options.targets?.find(t=>t.id===sourceId):undefined,metadata=p as EnemyShot&{launchX?:number;launchZ?:number;launchY?:number;emitter?:string};
+      if(!this.hostileLaunchZ.has(p.id)){
+        const launchZ=metadata.launchZ??(sourceId>0?(source?.z??p.z):(options.bossZ??p.z)),launchY=metadata.launchY??(sourceId>0?1.65:options.bossPhase?(options.bossY??0)+(options.bossLaunchHeight??3):.85),launchX=metadata.launchX??p.x;
+        const key=metadata.emitter==='gunner'?'gunner:'+sourceId:metadata.emitter??(sourceId>0?'gunner:'+sourceId:'core'),socket=options.emitters?.[key];
+        // Cache posed muzzle height once; an airborne shot never follows later rig motion.
+        // Only X/Z blends during the first metre, then matches the core collision position.
+        const presentationHeight=socket?.y??launchY,base=new T.Vector3(launchX,presentationHeight,-launchZ*options.depthScale),offset=socket?socket.clone().sub(base).setY(0):new T.Vector3();
+        this.hostileLaunchZ.set(p.id,{z:Math.max(.1,launchZ),height:presentationHeight,x:launchX,offset,trailClock:0,lastTrail:base.clone()});
+      }
+      const launch=this.hostileLaunchZ.get(p.id)!,distance=Math.hypot(p.x-launch.x,p.z-launch.z),blend=Math.max(0,1-distance),height=.85+(launch.height-.85)*T.MathUtils.clamp(p.z/launch.z,0,1);
+      const position=new T.Vector3(p.x,height,-p.z*options.depthScale).addScaledVector(launch.offset,blend),direction=new T.Vector3(p.dx,(launch.height-.85)/launch.z*p.dz,-p.dz*options.depthScale).normalize();
+      if(p.kind==='orb'){if(orbCount>=96)continue;this.dummy.position.copy(position);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(Math.max(.8,p.radius/.18));this.dummy.updateMatrix();this.orbs.setMatrixAt(orbCount,this.dummy.matrix);this.dummy.position.z+=.13*this.dummy.scale.z;this.dummy.updateMatrix();this.orbCores.setMatrixAt(orbCount++,this.dummy.matrix);}
+      else write(position,direction,p.kind==='rocket'?Math.max(1.1,p.radius/.17):1.8,true,p.kind,'commander',p.radius);
+      launch.trailClock=Math.min(.07,launch.trailClock+hostileDelta);if(p.kind==='rocket'&&hostileDelta>0&&launch.trailClock>=.035&&position.distanceToSquared(launch.lastTrail)>.0064){launch.trailClock%=.035;launch.lastTrail.copy(position);const particle=this.trailParticles[this.trailIndex++%192];particle.p.copy(position).addScaledVector(direction,-.45);particle.life=.18;particle.size=.065;particle.color.set(0x728a92);}
     }
     for(const id of this.hostileLaunchZ.keys())if(!live.has(id))this.hostileLaunchZ.delete(id);
     changed(this.bodies,count);changed(this.exhaust,count);changed(this.orbs,orbCount);changed(this.orbCores,orbCount);changed(this.bullets,bulletCount);changed(this.tips,bulletCount);changed(this.wakes,wakeCount);changed(this.hostileShells,shellCount);changed(this.hostileTips,shellCount);
+    let trailCount=0;for(const particle of this.trailParticles){if(particle.life<=0)continue;const progress=1-particle.life/.18;this.dummy.position.copy(particle.p);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(particle.size*(1+progress*.7));this.dummy.updateMatrix();this.trails.setMatrixAt(trailCount,this.dummy.matrix);this.trails.setColorAt(trailCount,particle.color);this.trails.geometry.getAttribute('instanceOpacity').setX(trailCount++,particle.life/.18);}changed(this.trails,trailCount);
     this.updateBeams(options);
   }
   private updateBeams(options:MissileOptions){
-    let count=0;for(const beam of options.lasers??[]){if(count>=4||beam.time<=0)continue;
-      const from=new T.Vector3(beam.x,(options.bossY??0)+(options.bossLaunchHeight??3.4),-beam.z*options.depthScale),to=new T.Vector3(beam.endX,1.25,-beam.endZ*options.depthScale),direction=to.clone().sub(from),length=direction.length();if(length<.01)continue;
-      this.dummy.position.copy(from).add(to).multiplyScalar(.5);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction.normalize());this.dummy.scale.set(Math.max(.05,beam.width),Math.max(.05,beam.width),length);this.dummy.updateMatrix();this.beamShells.setMatrixAt(count,this.dummy.matrix);this.beamCores.setMatrixAt(count,this.dummy.matrix);count++;
-    }changed(this.beamShells,count);changed(this.beamCores,count);
+    let count=0,flow=0,emitters=0,sparks=0,corona=0;this.beamLight.visible=false;
+    const coronaAt=(position:T.Vector3,axis:T.Vector3,charge:number)=>{
+      for(let i=0;i<2;i++){this.dummy.position.copy(position).addScaledVector(axis,.012+i*.035);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),axis);this.dummy.rotateZ((i?-.7:1)*this.hostileClock*2+i*1.4);this.dummy.scale.setScalar((.20+i*.11)*(1+charge*.32+.025*Math.sin(this.hostileClock*21)));this.dummy.updateMatrix();this.beamCorona.setMatrixAt(corona++,this.dummy.matrix);}
+    };
+    for(const beam of options.lasers??[]){if(count>=4||beam.time<=0)continue;
+      const from=options.emitters?.core?.clone()??new T.Vector3(beam.x,(options.bossY??0)+(options.bossLaunchHeight??3.4),-beam.z*options.depthScale),to=new T.Vector3(beam.endX,.07,-beam.endZ*options.depthScale),direction=to.clone().sub(from),length=direction.length();if(length<.01)continue;
+      this.dummy.position.copy(to);this.dummy.position.y=.026;this.dummy.rotation.set(0,0,0);this.dummy.scale.set(.64,.64,.64);this.dummy.updateMatrix();this.beamGround.setMatrixAt(count,this.dummy.matrix);
+      this.beamLight.visible=true;this.beamLight.position.copy(to).add(new T.Vector3(0,.32,0));this.beamLight.intensity=3.5+.4*Math.sin(this.hostileClock*33);
+      const axis=direction.clone().normalize(),width=Math.max(.05,beam.width),across=new T.Vector3().crossVectors(axis,Math.abs(axis.y)<.9?new T.Vector3(0,1,0):new T.Vector3(1,0,0)).normalize(),up=new T.Vector3().crossVectors(across,axis).normalize();
+      this.dummy.position.copy(from).add(to).multiplyScalar(.5);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),axis);this.dummy.scale.set(width,width,length);this.dummy.updateMatrix();this.beamShells.setMatrixAt(count,this.dummy.matrix);this.beamCores.setMatrixAt(count,this.dummy.matrix);
+      // This faint soft-edged light is decorative; the damaging beam remains beam.width.
+      this.dummy.scale.set(width*3,width*3,length);this.dummy.updateMatrix();this.beamSheath.setMatrixAt(count,this.dummy.matrix);
+      const at=(t:number,f:number)=>{const clock=this.hostileClock,window=Math.sin(t*Math.PI),a=(Math.sin(t*27+f*2.7-clock*9)+.35*Math.sin(t*61-f+clock*17))*width*.20*window,b=(Math.cos(t*33+f*3.1-clock*11)+.30*Math.sin(t*73+f-clock*7))*width*.20*window;return from.clone().lerp(to,t).addScaledVector(across,a).addScaledVector(up,b);};
+      // Three irregular filaments bend inside the true damaging radius, not a spiral lattice.
+      for(let f=0;f<3;f++)for(let segment=0;segment<24;segment++){const t=segment/24,next=(segment+1)/24,a=at(t,f),b=at(next,f),line=b.clone().sub(a),lineLength=line.length(),pulse=.6+.4*Math.sin(t*31+f*1.7-this.hostileClock*22);
+        this.dummy.position.copy(a).add(b).multiplyScalar(.5);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),line.normalize());const thickness=width*(.06+.025*pulse);this.dummy.scale.set(thickness,thickness,lineLength+.008);this.dummy.updateMatrix();this.beamFlow.setMatrixAt(flow,this.dummy.matrix);this.beamFlow.setColorAt(flow,this.color.set(f===0?0xffefbf:f===1?0xffb857:0xff7130));this.beamFlow.geometry.getAttribute('instanceOpacity').setX(flow++,.55+.4*pulse);}
+      for(let i=0;i<12;i++){const t=((this.hostileClock*5.5+i*.08331)%1+1)%1,angle=i*2.399+Math.sin(i*8)*.3,spread=.06+t*.40,radius=Math.sqrt(t)*spread;
+        const point=to.clone().add(new T.Vector3(Math.cos(angle)*radius,.03+Math.sin(t*Math.PI)*.30,Math.sin(angle)*radius)),ray=point.clone().sub(to).normalize();this.dummy.position.copy(point);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),ray);this.dummy.scale.set(1-t*.65,1-t*.65,.06+.13*(1-t));this.dummy.updateMatrix();this.beamContact.setMatrixAt(sparks,this.dummy.matrix);this.beamContact.setColorAt(sparks,this.color.set(i%3?0xffbe64:0xffedc5));this.beamContact.geometry.getAttribute('instanceOpacity').setX(sparks++,1-t);}
+      this.dummy.position.copy(from);this.dummy.scale.setScalar(Math.max(.34,width*.6));this.dummy.updateMatrix();this.beamEmitter.setMatrixAt(emitters++,this.dummy.matrix);coronaAt(from,axis,1);count++;
+    }
+    if(!count&&options.bossCharging&&options.emitters?.core){const charge=T.MathUtils.clamp(options.bossCharge??0,0,1),axis=new T.Vector3(0,-.15,1).normalize();this.dummy.position.copy(options.emitters.core);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(.13+charge*.21);this.dummy.updateMatrix();this.beamEmitter.setMatrixAt(emitters++,this.dummy.matrix);coronaAt(options.emitters.core,axis,charge);}
+    changed(this.beamShells,count);changed(this.beamCores,count);changed(this.beamSheath,count);changed(this.beamFlow,flow);changed(this.beamContact,sparks);changed(this.beamEmitter,emitters);changed(this.beamCorona,corona);changed(this.beamGround,count);
   }
-  reset(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores,this.hostileShells,this.hostileTips])changed(mesh,0);this.hostileLaunchZ.clear();this.friendlyPaths=[];this.previousTime=undefined;}
-  dispose(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores,this.hostileShells,this.hostileTips]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
+  reset(){this.beamLight.visible=false;for(const mesh of this.meshes())changed(mesh,0);for(const particle of this.trailParticles)particle.life=0;this.hostileLaunchZ.clear();this.friendlyPaths=[];this.previousTime=undefined;this.clock=0;this.hostileClock=0;this.plasmaTime.value=0;this.trailIndex=0;}
+  private meshes(){return [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores,this.hostileShells,this.hostileTips,this.trails,this.beamFlow,this.beamContact,this.beamEmitter,this.beamSheath,this.beamCorona,this.beamGround];}
+  dispose(){this.reset();this.scene.remove(this.beamLight);this.beamLight.dispose();for(const mesh of this.meshes()){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
+
 }
 
 export type ArmyAbilityOptions={depthScale:number;armyRadius:number;armyCenterX?:number;armyCenterZ:number;visible?:boolean};

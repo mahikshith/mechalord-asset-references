@@ -106,13 +106,13 @@ test('300 retries do not accumulate scene objects or fragments',()=>{
 });
 test('enemy wave uses modeled geometry, bounded to 200 robots',()=>{
   robots.begin();for(let i=0;i<250;i++)robots.add(i*.1,-5);robots.end();assert.equal(robots.body.count,200);assert.equal(robots.eyes.count,200);
-  assert.equal((robots.body.geometry.getAttribute('position').count+robots.eyes.geometry.getAttribute('position').count)/3,444);
+  const perUnit=[robots.body,robots.eyes,robots.arms,robots.legs,robots.treadMark].reduce((n,m)=>n+(m.geometry.index?.count??m.geometry.getAttribute('position').count)/3*([robots.arms,robots.legs,robots.treadMark].includes(m)?2:1),0);assert(perUnit>444&&perUnit<5000);assert.equal(robots.arms.count,400);assert.equal(robots.legs.count,400);
   const matrix=new T.Matrix4();robots.body.getMatrixAt(0,matrix);const scale=new T.Vector3().setFromMatrixScale(matrix);assert(Math.abs(scale.x-.82)<1e-6);assert(Math.abs(scale.y-1.1)<1e-6);
 });
 test('marching robot phase moves suspension and treads without adding objects',()=>{
-  const count=scene.children.length,bodyBefore=new T.Matrix4(),markBefore=new T.Matrix4();robots.body.getMatrixAt(0,bodyBefore);robots.treadMark.getMatrixAt(0,markBefore);
+  const count=scene.children.length,bodyBefore=new T.Matrix4(),markBefore=new T.Matrix4(),armBefore=new T.Matrix4();robots.body.getMatrixAt(0,bodyBefore);robots.treadMark.getMatrixAt(0,markBefore);robots.arms.getMatrixAt(0,armBefore);
   robots.begin();robots.add(0,-5,1,0,false,.17);robots.end();const bodyAfter=new T.Matrix4(),markAfter=new T.Matrix4();robots.body.getMatrixAt(0,bodyAfter);robots.treadMark.getMatrixAt(0,markAfter);
-  assert(!bodyBefore.equals(bodyAfter));assert(!markBefore.equals(markAfter));assert.equal(scene.children.length,count);assert.equal(robots.treadMark.count,2);
+  const armAfter=new T.Matrix4();robots.arms.getMatrixAt(0,armAfter);assert(bodyBefore.equals(bodyAfter));assert(!armBefore.equals(armAfter));assert(!markBefore.equals(markAfter));assert.equal(scene.children.length,count);assert.equal(robots.treadMark.count,2);
 });
 const missileOptions={depthScale:1,bossPhase:true,bossZ:9,overdrive:true,weapon:3};
 test('1,000 missiles stay inside the 768 slot pool',()=>{
@@ -242,8 +242,9 @@ test('pickup armor transformation is bounded, freezes, follows hero, and expires
 test('per-instance fading preserves shader chunk hooks and alpha capacity',()=>{
   for(const mesh of [fx.debris,fx.smoke,fx.fire,fx.acquireRing,fx.acquireTrace]){const shader={vertexShader:'#include <common>\n#include <begin_vertex>',fragmentShader:'#include <common>\n#include <color_fragment>'};mesh.material.onBeforeCompile(shader);assert(shader.vertexShader.includes('vInstanceOpacity = instanceOpacity'));assert(shader.fragmentShader.includes('diffuseColor.a *= vInstanceOpacity'));assert.equal(mesh.geometry.getAttribute('instanceOpacity').count,mesh===fx.debris?384:mesh===fx.acquireRing?4:mesh===fx.acquireTrace?32:256);}
 });
-const arsenalHero=new T.Group(),arsenalBoss=new T.Group(),arsenal=new ArsenalVisuals(arsenalHero,arsenalBoss);
-const arsenalState={phase:'run',weaponPower:'none',powerTime:0,shots:[],bossAction:'strafe',bossPhase:1,bossPattern:'heavy',bossY:0,bossAttack:0};
+function socketFixture(){const root=new T.Group();for(const name of ['Torso','Barrel_L','Barrel_R','Pod_L','Pod_R']){const part=new T.Group();part.name=name;part.position.set(name.endsWith('L')?-1:name.endsWith('R')?1:0,name==='Torso'?2.35438:3,0);const mesh=new T.Mesh(bossGeometry,bossMaterial);mesh.name=name+'_MobileMesh';part.add(mesh);root.add(part);}return root;}
+const arsenalHero=new T.Group(),arsenalBoss=socketFixture(),retainedBossNodes=arsenalBoss.children.length,arsenal=new ArsenalVisuals(arsenalHero,arsenalBoss);
+const arsenalState={phase:'run',weaponPower:'none',powerTime:0,shots:[],enemyShots:[],bossAction:'strafe',bossPhase:1,bossPattern:'heavy',bossY:0,bossAttack:0};
 test('hand cannon power is temporary and never inferred from weapon tier',()=>{
   arsenal.update({...arsenalState,weapon:4},.1);assert.equal(arsenal.cannons.visible,false);
   arsenal.update({...arsenalState,weaponPower:'cannons',powerTime:4,shots:[{z:.8,dx:0,dz:32}]},.1);assert(arsenal.cannons.visible);assert(arsenal.hands.some(h=>h.flash.visible));assert(arsenal.hands[0].rotor.rotation.z>0);
@@ -271,8 +272,8 @@ test('rail and guided rigs pitch toward a hovering reactor and restore level pos
 });
 test('boss phase unfolds cannons and authoritative hover enables jets',()=>{
   const s={...arsenalState,phase:'boss',bossPhase:2,bossPattern:'heavy',bossAction:'windup',bossY:.6,bossAttack:.5};for(let i=0;i<10;i++)arsenal.update(s,.1);
-  assert(arsenal.wings[1].hinge.position.x>.9);assert(arsenal.wings.every(w=>w.jet.visible));assert(arsenal.bossCharge.visible);assert.equal(arsenalBoss.position.y,0);
-  arsenal.update({...s,bossY:0,bossAction:'fire'},.1);assert(arsenal.wings.every(w=>!w.jet.visible&&w.flash.visible));
+  assert(arsenal.wings[1].hinge.position.x>.9);assert.equal(arsenal.boosters.length,2);assert(arsenal.boosters.every(b=>b.plumes.every(p=>p.visible)));assert(arsenal.socketCharges.get('armL').visible);assert(!arsenal.bossCharge.visible);assert.equal(arsenalBoss.position.y,0);
+  arsenal.update({...s,bossY:0,bossAction:'fire'},.1);assert(arsenal.boosters.every(b=>b.plumes.every(p=>!p.visible)));assert(arsenal.wings.every(w=>!w.jet.visible&&!w.flash.visible));
 });
 test('all six pickup symbols hover, stay readable, and dispose resources once',()=>{
   for(const kind of ['guided','cannons','railburst','freeze','slow','haste']){const pickup=createPickup(kind,true);arsenalHero.add(pickup);let disposed=0,unique=new Set();pickup.traverse(o=>{if(o.isMesh){unique.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])unique.add(m);}});unique.forEach(r=>r.addEventListener('dispose',()=>disposed++));
@@ -304,17 +305,17 @@ test('face refinement follows the real Head and disposes only its own small over
   local.dispose();assert.equal(disposed,resources.size);assert.equal(head.children.length,1);assert.equal(head.children[0],source);assert.equal(sourceGeometryDisposed,false);assert.equal(local.faceRig.parent,null);
 });
 test('laser reactor charge survives detached cannons and freezes at zero dt',()=>{
-  const hero=new T.Group(),actor=new T.Group();for(const name of ['Barrel_L','Barrel_R']){const node=new T.Group();node.name=name;actor.add(node);}const local=new ArsenalVisuals(hero,actor),state={...arsenalState,phase:'boss',bossPattern:'laser',bossAction:'windup',bossPartsMask:3,bossAttack:.8};
-  local.update(state,.1);assert(!actor.getObjectByName('Barrel_L').visible);assert(local.laserCharges[0].visible);assert.equal(local.laserCharges[0].position.y,3.08);assert.equal(local.laserCharges[0].position.z,.605);const scale=local.laserCharges[0].scale.clone();local.update(state,0);assert(scale.equals(local.laserCharges[0].scale));local.update({...state,bossAction:'fire'},.1);assert(local.laserCharges.every(c=>!c.visible));local.dispose();
+  const hero=new T.Group(),actor=socketFixture(),local=new ArsenalVisuals(hero,actor),state={...arsenalState,phase:'boss',bossPattern:'laser',bossAction:'windup',bossPartsMask:3,bossAttack:.8};
+  local.update(state,.1);assert(!actor.getObjectByName('Barrel_L').visible);const charge=local.socketCharges.get('core');assert(charge.visible);assert.equal(charge.parent.name,'WeaponSocket_core');const scale=charge.scale.clone();local.update(state,0);assert(scale.equals(charge.scale));local.update({...state,bossAction:'fire'},.1);assert(!charge.visible);local.dispose();
 });
 test('guarded and exposed states preserve original reactor geometry and change its opening light',()=>{
-  arsenal.update({...arsenalState,phase:'boss',bossState:'exposed',bossAction:'strafe'},.1);assert(arsenal.laserCharges[1].visible);const hierarchy=arsenalBoss.children.length;
-  arsenal.update({...arsenalState,phase:'boss',bossState:'guarded',bossAction:'strafe'},.1);assert(arsenal.laserCharges.every(c=>!c.visible));assert(!arsenal.bossCharge.visible);assert.equal(arsenalBoss.children.length,hierarchy);assert.equal(arsenalBoss.getObjectByName('BossCoreShutters'),undefined);
+  arsenal.update({...arsenalState,phase:'boss',bossState:'exposed',bossAction:'strafe'},.1);assert(arsenal.socketCharges.get('core').visible);const hierarchy=arsenalBoss.children.length;
+  arsenal.update({...arsenalState,phase:'boss',bossState:'guarded',bossAction:'strafe'},.1);assert([...arsenal.socketCharges.values()].every(c=>!c.visible));assert(!arsenal.bossCharge.visible);assert.equal(arsenalBoss.children.length,hierarchy);assert.equal(arsenalBoss.getObjectByName('BossCoreShutters'),undefined);
 });
 
 test('arsenal retries keep a fixed hierarchy and disposal owns no actor meshes',()=>{
   const h=arsenalHero.children.length,b=arsenalBoss.children.length;for(let i=0;i<300;i++){arsenal.update({...arsenalState,phase:'boss',weaponPower:'guided',powerTime:3,bossPhase:2,bossY:.4},.05);arsenal.reset();assert.equal(arsenalHero.children.length,h);assert.equal(arsenalBoss.children.length,b);}
-  arsenal.dispose();assert.equal(arsenalHero.children.length,0);assert.equal(arsenalBoss.children.length,0);
+  arsenal.dispose();assert.equal(arsenalHero.children.length,0);assert.equal(arsenalBoss.children.length,retainedBossNodes);
 });
 
 test('ordinary hits emit sparks without concealing enemies in smoke',()=>{
@@ -339,7 +340,7 @@ test('gunner warnings follow authoritative charge and only mark locked aim',()=>
 });
 test('enemy firing cues use source identity and never fake commander recoil',()=>{
   const muzzles=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{enemyRecoil:new Map(),fx:{muzzle:(...v)=>muzzles.push(v)},presentation:undefined});
-  actor.trigger({kind:'enemyFire',entityId:12,variant:2,x:1,z:8,value:1},{targets:[{id:12,aimX:0}]});assert.equal(actor.enemyRecoil.get(12),.24);assert.equal(muzzles[0][1],1.65);assert.equal(muzzles[0][3],true);assert(muzzles[0][2]>-8);assert.equal(actor.recoil,undefined);
+  actor.trigger({kind:'enemyFire',entityId:12,variant:2,x:1,z:8,value:1},{targets:[{id:12,aimX:0}]});assert.equal(actor.enemyRecoil.get(12),.24);assert.equal(muzzles.length,0,'Muzzle birth waits for current-frame animated source, never guesses a height in the event handler');assert.equal(actor.recoil,undefined);
 });
 test('hostile shells are separate physical geometry and launch from their actual gunner',()=>{
   missiles.reset();const hostile={id:123,x:1,z:10,dx:0,dz:-12,radius:.2,kind:'shell',sourceId:8};

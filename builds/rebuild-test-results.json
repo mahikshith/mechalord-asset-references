@@ -2,20 +2,20 @@
   "schema": 4,
   "scope": "Actual continuous-travel Assault browser adapter/current WASM. Automated normal controls; no Unreal, physical-device or first-time-player validation.",
   "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
-  "bytes": 1336142,
-  "sha256": "624e9b6d3e95c172bbe2bbfa7c93d7cfb5f434a60931afd83e3560c74839a358",
+  "bytes": 1339858,
+  "sha256": "e21b227b494dece0a668554b335c256113b8ab7717531f6482593a1876b179ba",
   "memoryBytes": 1179648,
-  "testedAt": "2026-10-05T19:01:02.656Z",
+  "testedAt": "2026-10-05T19:25:38.994Z",
   "winningRuns": [
     {
       "level": 0,
       "relic": 0,
-      "time": 111.1500015258789,
-      "army": 1,
+      "time": 94.18333435058594,
+      "army": 13,
       "weapon": 4,
       "kills": 46,
-      "commanderHp": 89,
-      "bossArmorRebuilds": 1,
+      "commanderHp": 90,
+      "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
         2,
@@ -26,7 +26,7 @@
     {
       "level": 0,
       "relic": 1,
-      "time": 110.55000305175781,
+      "time": 110.26667022705078,
       "army": 1,
       "weapon": 4,
       "kills": 48,
@@ -42,7 +42,7 @@
     {
       "level": 0,
       "relic": 2,
-      "time": 104.28333282470703,
+      "time": 103.43333435058594,
       "army": 1,
       "weapon": 4,
       "kills": 47,
@@ -58,11 +58,11 @@
     {
       "level": 1,
       "relic": 0,
-      "time": 109.3499984741211,
-      "army": 70,
+      "time": 106.83333587646484,
+      "army": 104,
       "weapon": 4,
       "kills": 109,
-      "commanderHp": 91,
+      "commanderHp": 95,
       "bossArmorRebuilds": 1,
       "commanderReviveUsed": false,
       "powers": [
@@ -75,12 +75,12 @@
     {
       "level": 1,
       "relic": 1,
-      "time": 90.48332977294922,
-      "army": 94,
+      "time": 107.55000305175781,
+      "army": 98,
       "weapon": 4,
       "kills": 118,
       "commanderHp": 94,
-      "bossArmorRebuilds": 0,
+      "bossArmorRebuilds": 1,
       "commanderReviveUsed": false,
       "powers": [
         3,
@@ -92,11 +92,11 @@
     {
       "level": 1,
       "relic": 2,
-      "time": 84.91666412353516,
-      "army": 82,
+      "time": 84.88333129882812,
+      "army": 110,
       "weapon": 4,
       "kills": 113,
-      "commanderHp": 92,
+      "commanderHp": 95,
       "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
@@ -109,7 +109,7 @@
     {
       "level": 2,
       "relic": 0,
-      "time": 119.0999984741211,
+      "time": 119.05000305175781,
       "army": 136,
       "weapon": 4,
       "kills": 124,
@@ -128,7 +128,7 @@
     {
       "level": 2,
       "relic": 1,
-      "time": 123.76667022705078,
+      "time": 122.19999694824219,
       "army": 82,
       "weapon": 4,
       "kills": 128,
@@ -148,12 +148,12 @@
     {
       "level": 2,
       "relic": 2,
-      "time": 95.96666717529297,
-      "army": 94,
+      "time": 115.73332977294922,
+      "army": 118,
       "weapon": 4,
       "kills": 126,
-      "commanderHp": 94,
-      "bossArmorRebuilds": 0,
+      "commanderHp": 96,
+      "bossArmorRebuilds": 1,
       "commanderReviveUsed": false,
       "powers": [
         1,
@@ -172,8 +172,8 @@
     "formationPairs": 2762563,
     "silentOverlapCount": 0
   },
-  "tests": 58,
-  "passed": 58,
+  "tests": 61,
+  "passed": 61,
   "failed": 0,
   "results": [
     {
@@ -282,6 +282,18 @@
     },
     {
       "name": "all boss projectile families travel through actual world positions",
+      "status": "pass"
+    },
+    {
+      "name": "hostile projectiles retain actual weapon sources and immutable measured launches",
+      "status": "pass"
+    },
+    {
+      "name": "booster bursts brake during committed aim and disabled parts cannot move the boss",
+      "status": "pass"
+    },
+    {
+      "name": "new boss mobility, source tags and locked aim agree across frame rates and pause",
       "status": "pass"
     },
     {
