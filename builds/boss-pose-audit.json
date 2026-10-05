@@ -1,0 +1,59 @@
+{
+  "scope": "Native isolated C++ helper on this PC; synthetic shot batches; no WASM/device/fps claim",
+  "timestamp": "2026-10-05T21:20:09.186Z",
+  "compiler": "Existing Zig C++17 -O2",
+  "cpu": "AMD Ryzen 7 4800H with Radeon Graphics         ",
+  "platform": "win32",
+  "samplesPerBatch": 100,
+  "warmupIterations": 12,
+  "batches": [
+    {
+      "name": "normal24",
+      "count": 24,
+      "native_ms_median": 0.0932,
+      "native_ms_p95": 0.0937,
+      "native_ms_max": 0.1187,
+      "hits": 2,
+      "misses": 22,
+      "unresolved": 0,
+      "invalid": 0,
+      "max_surface_error_m": 1.03389519e-15
+    },
+    {
+      "name": "dense96",
+      "count": 96,
+      "native_ms_median": 1.6367,
+      "native_ms_p95": 2.1669,
+      "native_ms_max": 2.4542,
+      "hits": 53,
+      "misses": 43,
+      "unresolved": 0,
+      "invalid": 0,
+      "max_surface_error_m": 2.06044379e-14
+    },
+    {
+      "name": "maximum256",
+      "count": 256,
+      "native_ms_median": 3.9311,
+      "native_ms_p95": 5.2918,
+      "native_ms_max": 5.9493,
+      "hits": 136,
+      "misses": 120,
+      "unresolved": 0,
+      "invalid": 0,
+      "max_surface_error_m": 1.81282053e-14
+    },
+    {
+      "name": "abrupt256",
+      "count": 256,
+      "native_ms_median": 18.637,
+      "native_ms_p95": 32.7249,
+      "native_ms_max": 36.9539,
+      "hits": 182,
+      "misses": 68,
+      "unresolved": 6,
+      "invalid": 0,
+      "max_surface_error_m": 2.7689209e-14
+    }
+  ]
+}

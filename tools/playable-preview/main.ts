@@ -1,8 +1,26 @@
 import { AssaultCore } from './assault-core';
 import { Battlefield } from './world';
 import { BattleAudio } from './audio';
+import type {BossRegionId} from './contract';
 import type { Relic, Snapshot } from './contract';
 import {powers,powerKind} from './power-catalog';
+
+// Native L faces screen-right at neutral; visible world X remains the side cue while banking.
+function partName(id:BossRegionId,s:Snapshot){
+  const regions=s.bossRegions;
+  const r=regions?.find(r=>r.id===id),side=r?(r.x>=s.bossX?'RIGHT':'LEFT'):(id.endsWith('L')?'RIGHT':'LEFT');
+  return id==='core'?'CORE':`${side} ${id.startsWith('cannon')?'CANNON':id.startsWith('jet')?'BOOSTER':'LEG ARMOR'}`;
+}
+function brokenPartMessage(event:Snapshot['effects'][number],s:Snapshot){
+  const ids:BossRegionId[]=['cannonL','cannonR','jetL','jetR','legL','legR'];
+  const id=event.hitRegion??ids[event.value-1];
+  if(!id)return 'ARMOR DESTROYED · KEEP MOVING';
+  const regions=s.bossRegions;
+  const next=regions?.find(r=>r.id!==id&&r.id!=='core'&&r.vulnerable&&r.hp>0);
+  const follow=next?`AIM ${partName(next.id,s)}`:s.bossPart==='cannon'?'AIM THE OTHER CANNON':s.bossPart==='jetpack'?'AIM THE BOOSTERS':s.bossPart==='leg'?'AIM THE LEG ARMOR':'WATCH THE NEXT VOLLEY';
+  // Only CoreExpose announces an opening; breaking one leg does not open the reactor.
+  return `${partName(id,s)} DESTROYED · ${follow}`;
+}
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => {
   const element = document.getElementById(id);
@@ -173,7 +191,7 @@ function effects(s: Snapshot): void {
     else if (event.kind === 'pickup') pickedUp = event.value;
     else if (event.kind === 'coreExpose') toast(s.level === 0 ? 'CORE OPEN · DAMAGE CARRIES TO THE NEXT OPENING' : s.bossRevives ? 'CORE OPEN · FINISH THE TYRANT' : 'CORE OPEN · DESTROY IT BEFORE REBUILD', 1500);
     else if (event.kind === 'bossRevive') { secondPhaseAnnounced = true; dialogue('boss-revive', 'FORGE TYRANT', 'My core still burns. Face the furnace.', true); }
-    else if (event.kind === 'bossPartBreak') toast(event.value <= 2 ? 'CANNON DESTROYED · WATCH THE ROCKETS' : event.value <= 4 ? 'BOOSTER DESTROYED · WATCH THE CORE' : 'LEG ARMOR BROKEN · REACTOR VULNERABLE', 1500);
+    else if (event.kind === 'bossPartBreak') toast(brokenPartMessage(event,s),1500);
     else if (event.kind === 'heal' || event.kind === 'revive') { pulse($('commander-health'), 'health-restored'); toast(event.kind === 'revive' ? 'LEGION TRANSFER · BACK IN THE FIGHT' : `LEGION TRANSFER · +${event.value} HP`, 1500); }
   }
   if (sacrifices.length) world.sacrifice(sacrifices);
@@ -183,6 +201,7 @@ function effects(s: Snapshot): void {
   // One reward notification per frame: an upgrade takes priority over gate growth.
   if (pickedUp) { const info = powers[powerKind(pickedUp)]; toast(`${info.symbol} ${info.name} · ${info.effect}`, 1700); pulse($('temporary-power'), 'power-gained'); pulse($('time-power'), 'power-gained'); lastWeapon = s.weapon; }
   else if (s.weapon > lastWeapon) {
+    if(playing&&!paused&&(s.phase==='run'||s.phase==='boss'))world.weaponUpgrade(lastWeapon,s.weapon);
     flash(`${tierNames[Math.min(3, s.weapon - 1)]} FIRE · LV ${s.weapon}`); audio.play('rank', .7, .5); lastWeapon = s.weapon;
   } else if (recruited > 0) flash(`+${recruited} TROOPS`);
   else if (gateCleared) flash('GATE CLEARED!');
@@ -200,20 +219,21 @@ function hud(s: Snapshot): void {
   const distanceRemaining = Math.max(0, s.travelGoal - s.travelDistance), route = Math.max(0, Math.min(1, s.travelDistance / Math.max(1, s.travelGoal)));
   const exposed = boss && s.bossState === 'exposed', rebuilding = boss && s.bossState === 'rebuilding';
   const guarded = boss && s.bossState === 'guarded', coreStage = exposed || guarded;
+  const reactorShield=boss&&s.bossPartsMask===63&&s.guardHp>0;
   const health = coreStage ? s.bossCoreHp : s.bossArmor, healthMax = coreStage ? s.bossCoreMax : s.bossArmorMax;
   const percent = healthMax > 0 ? Math.max(0, Math.min(100, Math.round(100 * health / healthMax))) : 0;
   const incoming = s.phase === 'run' && distanceRemaining <= 18 && distanceRemaining > 0;
   const projectiles = boss && s.enemyShots.some(shot => shot.z > -.5 && shot.z < 10), windup = boss && s.bossAction === 'windup';
   const visibleGunners = boss ? [] : s.targets.filter(target => target.z > 3 && target.z < 27);
   const runnerGunner = visibleGunners.find(target => target.fireState === 'locked') ?? visibleGunners.find(target => target.fireState === 'tracking');
-  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? coreStage ? 'TYRANT · CORE' : s.bossRevives ? 'TYRANT · REFORGED' : 'TYRANT · ARMOR' : s.levelName.toUpperCase();
-  $('objective').textContent = s.phase === 'lastStand' ? 'COMMANDER DOWN' : destroying ? '' : boss ? (rebuilding ? 'REBUILDING' : exposed ? s.bossCoreTime > 0 ? `${percent}% · ${s.bossCoreTime.toFixed(1)}s` : `${percent}% · FINISH IT` : windup ? s.bossPattern === 'laser' ? 'LASER CHARGE' : s.bossPattern === 'rockets' ? 'MISSILE LOCK' : 'CHARGING' : s.lasers.length ? 'LASER LIVE' : guarded ? 'CORE GUARDED' : projectiles ? 'INCOMING' : `${percent}% ARMOR`) : runnerGunner ? runnerGunner.fireState === 'locked' ? 'CANNON LOCKED' : 'CANNON CHARGING' : s.engagement ? 'KEEP MOVING' : incoming ? 'TYRANT AHEAD' : `${Math.floor(route * 100)}% ADVANCE`;
+  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? coreStage ? 'TYRANT · CORE' : reactorShield?'TYRANT · CORE SHIELD':s.bossRevives ? 'TYRANT · REFORGED' : 'TYRANT · ARMOR' : s.levelName.toUpperCase();
+  $('objective').textContent = s.phase === 'lastStand' ? 'COMMANDER DOWN' : destroying ? '' : boss ? (rebuilding ? 'REBUILDING' : exposed ? s.bossCoreTime > 0 ? `${percent}% · ${s.bossCoreTime.toFixed(1)}s` : `${percent}% · FINISH IT` : windup ? s.bossPattern === 'laser' ? 'LASER CHARGE' : s.bossPattern === 'rockets' ? 'MISSILE LOCK' : 'CHARGING' : s.lasers.length ? 'LASER LIVE' : guarded ? 'CORE GUARDED' : projectiles ? 'INCOMING' : `${percent}% ${reactorShield?'SHIELD':'ARMOR'}`) : runnerGunner ? runnerGunner.fireState === 'locked' ? 'CANNON LOCKED' : 'CANNON CHARGING' : s.engagement ? 'KEEP MOVING' : incoming ? 'TYRANT AHEAD' : `${Math.floor(route * 100)}% ADVANCE`;
   $('route-fill').style.width = `${boss ? percent : destroying ? 0 : route * 100}%`;
   $('route-fill').classList.toggle('core-exposed', exposed); $('route-fill').classList.toggle('rebuilding', rebuilding);
   document.body.classList.toggle('destroying', destroying); $('abilities').hidden = destroying || s.phase === 'lastStand';
   $('army-count').textContent = String(s.army); $('kills').textContent = String(s.kills); $('kill-label').textContent = 'ELIMINATED'; $('weapon-level').textContent = String(s.weapon);
   $('kills').hidden = boss;
-  if (boss) $('kill-label').textContent = guarded ? 'DODGE · WAIT FOR THE CORE TO OPEN' : s.bossRevives > 0 && !exposed ? 'BREAK THE REFORGED ARMOR' : ({cannon:'BREAK THE HAND CANNONS',jetpack:'BREAK THE BOOSTERS',leg:'BREAK THE LEG ARMOR',reactor:'DESTROY THE REACTOR'} as const)[s.bossPart];
+  if (boss) $('kill-label').textContent = reactorShield?'BREAK THE REACTOR SHIELD':guarded ? 'DODGE · WAIT FOR THE CORE TO OPEN' : s.bossRevives > 0 && !exposed ? 'BREAK THE REFORGED ARMOR' : ({cannon:'BREAK THE HAND CANNONS',jetpack:'BREAK THE BOOSTERS',leg:'BREAK THE LEG ARMOR',reactor:'DESTROY THE REACTOR'} as const)[s.bossPart];
   $('weapon-name').textContent = tierNames[Math.max(0, Math.min(3, s.weapon - 1))];
   const powerActive = s.weaponPower !== 'none' && (s.weaponPermanent || s.powerTime > 0);
   $('temporary-power').hidden = !powerActive;
@@ -237,7 +257,7 @@ function hud(s: Snapshot): void {
   $('energy-fill').style.width = `${Math.max(0, Math.min(100, s.energy))}%`;
   $('ability-caption').textContent = s.ability > 0 ? `${s.relic === 0 && s.time < shieldBlockUntil ? 'HIT BLOCKED' : 'ACTIVE'} · ${s.ability.toFixed(1)}s` : s.energy >= 100 ? 'READY · TAP / SPACE' : `${Math.floor(s.energy)}% CHARGED`;
   button.setAttribute('aria-label', `${names[selected]}: ${descriptions[selected]} ${$('ability-caption').textContent}`);
-  $('combat-hint').textContent = exposed ? 'CORE OPEN · MAKE EACH SHOT COUNT' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : boss && s.bossPattern === 'laser' ? windup ? 'LASER CHARGING · PREPARE TO DODGE' : 'DODGE THE BEAM · FIRE BACK' : boss && s.bossPattern === 'rockets' ? 'BAIT THE MISSILES · THEN CHANGE LANE' : guarded ? 'CORE GUARDED · DODGE THE NEXT VOLLEY' : runnerGunner ? runnerGunner.fireState === 'locked' ? 'AIM LOCKED · CHANGE LANE' : 'CANNON TRACKING · PREPARE TO MOVE' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'BREAK PARTS · WATCH ITS NEXT ATTACK' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'BREAK CRATES · EARN WEAPON XP';
+  $('combat-hint').textContent = exposed ? 'CORE OPEN · MAKE EACH SHOT COUNT' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : boss && s.bossPattern === 'laser' ? windup ? 'LASER CHARGING · PREPARE TO DODGE' : 'DODGE THE BEAM · FIRE BACK' : boss && s.bossPattern === 'rockets' ? 'BAIT THE MISSILES · THEN CHANGE LANE' : reactorShield?'BREAK THE REACTOR SHIELD · CORE WOUNDS REMAIN':guarded ? 'CORE GUARDED · DODGE THE NEXT VOLLEY' : runnerGunner ? runnerGunner.fireState === 'locked' ? 'AIM LOCKED · CHANGE LANE' : 'CANNON TRACKING · PREPARE TO MOVE' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'BREAK PARTS · WATCH ITS NEXT ATTACK' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'BREAK CRATES · EARN WEAPON XP';
 }
 document.querySelectorAll<HTMLButtonElement>('[data-relic]').forEach(button => button.addEventListener('click', () => {
   selected = Number(button.dataset.relic) as Relic;

@@ -1,0 +1,25 @@
+{
+  "scope": "Actual retained GLB vertices/hierarchy transformed by renderer adapter versus compiled C++ BossPose helper. Spatial alignment only; no independently aimable gameplay/native Android claim.",
+  "source": "delivery/playable/forge-tyrant.glb",
+  "samples": 388,
+  "componentTransforms": 4268,
+  "core": {
+    "vertices": 134,
+    "localCenter": [
+      -4.470348358154297e-8,
+      0.6995289325714111,
+      -0.6541118025779724
+    ],
+    "localHalf": [
+      0.2492203265428543,
+      0.36136937141418457,
+      0.07120579481124878
+    ],
+    "shape": "measured luminous oval ellipsoid"
+  },
+  "maxPositionErrorMetres": 3.794299872214038e-15,
+  "maxOrientationDotError": 3.3306690738754696e-16,
+  "maxExtentErrorMetres": 4.041272810440265e-16,
+  "screenSide": "NativeL is world+X/screen-right at neutral; NativeR screen-left",
+  "generatedAt": "2026-10-05T20:59:21.504Z"
+}

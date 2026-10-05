@@ -1,0 +1,6 @@
+{
+  "scope": "Actual GLB + event ordering + source renderer ballistic orientation on CPU; spatial gameplay/browser not verified by this test.",
+  "passed": 3,
+  "failed": 0,
+  "generatedAt": "2026-10-05T21:20:10.557Z"
+}

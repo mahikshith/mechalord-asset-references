@@ -18,8 +18,8 @@ export class WeaponSockets {
   if(gunner){this.front('gunner','Barrel_R');return;}
   this.front('armL','Barrel_L');this.front('armR','Barrel_R');
   this.front('shoulderL','Pod_L');this.front('shoulderR','Pod_R');
-  // Measured reactor centre in the original Torso joint's coordinate system.
-  this.attach('core','Torso',new T.Vector3(0,.725620107650757,-.605));
+  // Actual luminous front surface; region aim center stays behind this emission plane.
+  this.attach('core','Torso',new T.Vector3(-4.470348358154297e-8,.6995289325714111,-.7253175973892212));
   for(const side of ['L','R']){const part=root.getObjectByName('Pod_'+side);if(!part)continue;const b=partBounds(part,'Pod_'+side+'_MobileMesh');if(!b)continue;const p=b.getCenter(new T.Vector3());p.y=b.min.y-.035;p.z=b.max.z-.04;p.x+=side==='L'?-.72:.72;this.attach('booster'+side,'Pod_'+side,p);}
  }
  private front(key:string,name:string){const part=this.root.getObjectByName(name);if(!part)return;const b=partBounds(part,name+'_MobileMesh');if(!b)return;const p=b.getCenter(new T.Vector3());p.z=b.min.z-.02;this.attach(key,name,p);}

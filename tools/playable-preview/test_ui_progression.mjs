@@ -18,7 +18,7 @@ for(const name of ['main.ts','audio.ts'])await transform(await fs.readFile(path.
 await build({entryPoints:[path.join(here,'main.ts')],bundle:true,platform:'node',format:'esm',outfile:output,plugins:[{name:'test-boundaries',setup(b){
   b.onResolve({filter:/^\.\/(assault-core|world)$/},a=>({path:a.path,namespace:'ui-test'}));
   b.onLoad({filter:/.*/,namespace:'ui-test'},a=>({contents:a.path.endsWith('world')?
-    'export class Battlefield{async load(){}reset(){}trigger(){}sacrifice(){}update(){}}':`
+    'export class Battlefield{constructor(){globalThis.testWeaponResponses=[];}async load(){}reset(){}trigger(){}weaponUpgrade(previous,next){globalThis.testWeaponResponses.push([previous,next]);}sacrifice(){}update(){}}':`
     export class AssaultCore {
       constructor(){globalThis.testCore=this;this.steps=0;this.calls=[];}async load(){}
       start(relic,level=0,rank=0){
@@ -82,6 +82,9 @@ testCore.s.phase='destroying';frame();assert.equal(e.get('phase-label').textCont
 testCore.s.phase='won';frame();assert.equal(e.get('result').hidden,false);assert.equal(saved().commanderXP,510);e.get('back').click();assert.equal(e.get('starter-troops').textContent,'14');assert.equal(saved().schema,2);
 console.log('PASS: earned XP, exactly-once rewards, ranks 1–4, next-stage/retry carry, distinct power/relic HUD, pause and destruction transition.');
 
+const upgradeUI=await harness();upgradeUI.elements.get('start').click();upgradeUI.frame();assert.equal(testWeaponResponses.length,0,'No scene upgrade confirmation on initial load');testCore.s.weapon=2;upgradeUI.frame();assert.deepEqual(testWeaponResponses,[[1,2]]);upgradeUI.frame();assert.equal(testWeaponResponses.length,1,'Observed tier only confirms once');upgradeUI.elements.get('pause').click();upgradeUI.frame();assert.equal(testWeaponResponses.length,1);upgradeUI.elements.get('resume').click();upgradeUI.frame();assert.equal(testWeaponResponses.length,1);testCore.s.weapon=3;testCore.s.effects=[{id:1001,kind:'pickup',value:2}];upgradeUI.frame();assert.equal(testWeaponResponses.length,1,'Pickup plus upgrade already has one scene response');testCore.s.effects=[];upgradeUI.frame();assert.equal(testWeaponResponses.length,1);upgradeUI.elements.get('back').click();upgradeUI.elements.get('start').click();upgradeUI.frame();assert.equal(testWeaponResponses.length,1,'Retry starts quietly');upgradeUI.elements.get('back').click();
+console.log('PASS: real weapon-tier changes confirm once, quiet load/retry/pause, simultaneous pickup deduplicates scene response.');
+
 const healthCase=await harness();healthCase.elements.get('start').click();testCore.s.army=1;testCore.s.commanderHp=57;healthCase.frame();
 assert.equal(healthCase.elements.get('commander-health-value').textContent,'57/100');assert(Math.abs(parseFloat(healthCase.elements.get('commander-health-fill').style.width)-57)<.000001);assert.equal(healthCase.elements.get('abilities').hidden,false);
 testCore.s.army=0;testCore.s.commanderHp=23;healthCase.frame();assert.equal(healthCase.elements.get('commander-health').attributes['aria-valuenow'],'23');assert(healthCase.elements.get('commander-health').classList.values.has('critical'));
@@ -105,6 +108,10 @@ testCore.s.bossState='guarded';testCore.s.bossArmor=0;testCore.s.bossCoreHp=20;t
 assert.equal(battleUI.elements.get('route-fill').style.width,'50%','Closing the reactor must not hide its remaining life or refill the health bar');
 assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · CORE');assert.equal(battleUI.elements.get('objective').textContent,'CORE GUARDED');
 assert.match(battleUI.elements.get('kill-label').textContent,/CORE TO OPEN/);assert.doesNotMatch(battleUI.elements.get('kill-label').textContent,/REFORGED ARMOR/);
+testCore.s.bossPart='cannon';testCore.s.bossRegions=[{id:'cannonL',x:1.7,hp:0,vulnerable:false},{id:'cannonR',x:-1.7,hp:100,vulnerable:true}];testCore.s.effects=[{id:101,kind:'bossPartBreak',value:1,hitRegion:'cannonL'}];battleUI.frame();assert.equal(battleUI.elements.get('toast').textContent,'RIGHT CANNON DESTROYED · AIM LEFT CANNON');
+testCore.s.bossPart='leg';testCore.s.bossRegions=[{id:'legL',x:.77,hp:0,vulnerable:false},{id:'legR',x:-.77,hp:100,vulnerable:true}];testCore.s.effects=[{id:102,kind:'bossPartBreak',value:5,hitRegion:'legL'}];battleUI.frame();assert.equal(battleUI.elements.get('toast').textContent,'RIGHT LEG ARMOR DESTROYED · AIM LEFT LEG ARMOR');assert.doesNotMatch(battleUI.elements.get('toast').textContent,/VULNERABLE|CORE OPEN/);
+testCore.s.bossPartsMask=63;testCore.s.guardHp=30;testCore.s.guardMax=60;testCore.s.bossArmor=30;testCore.s.bossArmorMax=60;testCore.s.bossState='armored';testCore.s.bossPart='reactor';testCore.s.effects=[];battleUI.frame();assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · CORE SHIELD');assert.equal(battleUI.elements.get('kill-label').textContent,'BREAK THE REACTOR SHIELD');assert.equal(battleUI.elements.get('objective').textContent,'50% SHIELD');assert.equal(battleUI.elements.get('route-fill').style.width,'50%');testCore.s.guardHp=0;
+testCore.s.effects=[{id:103,kind:'coreExpose'}];battleUI.frame();assert.match(battleUI.elements.get('toast').textContent,/CORE OPEN/);testCore.s.effects=[];testCore.s.bossRegions=undefined;
 testCore.s.phase='run';testCore.s.targets=[{id:9,kind:'enemy',z:14,fireState:'tracking'}];battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'CANNON CHARGING');
 testCore.s.targets[0].fireState='locked';battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'CANNON LOCKED');assert.match(battleUI.elements.get('combat-hint').textContent,/CHANGE LANE/);
 testCore.s.targets[0].z=40;battleUI.frame();assert.notEqual(battleUI.elements.get('objective').textContent,'CANNON LOCKED','An offscreen gunner must not falsely replace visible encounter guidance');

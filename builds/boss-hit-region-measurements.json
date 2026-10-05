@@ -1,0 +1,510 @@
+{
+  "source": "delivery/playable/forge-tyrant.glb",
+  "coordinateSystem": "metres; world X lateral, Y up, world Z toward commander; simulation Z is negative world Z; root offset excluded",
+  "scale": 1.4,
+  "neutral": {
+    "cannonL": {
+      "node": "Barrel_L",
+      "pivot": [
+        1.724803,
+        3.74926,
+        1.110899
+      ],
+      "center": [
+        1.724803,
+        3.74926,
+        1.246385
+      ],
+      "min": [
+        1.097221,
+        3.131213,
+        0.421168
+      ],
+      "max": [
+        2.352385,
+        4.367308,
+        2.071602
+      ],
+      "halfSize": [
+        0.627582,
+        0.618048,
+        0.825217
+      ]
+    },
+    "cannonR": {
+      "node": "Barrel_R",
+      "pivot": [
+        -1.724803,
+        3.74926,
+        1.110899
+      ],
+      "center": [
+        -1.724803,
+        3.74926,
+        1.246385
+      ],
+      "min": [
+        -2.352385,
+        3.131213,
+        0.421168
+      ],
+      "max": [
+        -1.097221,
+        4.367308,
+        2.071602
+      ],
+      "halfSize": [
+        0.627582,
+        0.618048,
+        0.825217
+      ]
+    },
+    "jetL": {
+      "node": "Pod_L",
+      "pivot": [
+        1.447082,
+        4.93325,
+        -0.146174
+      ],
+      "center": [
+        1.432465,
+        5.367957,
+        0.062119
+      ],
+      "min": [
+        0.950103,
+        4.896409,
+        -0.489674
+      ],
+      "max": [
+        1.914827,
+        5.839505,
+        0.613911
+      ],
+      "halfSize": [
+        0.482362,
+        0.471548,
+        0.551793
+      ]
+    },
+    "jetR": {
+      "node": "Pod_R",
+      "pivot": [
+        -1.447082,
+        4.93325,
+        -0.146174
+      ],
+      "center": [
+        -1.432465,
+        5.367957,
+        0.062119
+      ],
+      "min": [
+        -1.914827,
+        4.896409,
+        -0.489674
+      ],
+      "max": [
+        -0.950103,
+        5.839505,
+        0.613911
+      ],
+      "halfSize": [
+        0.482362,
+        0.471548,
+        0.551793
+      ]
+    },
+    "legL": {
+      "node": "Leg_L",
+      "pivot": [
+        0.745472,
+        2.79916,
+        0
+      ],
+      "center": [
+        0.774702,
+        1.557812,
+        0.248483
+      ],
+      "min": [
+        0.219255,
+        -0.000002,
+        -0.453134
+      ],
+      "max": [
+        1.330149,
+        3.115627,
+        0.9501
+      ],
+      "halfSize": [
+        0.555447,
+        1.557815,
+        0.701617
+      ]
+    },
+    "legR": {
+      "node": "Leg_R",
+      "pivot": [
+        -0.745472,
+        2.79916,
+        0
+      ],
+      "center": [
+        -0.774702,
+        1.557812,
+        0.248483
+      ],
+      "min": [
+        -1.330149,
+        -0.000002,
+        -0.453134
+      ],
+      "max": [
+        -0.219255,
+        3.115627,
+        0.9501
+      ],
+      "halfSize": [
+        0.555447,
+        1.557815,
+        0.701617
+      ]
+    }
+  },
+  "core": {
+    "anchor": [
+      0,
+      4.312,
+      0.847
+    ],
+    "recommendedDiskRadius": 0.47,
+    "note": "source furnace outer radius .31 before normalized model scale; exact visible glow measured separately from merged torso geometry"
+  },
+  "poseEnvelope": {
+    "cannonL": {
+      "centerMin": [
+        0.340014,
+        2.676889,
+        -0.394215
+      ],
+      "centerMax": [
+        2.855551,
+        4.646796,
+        2.803881
+      ],
+      "geometryMin": [
+        -0.447805,
+        1.847197,
+        -1.319167
+      ],
+      "geometryMax": [
+        3.64337,
+        5.499679,
+        3.729523
+      ],
+      "maxCenterShift": 1.977468
+    },
+    "cannonR": {
+      "centerMin": [
+        -2.855551,
+        2.676889,
+        -0.394215
+      ],
+      "centerMax": [
+        -0.340014,
+        4.646796,
+        2.803881
+      ],
+      "geometryMin": [
+        -3.64337,
+        1.847197,
+        -1.319167
+      ],
+      "geometryMax": [
+        0.447805,
+        5.499679,
+        3.729523
+      ],
+      "maxCenterShift": 1.977468
+    },
+    "jetL": {
+      "centerMin": [
+        0.190598,
+        4.747093,
+        -1.638168
+      ],
+      "centerMax": [
+        2.582976,
+        5.575003,
+        1.746161
+      ],
+      "geometryMin": [
+        -0.405033,
+        4.214073,
+        -2.295279
+      ],
+      "geometryMax": [
+        3.107939,
+        6.081541,
+        2.403272
+      ],
+      "maxCenterShift": 2.071785
+    },
+    "jetR": {
+      "centerMin": [
+        -2.582976,
+        4.747174,
+        -1.638168
+      ],
+      "centerMax": [
+        -0.190598,
+        5.575231,
+        1.746161
+      ],
+      "geometryMin": [
+        -3.107939,
+        4.214233,
+        -2.295279
+      ],
+      "geometryMax": [
+        0.405034,
+        6.081541,
+        2.403272
+      ],
+      "maxCenterShift": 2.071761
+    },
+    "legL": {
+      "centerMin": [
+        0.331579,
+        1.202096,
+        -0.494489
+      ],
+      "centerMax": [
+        1.103725,
+        1.711656,
+        1.054132
+      ],
+      "geometryMin": [
+        -0.305086,
+        -0.432943,
+        -1.292412
+      ],
+      "geometryMax": [
+        1.799839,
+        3.284905,
+        1.779208
+      ],
+      "maxCenterShift": 0.873547
+    },
+    "legR": {
+      "centerMin": [
+        -1.103725,
+        1.202096,
+        -0.494539
+      ],
+      "centerMax": [
+        -0.331579,
+        1.711656,
+        1.054132
+      ],
+      "geometryMin": [
+        -1.799839,
+        -0.432943,
+        -1.292412
+      ],
+      "geometryMax": [
+        0.305086,
+        3.284905,
+        1.779208
+      ],
+      "maxCenterShift": 0.873547
+    }
+  },
+  "samples": 324,
+  "bind": {
+    "Torso": {
+      "parent": "Root",
+      "translation": [
+        0,
+        2.35438,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Arm_L": {
+      "parent": "Torso",
+      "translation": [
+        -0.96055,
+        0.87703,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Arm_R": {
+      "parent": "Torso",
+      "translation": [
+        0.96055,
+        0.87703,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Barrel_L": {
+      "parent": "Arm_L",
+      "translation": [
+        -0.271452,
+        -0.553367,
+        -0.793499
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Barrel_R": {
+      "parent": "Arm_R",
+      "translation": [
+        0.271452,
+        -0.553367,
+        -0.793499
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Pod_L": {
+      "parent": "Torso",
+      "translation": [
+        -1.03363,
+        1.16937,
+        0.10441
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Pod_R": {
+      "parent": "Torso",
+      "translation": [
+        1.03363,
+        1.16937,
+        0.10441
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Leg_L": {
+      "parent": "Root",
+      "translation": [
+        -0.53248,
+        1.9994,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Leg_R": {
+      "parent": "Root",
+      "translation": [
+        0.53248,
+        1.9994,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Knee_L": {
+      "parent": "Leg_L",
+      "translation": [
+        -0.03132,
+        -0.88746,
+        -0.07309
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Knee_R": {
+      "parent": "Leg_R",
+      "translation": [
+        0.03132,
+        -0.88746,
+        -0.07309
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Foot_L": {
+      "parent": "Knee_L",
+      "translation": [
+        -0.01044,
+        -0.80394,
+        0.01045
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "Foot_R": {
+      "parent": "Knee_R",
+      "translation": [
+        0.01044,
+        -0.80394,
+        0.01045
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  },
+  "note": "Measured actual mesh bounds and current cosmetic render limits. No gameplay hit regions or 3D friendly collision exist yet; wide swept pose envelopes are unsuitable as permanent hurtboxes."
+}

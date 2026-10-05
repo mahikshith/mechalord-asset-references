@@ -1,0 +1,137 @@
+{
+  "scope": "Read-only actual troop first-mesh vertices with world instancing scale/yaw, exact resize camera, max formation x3.9/rearZ3.15; no browser or runtime changes.",
+  "source": "delivery/playable/troop.glb",
+  "vertices": 4582,
+  "results": [
+    {
+      "w": 420,
+      "h": 933,
+      "look": -7.553660202026367,
+      "pulse": false,
+      "projected": {
+        "minX": 398.0000815313878,
+        "maxX": 436.33183971862417,
+        "minY": 738.95132166296,
+        "maxY": 801.695055185677
+      },
+      "rightClippedPixels": 16.331839718624167
+    },
+    {
+      "w": 420,
+      "h": 933,
+      "look": -7.553660202026367,
+      "pulse": true,
+      "projected": {
+        "minX": 401.20009697791005,
+        "maxX": 440.1843134901234,
+        "minY": 743.5888113419276,
+        "maxY": 807.4005279995969
+      },
+      "rightClippedPixels": 20.184313490123373
+    },
+    {
+      "w": 412,
+      "h": 915,
+      "look": -7.488879776000977,
+      "pulse": false,
+      "projected": {
+        "minX": 390.07659655353336,
+        "maxX": 427.6073946992692,
+        "minY": 722.2919944025319,
+        "maxY": 783.7626311391822
+      },
+      "rightClippedPixels": 15.607394699269207
+    },
+    {
+      "w": 412,
+      "h": 915,
+      "look": -7.488879776000977,
+      "pulse": true,
+      "projected": {
+        "minX": 393.2098289836278,
+        "maxX": 431.37945203203594,
+        "minY": 726.7991119808936,
+        "maxY": 789.3160620247643
+      },
+      "rightClippedPixels": 19.379452032035942
+    },
+    {
+      "w": 375,
+      "h": 667,
+      "look": -6.197918701171875,
+      "pulse": false,
+      "projected": {
+        "minX": 317.51837942898,
+        "maxX": 344.01391250323087,
+        "minY": 492.7656271520969,
+        "maxY": 536.6787347275753
+      },
+      "rightClippedPixels": 0
+    },
+    {
+      "w": 375,
+      "h": 667,
+      "look": -6.197918701171875,
+      "pulse": true,
+      "projected": {
+        "minX": 319.73146795062013,
+        "maxX": 346.67799080323067,
+        "minY": 495.4765433540225,
+        "maxY": 540.137111363569
+      },
+      "rightClippedPixels": 0
+    },
+    {
+      "w": 352,
+      "h": 782,
+      "look": -6.908410263061524,
+      "pulse": false,
+      "projected": {
+        "minX": 331.0855289183372,
+        "maxX": 362.6980599336358,
+        "minY": 599.1943203076778,
+        "maxY": 651.2536365647694
+      },
+      "rightClippedPixels": 10.698059933635818
+    },
+    {
+      "w": 352,
+      "h": 782,
+      "look": -6.908410263061524,
+      "pulse": true,
+      "projected": {
+        "minX": 333.72529419943834,
+        "maxX": 365.8759132130431,
+        "minY": 602.7380689881885,
+        "maxY": 655.6835051597029
+      },
+      "rightClippedPixels": 13.875913213043077
+    },
+    {
+      "w": 560,
+      "h": 850,
+      "look": -7.229935455322266,
+      "pulse": false,
+      "projected": {
+        "minX": 449.9080099559644,
+        "maxX": 484.5463891860377,
+        "minY": 662.1305151297098,
+        "maxY": 719.002684702255
+      },
+      "rightClippedPixels": 0
+    },
+    {
+      "w": 560,
+      "h": 850,
+      "look": -7.229935455322266,
+      "pulse": true,
+      "projected": {
+        "minX": 452.80007389507597,
+        "maxX": 488.0280451491304,
+        "minY": 666.1667969497801,
+        "maxY": 724.007007704153
+      },
+      "rightClippedPixels": 0
+    }
+  ]
+}

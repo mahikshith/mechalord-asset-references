@@ -1,0 +1,78 @@
+{
+  "scope": "Actual retained troop vertex projections, exact runtime resize, both sides, 5m/s commands, maximum upgrade zoom and .12m shake; CPU geometry proof only.",
+  "results": [
+    {
+      "w": 420,
+      "h": 933,
+      "side": -1,
+      "maxPanMetres": 0.6499999999999998,
+      "minActualVertexMarginPixels": 8.093407125033337
+    },
+    {
+      "w": 420,
+      "h": 933,
+      "side": 1,
+      "maxPanMetres": 0.6499999999999998,
+      "minActualVertexMarginPixels": 7.397016483929065
+    },
+    {
+      "w": 412,
+      "h": 915,
+      "side": -1,
+      "maxPanMetres": 0.6499999999999998,
+      "minActualVertexMarginPixels": 8.13123682099699
+    },
+    {
+      "w": 412,
+      "h": 915,
+      "side": 1,
+      "maxPanMetres": 0.6499999999999998,
+      "minActualVertexMarginPixels": 7.448864681542545
+    },
+    {
+      "w": 375,
+      "h": 667,
+      "side": -1,
+      "maxPanMetres": 0,
+      "minActualVertexMarginPixels": 24.210794362861513
+    },
+    {
+      "w": 375,
+      "h": 667,
+      "side": 1,
+      "maxPanMetres": 0,
+      "minActualVertexMarginPixels": 23.83200975482049
+    },
+    {
+      "w": 352,
+      "h": 782,
+      "side": -1,
+      "maxPanMetres": 0.6499999999999997,
+      "minActualVertexMarginPixels": 9.171573343296886
+    },
+    {
+      "w": 352,
+      "h": 782,
+      "side": 1,
+      "maxPanMetres": 0.6499999999999997,
+      "minActualVertexMarginPixels": 8.624172685147698
+    },
+    {
+      "w": 560,
+      "h": 850,
+      "side": -1,
+      "maxPanMetres": 0,
+      "minActualVertexMarginPixels": 66.57980878230671
+    },
+    {
+      "w": 560,
+      "h": 850,
+      "side": 1,
+      "maxPanMetres": 0,
+      "minActualVertexMarginPixels": 66.10402171566665
+    }
+  ],
+  "instantRecruitMarginPixels": 13.875803653751746,
+  "passed": true,
+  "generatedAt": "2026-10-05T21:20:09.772Z"
+}

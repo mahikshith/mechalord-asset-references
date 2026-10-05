@@ -10,12 +10,12 @@ User authorization, 6 October 2026: continue autonomously, use parallel agents, 
 - [x] EMP: authoritative battlefield pulse, ordinary enemy destruction, bounded elite/boss damage and interruption, shot clearing and matching VFX.
 - [x] Overdrive: distinct energized weapons/volleys, activation response and clear expiry.
 - [x] Major rewards: brief whole-scene feedback, preserving input and visibility; reduced-motion support.
-- [ ] Stronger encounters: dangerous but committed attacks, explicit recovery, fresh and upgraded route checks.
+- [x] Stronger encounters: dangerous but committed attacks, explicit recovery, fresh and upgraded route checks.
 - [x] Salvage carriers: visible armor vent cycles and actual vulnerability.
 - [x] Second fixed reward choice: guided rockets or finite defensive escort.
 - [x] Formation-safe scheduling: account for the whole army rather than a point-sized hero, within the documented modeled trajectories and horizon.
-- [ ] Boss part targeting: assess and implement only with authoritative hit recipients; do not claim existing scalar break thresholds are independent weak points.
-- [ ] Regression harness: power semantics, collisions, gate conservation, pause, retry, saves, delayed controllers, rendering resources and browser errors.
+- [x] Boss part targeting: authoritative hit recipients, separately damaged weapons and animated measured volumes.
+- [x] Regression harness: power semantics, collisions, gate conservation, pause, retry, saves and delayed controllers. Final rendered replay is recorded separately below.
 - [ ] Portrait render review: laser, hostile fire, each relic, rewards, carrier, boss and victory/defeat.
 - [ ] Record delivered build, evidence, unresolved limitations and next native milestone.
 
@@ -60,3 +60,19 @@ Homing rockets remain exclusive authored attacks, explicitly outside the linear-
 A first overly conservative candidate reduced enemy fire and was rejected. The accepted candidate restores 15–31 approach shots on delayed fresh routes and 4–8 on saved rank-2 routes. Passive fresh/rank-2 controls lose at approximately 33/71 seconds. All twelve delayed routes, three immediate fresh routes and six legacy routes win. Fresh delayed runs span about 84–159 seconds; rank-2 runs 84–96. The long fresh tail still needs human pacing feedback. There is no forced stop waiting for all enemies to die.
 
 Verification: 69/69 actual-WASM regressions, 12/12 independent audit checks and 23/23 isolated admission checks. The measured fresh/rank-2 feasibility routes record 17/18 admitted volleys, 57/7 deferrals, and no workload-cap exhaustion. First dangerous volleys occur at 13.33 seconds. Gaps between ranged shots are not encounter-idle gaps: melee waves, gates, carriers and the roller remain in the approach. The review exposes admission counters for continued inspection. Spatial projectile rendering has an optional, tested authoritative-height path ready for checkpoint three; current shots still use the old contract until the actual 3D collision data is integrated.
+
+## Checkpoint 3 — independently targeted boss systems
+
+Portable simulation SHA-256: `73b4ca12e4df96223ce7af134adb8d52a5fa10a112aa4b911eda773da484c9f1`. Each browser bundle now loads its immutable matching WASM file and rejects an incompatible contract; `builds/playable-build-manifest.json` fingerprints the code and retained models.
+
+Six separate weapon/limb health pools now use the measured, animated boss geometry. Horizontal steering selects a physically aligned part; standard shots do not receive hidden horizontal homing. Actual three-dimensional trajectories and contact positions drive the visible bullets and sparks. Nearest physical contact determines damage, closed/future parts deflect, and old shots cannot spill damage into a new phase. The simulation owns the root and joint pose consumed by the renderer. Breaks detach the actual posed meshes.
+
+One cannon lost reduces its five-shot sweep to three; one booster lost reduces dash speed from 6 to 4 m/s and the later rocket fan from five to three. Destroyed emitters stay destroyed. Booster and final-leg losses ease through a half-second fall. Core wounds survive openings and the one permitted repair. That repair adds a 277.5-HP casing without restoring destroyed weapons; the original 1,850 part HP and 700 reactor HP remain. Timing traces showed the old 647.5-HP casing consumed 32–36 seconds of repeated fire; the reduction shortened two delayed fresh Shield runs from 198/170 to 169/152 seconds.
+
+A real portrait capture exposed rear-troop clipping. The camera now makes a bounded lateral adjustment of at most .65 m only when the formation nears an edge. The close field of view and vertical framing remain. Tests project all 4,582 retained troop vertices across both sides of five viewport sizes, including steering, upgrade zoom and shake; minimum tested phone clearance exceeds seven pixels. Real weapon-tier upgrades also produce one brief scene response, with no flash on load, pause or retry.
+
+Validation on the final binary: **71/71 simulation checks** and **14/14 independent checks** across 26 complete/control runs. All 24 active routes win, both passive routes lose, and every route records zero unresolved contacts. The independent audit checks 642,129 formation/body/roller samples. Fresh immediate wins span 109–117 seconds; delayed fresh wins 101–169; earned rank-2 wins 85–92; strongest rail loadouts 84–87 with real counterattacks. These are automated controller outcomes, not human retention or physical-device results. The longer fresh tail remains a human pacing follow-up.
+
+The first candidate exposed grazing shots parked against armor. Exact captured contacts identified tolerance-boundary convergence; stepping toward the real surface and a bounded eight-interval fallback fixed them without widening geometry or awarding uncertain hits. Fourteen recorded cases pass an independent raw-model oracle, as do 388 poses / 4,268 transformed components. Extreme synthetic instantaneous motion still yields six conservative refusals; this is explicitly outside the tested normal trajectories. A refused shot never gains guessed damage and retains its six-second lifetime.
+
+Presentation checks: 63 combat, 19 focused projectile/beam, 15 relic, nine weapon-socket, nine boss-adapter, three actual-model integration checks and eight UI/audio/save groups pass. Browser captures show physical targeting, a detached cannon, collapse and a wounded guarded core. This review also found the old final explosion was anchored below the floor after collapse; checkpoint four corrects that visual defect before the final repeat-render audit.

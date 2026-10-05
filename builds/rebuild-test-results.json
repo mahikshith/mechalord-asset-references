@@ -2,19 +2,19 @@
   "schema": 4,
   "scope": "Actual continuous-travel Assault browser adapter/current WASM. Automated normal controls; no Unreal, physical-device or first-time-player validation.",
   "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
-  "bytes": 1563556,
-  "sha256": "0dc2c034b08289ec35b79183c166d3e541a52dab0bec934dda4d3c969babfabd",
+  "bytes": 1784901,
+  "sha256": "73b4ca12e4df96223ce7af134adb8d52a5fa10a112aa4b911eda773da484c9f1",
   "memoryBytes": 1310720,
-  "testedAt": "2026-10-05T20:44:55.094Z",
+  "testedAt": "2026-10-05T21:22:23.548Z",
   "winningRuns": [
     {
       "level": 0,
       "relic": 0,
-      "time": 110.1500015258789,
+      "time": 129.51666259765625,
       "army": 1,
       "weapon": 4,
       "kills": 44,
-      "commanderHp": 31,
+      "commanderHp": 61,
       "bossArmorRebuilds": 1,
       "commanderReviveUsed": false,
       "powers": [
@@ -26,11 +26,11 @@
     {
       "level": 0,
       "relic": 1,
-      "time": 90.28333282470703,
-      "army": 1,
+      "time": 102.3499984741211,
+      "army": 23,
       "weapon": 4,
       "kills": 56,
-      "commanderHp": 85,
+      "commanderHp": 87,
       "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
@@ -42,11 +42,11 @@
     {
       "level": 0,
       "relic": 2,
-      "time": 96.44999694824219,
+      "time": 106.56666564941406,
       "army": 1,
       "weapon": 4,
       "kills": 45,
-      "commanderHp": 47,
+      "commanderHp": 7,
       "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
@@ -170,30 +170,30 @@
       "firstDangerousVolley": 13.333333015441895,
       "maxRunnerShotGap": 18.333332061767578,
       "runnerShots": 21,
-      "bossShots": 29,
-      "actualDamageEvents": 27,
-      "time": 110.1500015258789,
-      "admitted": 17,
-      "deferred": 57,
+      "bossShots": 23,
+      "actualDamageEvents": 24,
+      "time": 129.51666259765625,
+      "admitted": 20,
+      "deferred": 65,
       "unsupported": 2,
       "existingUnsafe": 54,
       "capacity": 0,
-      "exclusiveRocketVolleys": 1
+      "exclusiveRocketVolleys": 2
     },
     {
       "rank": 2,
       "firstDangerousVolley": 13.333333015441895,
       "maxRunnerShotGap": 21.333332061767578,
       "runnerShots": 12,
-      "bossShots": 34,
-      "actualDamageEvents": 20,
-      "time": 131.43333435058594,
-      "admitted": 18,
-      "deferred": 7,
-      "unsupported": 4,
+      "bossShots": 16,
+      "actualDamageEvents": 18,
+      "time": 118.16666412353516,
+      "admitted": 12,
+      "deferred": 41,
+      "unsupported": 0,
       "existingUnsafe": 3,
       "capacity": 0,
-      "exclusiveRocketVolleys": 1
+      "exclusiveRocketVolleys": 0
     }
   ],
   "geometry": {
@@ -203,8 +203,8 @@
     "formationPairs": 2762563,
     "silentOverlapCount": 0
   },
-  "tests": 69,
-  "passed": 69,
+  "tests": 71,
+  "passed": 71,
   "failed": 0,
   "results": [
     {
@@ -473,6 +473,14 @@
     },
     {
       "name": "safety counters and live pending warnings reset, pause and agree at all frame rates",
+      "status": "pass"
+    },
+    {
+      "name": "measured compound boss regions preserve independent HP, real wounds and single casing recipient",
+      "status": "pass"
+    },
+    {
+      "name": "spatial rounds keep immutable target/epoch and real height through flight without lateral ballistic aim assist",
       "status": "pass"
     },
     {

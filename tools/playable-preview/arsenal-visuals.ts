@@ -139,10 +139,13 @@ export class ArsenalVisuals {
     this.lastNearShotZ=nearShot?.z;
     const aim=nearShot?Math.atan2(nearShot.dx,-nearShot.dz):Math.PI;
     const aimOffset=Math.atan2(Math.sin(aim-Math.PI),Math.cos(aim-Math.PI));
-    const bossAim=s.phase==='boss'?Math.atan2(s.bossY+4.31-1.42,Math.max(1,s.bossZ-.85-.4)):0;
+    // Real ballistic elevation takes precedence over the legacy chest-target illusion.
+    const ballistic=nearShot;
+    const actualElevation=ballistic&&Number.isFinite(ballistic.y)&&Number.isFinite(ballistic.dy)?Math.atan2(ballistic.dy!,Math.hypot(ballistic.dx,ballistic.dz)):undefined;
+    const bossAim=actualElevation??(s.phase==='boss'?Math.atan2(s.bossY+4.31-1.42,Math.max(1,s.bossZ-.85-.4)):0);
     for(const hand of this.hands){hand.rotor.rotation.z=this.spin;hand.group.position.z=-.22+this.recoil*.17;hand.group.rotation.y=Math.PI+T.MathUtils.clamp(aimOffset,-.3,.3);hand.group.rotation.x=-bossAim+this.recoil*.065;hand.flash.visible=firing&&this.recoil>.3;hand.flash.scale.set(1+this.recoil*.4,1+this.recoil*.4,1.8+this.recoil);}
-    this.rail.position.z=-.40+this.recoil*.20;this.rail.rotation.x=s.phase==='boss'?-Math.atan2(s.bossY+4.31-1.8,Math.max(1,s.bossZ-.85-.4)):0;
-    for(const rack of this.guided.children)rack.rotation.x=s.phase==='boss'?-Math.atan2(s.bossY+4.31-2.08,Math.max(1,s.bossZ-.85-.4)):0;
+    this.rail.position.z=-.40+this.recoil*.20;this.rail.rotation.x=actualElevation!==undefined?-actualElevation:s.phase==='boss'?-Math.atan2(s.bossY+4.31-1.8,Math.max(1,s.bossZ-.85-.4)):0;
+    for(const rack of this.guided.children)rack.rotation.x=actualElevation!==undefined?-actualElevation:s.phase==='boss'?-Math.atan2(s.bossY+4.31-2.08,Math.max(1,s.bossZ-.85-.4)):0;
     this.railFlash.visible=firing&&this.recoil>.4;this.powerGlow.forEach((g,i)=>g.scale.setScalar(1+Math.sin(this.clock*12+i)*.15));
     const inBoss=s.phase==='boss',down=(s.phase as string)==='lastStand';
     const battleizer=inBoss&&((state.bossPhase??1)>=2||(state.bossRevives??0)>0||state.bossPattern==='heavy'&&(s.bossAction==='windup'||s.bossAction==='fire'));

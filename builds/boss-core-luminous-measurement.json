@@ -1,0 +1,27 @@
+{
+  "source": "delivery/playable/forge-tyrant.glb",
+  "selection": "Torso_MobileMesh vertices using actual Amber emissive atlas tile (Blender col0,row1, glTF V flipped)",
+  "vertices": 134,
+  "localCenter": [
+    -4.470348358154297e-8,
+    0.6995289325714111,
+    -0.6541118025779724
+  ],
+  "localHalf": [
+    0.2492203265428543,
+    0.36136937141418457,
+    0.07120579481124878
+  ],
+  "neutralWorldCenter": [
+    6.258487701416015e-8,
+    4.275472354888915,
+    0.9157565236091613
+  ],
+  "neutralWorldHalf": [
+    0.348908457159996,
+    0.5059171199798583,
+    0.09968811273574829
+  ],
+  "hitToleranceMetres": 0.01,
+  "note": "Luminous heart is an oval ellipsoid. Parent-facing center/size include actual source mesh offsets and source normalization; bronze grille is not counted as luminous area."
+}

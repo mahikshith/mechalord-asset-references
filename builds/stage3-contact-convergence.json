@@ -1,0 +1,160 @@
+{
+  "scope": "Targeted native PC convergence audit; automated normal controls, no novice/device claim",
+  "unchangedNumericalToleranceM": 0.0001,
+  "unchangedCoreToleranceM": 0.01,
+  "advancementIterations": 160,
+  "maxChronologicalFallbackSegments": 8,
+  "maxComponentEvaluations": 1440,
+  "before": {
+    "unresolvedByRelic": [
+      358,
+      234,
+      31
+    ],
+    "componentCounts": [
+      0,
+      119,
+      87,
+      410,
+      7,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "componentCases": 624,
+    "partition4Resolved": 16,
+    "partition16Resolved": 190,
+    "trueBoundaryResolved": 622,
+    "trueBoundaryHits": 622,
+    "trueBoundaryMisses": 0,
+    "maxConsecutiveParkTicks": 57,
+    "maxYawStep": 0.03333333333333334,
+    "maxRootYStep": 0.6083830086143661,
+    "nativeAuditSeconds": 1.23
+  },
+  "after": {
+    "unresolvedByRelic": [
+      0,
+      0,
+      0
+    ],
+    "componentCounts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "componentCases": 0,
+    "partition4Resolved": 0,
+    "partition16Resolved": 0,
+    "trueBoundaryResolved": 0,
+    "trueBoundaryHits": 0,
+    "trueBoundaryMisses": 0,
+    "maxConsecutiveParkTicks": 0,
+    "maxYawStep": 0,
+    "maxRootYStep": 0,
+    "nativeAuditSeconds": 0.435
+  },
+  "capturedGrazeOracle": {
+    "scope": "Independent Three.js raw retained GLB hierarchy; dense2048 time samples plus25 bisections; rounded source part volumes and measured luminous ellipsoid; no gameplay/device claim",
+    "cases": 14,
+    "hits": 14,
+    "misses": 0,
+    "unresolved": 0,
+    "maxFractionError": 0.00014484082859989034,
+    "maxSurfaceErrorMetres": 1.5640266859406891e-15,
+    "timestamp": "2026-10-05T21:19:43.736Z"
+  },
+  "limitation": "Synthetic abrupt256 extreme instantaneous motion retains6 conservative Unresolved contacts. Native normal-route and exact delayed EMP public-command replay had zero; final rebuilt WASM validation belongs to the integration suite. Unresolved never awards guessed damage.",
+  "timestamp": "2026-10-05T21:20:48.991Z",
+  "maxShotComponentEvaluations": 15840,
+  "delayedBefore": {
+    "scope": "Native exact Battle replay of WASM public control commands, rank0 EMP200ms",
+    "cases": [
+      {
+        "relic": 1,
+        "time": 82.76666666666326,
+        "shot": 2154,
+        "mask": 15,
+        "component": 4,
+        "start": [
+          0.44090297857920324,
+          3.0572700549954765,
+          -11.676666666666664
+        ],
+        "end": [
+          0.44090297857920324,
+          3.1402419801876102,
+          -12.209999999999997
+        ],
+        "radius": 0.055,
+        "before": [
+          0.2928643057751731,
+          0.02,
+          -12,
+          -5.8920645997932295e-8,
+          -0.022297167624040156,
+          0.024814144853056493,
+          -0.029490897025557235,
+          0.029490897025557405,
+          0,
+          0,
+          0.0015464669152270864,
+          -0.0015464669152264986,
+          0.0011598501864203148,
+          0,
+          -30.850000000000303,
+          -30.850000000000303,
+          10.283333333333424
+        ],
+        "after": [
+          0.27203097244183977,
+          0.02,
+          -12,
+          -5.156577731816497e-8,
+          -0.013619465764101894,
+          0.024837344534188233,
+          -0.02713375472260955,
+          0.027133754722609725,
+          0,
+          0,
+          0.016185425186629167,
+          -0.016185425186628584,
+          0.012139068889971875,
+          0,
+          -30.900000000000304,
+          -30.900000000000304,
+          10.300000000000091
+        ],
+        "fraction": 0.6321666177682985,
+        "iterations": 410,
+        "partition8": 0,
+        "partition16": 0
+      }
+    ],
+    "summary": {
+      "time": 105.89999999999527,
+      "phase": 4,
+      "unresolved": 1
+    }
+  },
+  "delayedAfter": {
+    "scope": "Native exact Battle replay of WASM public control commands, rank0 EMP200ms",
+    "cases": [],
+    "summary": {
+      "time": 101.74999999999551,
+      "phase": 4,
+      "unresolved": 0
+    }
+  }
+}

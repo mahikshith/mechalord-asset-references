@@ -144,3 +144,7 @@ Fixed pickup choice, collision, conservation, core-wound persistence, pause, equ
 
 
 **Subsequent combat presentation pass, 6 October:** weapon-specific launch sources and faster booster movement shipped in binary e21b227b494dece0a668554b335c256113b8ab7717531f6482593a1876b179ba. The independent audit again passes 12/12; current delayed fresh wins span approximately 89–178 seconds and saved-rank wins span 83–96 seconds. The receipt linked above now describes this newer binary. See [the combat presentation report](combat-presentation-pass.md) for the current changes, browser evidence and verification limits. This does not complete the broader deferred design features.
+
+## Implemented follow-up, 6 October 2026
+
+The earlier deferred escort and independent weak-point notes above are now superseded. The second fixed carrier choice offers guided rockets or a finite defensive escort; carriers have an actual vent vulnerability cycle. Boss weapons and legs have independent measured animated hit regions, real three-dimensional shots and persistent damage. The accepted Iron Front rig and its reactor remain. See [the current execution report](combat-upgrade-execution.md) for exact binary identity, capability changes, balance receipts, visual verification and the remaining human/Android milestones. No bell system or store was added.

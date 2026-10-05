@@ -4,6 +4,8 @@ import type {Snapshot,Target,Effect} from './contract';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {CombatVisuals,CombatMissiles,RobotFormation,EnemyWeaponCues,combatImpactPoint} from './combat-visuals';
 import {RelicEffects} from './relic-effects';
+import {FormationFraming} from './portrait-framing';
+import {BossRigAdapter} from './boss-rig-adapter';
 import {BattleEnvironment} from './environment';
 import {ArsenalVisuals,createPickup,updatePickup,disposePickup} from './arsenal-visuals';
 import {powers,powerKind} from './power-catalog';
@@ -26,7 +28,7 @@ export class Battlefield{
  hero=new T.Group();model?:T.Object3D;mixer?:T.AnimationMixer;run?:T.AnimationAction;idle?:T.AnimationAction;running=false;
  allies?:T.InstancedMesh;views=new Map<number,View>();dummy=new T.Object3D();
  eliteTemplate?:T.Object3D;elitePool:T.Object3D[]=[];bossModel?:T.Object3D;bossJoints:T.Object3D[]=[];
- arsenal?:ArsenalVisuals;pickups=new Map<number,{group:T.Group,badge:Badge}>();boss=new T.Group();
+ bossAdapter?:BossRigAdapter;arsenal?:ArsenalVisuals;pickups=new Map<number,{group:T.Group,badge:Badge}>();boss=new T.Group();
  presentation?:Snapshot;bossHitKick=0;bossFireKick=0;commanderHitKick=0;
  emitterPositions:EmitterPositions={};enemyMotion=new Map<number,{x:number,z:number,yaw:number,age:number}>();eliteSockets:WeaponSockets[]=[];projectileIDs=new Set<number>();bossPreviousZ=40;bossPreviousVz=0;bossPitch=0;bossBank=0;bossMotionReady=false;
  enemyCues:EnemyWeaponCues;enemyRecoil=new Map<number,number>();
@@ -44,7 +46,7 @@ export class Battlefield{
   this.scene.add(this.boss);
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas);this.resize();
  }
- cameraLookZ=-9.3;
+ cameraLookZ=-9.3;formationFraming=new FormationFraming();
  resize(){
   const w=Math.max(1,this.canvas.clientWidth),h=Math.max(1,this.canvas.clientHeight);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
   // Keep all six rows clear of the health/transfer controls. Use the maximum
@@ -62,12 +64,12 @@ export class Battlefield{
   const ventGeometry=new T.TorusGeometry(.28,.045,6,24),ventMaterial=new T.MeshBasicMaterial({color:0xffbd61,transparent:true,opacity:.9,depthWrite:false,toneMapped:false});
   for(let i=0;i<16;i++){const e=this.eliteTemplate.clone(true);e.visible=false;this.elitePool.push(e);this.scene.add(e);this.eliteSockets.push(new WeaponSockets(e,true));const vent=new T.Mesh(ventGeometry,ventMaterial);vent.name='CarrierVulnerability';vent.position.set(0,1.5,.55);vent.visible=false;e.add(vent);}
   this.boss.clear();this.bossModel=tyrant.scene;this.bossModel.rotation.y=Math.PI;this.boss.add(this.bossModel);this.bossModel.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}if(/^(Arm_[LR]|Barrel_[LR]|Pod_[LR]|Leg_[LR]|Knee_[LR]|Head)$/.test(o.name)){o.userData.restQuaternion=o.quaternion.clone();this.bossJoints.push(o);}});
-  this.arsenal=new ArsenalVisuals(this.hero,this.boss);
+  this.bossAdapter=new BossRigAdapter(this.boss,this.scene);this.arsenal=new ArsenalVisuals(this.hero,this.boss);
   this.mixer=new T.AnimationMixer(hero.scene);for(const clip of hero.animations){if(clip.name==='Run')this.run=this.mixer.clipAction(clip);if(clip.name==='Idle')this.idle=this.mixer.clipAction(clip);}this.idle?.play();
   const parts=(gltf:any)=>{gltf.scene.updateMatrixWorld(true);let mesh:any;gltf.scene.traverse((o:any)=>{if(o.isMesh&&!mesh)mesh=o;});const geo=mesh.geometry.clone().applyMatrix4(mesh.matrixWorld),m=mesh.material.clone();m.roughness=.85;m.metalness=.05;return [geo,m] as [T.BufferGeometry,T.MeshStandardMaterial];};
-  const [ag,am]=parts(troop);this.allies=new T.InstancedMesh(ag,am,64);this.allies.castShadow=true;this.allies.frustumCulled=false;this.scene.add(this.allies);
+  const [ag,am]=parts(troop);ag.computeBoundingBox();if(ag.boundingBox)this.formationFraming.setBounds(ag.boundingBox);this.allies=new T.InstancedMesh(ag,am,64);this.allies.castShadow=true;this.allies.frustumCulled=false;this.scene.add(this.allies);
  }
- reset(){this.enemyMotion.clear();this.projectileIDs.clear();this.emitterPositions={};this.bossPreviousZ=40;this.bossPreviousVz=0;this.bossPitch=0;this.bossBank=0;this.bossMotionReady=false;this.enemyRecoil.clear();this.enemyCues.reset();this.presentation=undefined;this.bossHitKick=0;this.bossFireKick=0;this.commanderHitKick=0;this.hostileAge=0;this.bossVisualAge=0;this.commanderExploded=false;this.hero.visible=true;this.formationPositions=[];this.hitNumbers.clear();this.arsenal?.reset();for(const p of this.pickups.values()){this.scene.remove(p.group);p.group.remove(p.badge.sprite);p.badge.dispose();disposePickup(p.group);}this.pickups.clear();for(const v of this.views.values())this.disposeView(v);this.views.clear();for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];this.fx.reset();this.missiles.reset();this.robots.reset();this.abilities.reset();this.bossExploded=false;this.renderer.toneMappingExposure=1.06;this.camera.fov=30;this.camera.updateProjectionMatrix();this.recoil=0;this.previousX=0;this.bossPreviousX=0;this.lastMuzzle=0;this.shake=0;this.cameraBossBlend=0;}
+ reset(){this.formationFraming.reset();this.bossAdapter?.reset();this.enemyMotion.clear();this.projectileIDs.clear();this.emitterPositions={};this.bossPreviousZ=40;this.bossPreviousVz=0;this.bossPitch=0;this.bossBank=0;this.bossMotionReady=false;this.enemyRecoil.clear();this.enemyCues.reset();this.presentation=undefined;this.bossHitKick=0;this.bossFireKick=0;this.commanderHitKick=0;this.hostileAge=0;this.bossVisualAge=0;this.commanderExploded=false;this.hero.visible=true;this.formationPositions=[];this.hitNumbers.clear();this.arsenal?.reset();for(const p of this.pickups.values()){this.scene.remove(p.group);p.group.remove(p.badge.sprite);p.badge.dispose();disposePickup(p.group);}this.pickups.clear();for(const v of this.views.values())this.disposeView(v);this.views.clear();for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];this.fx.reset();this.missiles.reset();this.robots.reset();this.abilities.reset();this.bossExploded=false;this.renderer.toneMappingExposure=1.06;this.camera.fov=30;this.camera.updateProjectionMatrix();this.recoil=0;this.previousX=0;this.bossPreviousX=0;this.lastMuzzle=0;this.shake=0;this.cameraBossBlend=0;}
  set(mesh:T.InstancedMesh,i:number,x:number,y:number,z:number,scale=1,rot=0,width=1){this.dummy.position.set(x,y,z);this.dummy.rotation.set(0,rot,0);this.dummy.scale.set(scale*width,scale,scale);this.dummy.updateMatrix();mesh.setMatrixAt(i,this.dummy.matrix);}
  createView(t:Target):View{
   const group=new T.Group(),badge=new Badge(t.kind==='gate'?2.8:t.kind==='crate'?2.0:1.45),red=mat(0xe94f38),gold=mat(0xfbb94e),dark=mat(0x233942),white=mat(0xffefd0);let rotor:T.Object3D|undefined;
@@ -89,10 +91,13 @@ export class Battlefield{
  trigger(e:Effect,current?:Snapshot){
   this.abilities.trigger(e,current);
   const z=-e.z;
+  // Events arrive before update: detach parts from this frame's authoritative pose.
+  const spatial=current;
+  if(spatial?.bossPose&&(e.kind==='bossPartBreak'||e.kind==='bossDeath'))this.bossAdapter?.apply(spatial.bossPose);
   if(e.kind==='hit'){const bossHit=e.variant===3||e.variant===4,point=combatImpactPoint(e,{depthScale:1,bossPhase:bossHit,bossY:current?.bossY??this.boss.position.y,bossImpactHeight:4.31,overdrive:false,weapon:1,targets:[...(current?.targets??[]),...(this.presentation?.targets??[])]});if(bossHit&&e.value<=0)this.fx.deflect(point.x,point.y,point.z);else this.fx.impact(point.x,point.y,point.z,.5);if(bossHit&&e.value>0)this.bossHitKick=Math.max(this.bossHitKick,.24);if(e.value>0&&e.variant>0&&!bossHit){const n=this.hitNumbers.get(e.entityId)??{at:-1,value:0};n.value+=e.value;if(this.age-n.at>.22){this.float('-'+Math.ceil(n.value),e.x,z,'#ffe0a0',3.4,true);n.at=this.age;n.value=0;}this.hitNumbers.set(e.entityId,n);}}
   if(e.kind==='drop')this.fx.impact(e.x,1.2,z,1.2);
   if(e.kind==='pickup')this.fx.powerAcquire(this.hero,powerKind(e.value));
-  if(e.kind==='coreExpose'){this.fx.impact(e.x,(current?.bossY??this.boss.position.y)+4.31,z+.85,1.6);this.shake=.17;}
+  if(e.kind==='coreExpose'){const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.impact(core?.x??e.x,core?.y??(current?.bossY??this.boss.position.y)+4.31,core?-core.z:z+.85,1.6);this.shake=.17;}
   if(e.kind==='bossRevive'){this.fx.impact(e.x,this.boss.position.y+2.7,z,2);this.shake=.24;}
   if(e.kind==='bossPartBreak'){const part=['cannonL','cannonR','boosterL','boosterR','legL','legR'][e.value-1] as 'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'|undefined;if(part){this.scene.updateMatrixWorld(true);this.fx.bossPartBreak(this.boss,part);this.shake=.24;}}
   if(e.kind==='bossPhase'){this.shake=.20;this.fx.impact(e.x,2.8,z,2);}
@@ -110,6 +115,7 @@ export class Battlefield{
   if(e.kind==='retreat')this.hitNumbers.delete(e.entityId);
   if(e.kind==='bossDeath'&&!this.bossExploded){this.scene.updateMatrixWorld(true);this.fx.bossDeath(this.boss);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
  }
+ weaponUpgrade(previous:number,next:number){return this.abilities.weaponUpgrade(previous,next);}
  sacrifice(positions:{x:number,z:number}[]){this.fx.sacrifice(this.hero,positions);}
  float(text:string,x:number,z:number,color:string,height=2,plain=false){if(this.floating.length>=16){const f=this.floating.shift()!;this.scene.remove(f.badge.sprite);f.badge.dispose();}const badge=new Badge(text.length>8?3:1.5,plain);badge.set(text,color);this.scene.add(badge.sprite);this.floating.push({badge,life:1.0,x,y:height,z});}
  update(s:Snapshot,dt:number,mode:'intro'|'play'|'paused'|'result',draw=true){
@@ -125,6 +131,7 @@ export class Battlefield{
   // Constant close portrait framing: commander below centre, long visible approach.
    const halfWidth=5.05,distance=(halfWidth/Math.min(.45,this.camera.aspect))/Math.tan(T.MathUtils.degToRad(15)),lookZ=this.cameraLookZ;
   this.camera.position.set(0,distance*.58,lookZ+distance*.815);this.camera.lookAt(0,.1,lookZ);
+  const pan=this.formationFraming.update(this.camera,intro||this.commanderExploded?[]:s.formation,renderDt,this.canvas.clientWidth);this.camera.position.x=pan;this.camera.lookAt(pan,.1,lookZ);
   if(this.shake>0&&active&&!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false)){this.camera.position.x+=(Math.random()-.5)*this.shake;this.camera.position.y+=(Math.random()-.5)*this.shake;this.shake=Math.max(0,this.shake-renderDt*.65);}
   const horizontalVelocity=renderDt>0?(s.x-this.previousX)/renderDt:0;this.previousX=s.x;
   this.hero.position.set(intro?0:s.x,downed?-.24:marching?Math.abs(Math.sin(this.age*11))*.055:0,intro?-3.7:0);
@@ -178,6 +185,9 @@ export class Battlefield{
   this.robots.end();for(const [id,v] of this.views)if(!live.has(id)){this.disposeView(v);this.views.delete(id);}
   for(let i=eliteCount;i<this.elitePool.length;i++)this.elitePool[i].visible=false;
   this.boss.visible=(bossPhase||intro)&&!this.bossExploded;this.boss.position.set(intro?0:s.bossX,intro?0:s.bossY,intro?-12:-s.bossZ);this.boss.scale.setScalar(intro?1.25:1.4);
+  const spatial=s;
+  const authoritative=!intro&&bossPhase&&this.bossAdapter?.apply(spatial.bossPose)===true;
+  if(!authoritative){
   const bossVelocity=this.bossMotionReady&&renderDt>0?(s.bossX-this.bossPreviousX)/renderDt:0,bossForward=this.bossMotionReady&&renderDt>0?(this.bossPreviousZ-s.bossZ)/renderDt:0;this.bossPreviousX=s.bossX;this.bossPreviousZ=s.bossZ;this.bossMotionReady=true;
   const attitude=flightAttitude(bossVelocity,bossForward,this.bossPreviousVz,renderDt,bossPhase&&s.bossY>.12&&(s.bossPartsMask&12)!==12);this.bossPreviousVz=bossForward;
   const settle=1-Math.exp(-renderDt*8);this.bossPitch+=(attitude.pitch-this.bossPitch)*settle;this.bossBank+=(attitude.roll-this.bossBank)*settle;
@@ -191,6 +201,8 @@ export class Battlefield{
    else if(joint.name.startsWith('Barrel_'))joint.rotation.z-=bossAge*(windup?15:fire?22:3);
    else if(joint.name==='Head')joint.rotation.y+=T.MathUtils.clamp((s.x-s.bossX)*-.06,-.18,.18);
   }
+  }
+  this.bossAdapter?.updateRegions(spatial.bossRegions,!!authoritative&&active&&s.phase==='boss'&&!this.bossExploded,spatial.bossComponents,s.guardHp);
   // Socket sampling/effects happens after current-frame body and joint transforms.
   this.arsenal?.update(s,renderDt);this.boss.updateWorldMatrix(true,true);this.arsenal?.emitters(this.emitterPositions);
   this.enemyCues.update(s.targets,active,this.emitterPositions);

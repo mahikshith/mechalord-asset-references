@@ -1,0 +1,10 @@
+{
+  "scope": "Independent Three.js raw retained GLB hierarchy; dense2048 time samples plus25 bisections; rounded source part volumes and measured luminous ellipsoid; no gameplay/device claim",
+  "cases": 28,
+  "hits": 17,
+  "misses": 11,
+  "unresolved": 0,
+  "maxFractionError": 0.00018742339189481427,
+  "maxSurfaceErrorMetres": 2.4966140266258205e-15,
+  "timestamp": "2026-10-05T21:12:59.089Z"
+}

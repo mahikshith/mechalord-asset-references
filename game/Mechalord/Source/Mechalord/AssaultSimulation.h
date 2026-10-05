@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdint>
 #include "FormationSafety.h"
+#include "BossPose.h"
 
 // Portable browser playtest. The legacy Unreal adapter still uses BattleSimulation.
 namespace mech::assault
@@ -36,6 +37,7 @@ struct Shot
     double x=0,z=0,dx=0,dz=32,damage=1;
     bool heavy=false,active=false; FriendlyKind kind=FriendlyKind::Pulse;
     int pierce=1,lastHit=0; bool troop=false;
+    int id=0; double y=0,dy=0,life=0; int aimRegion=7,epoch=0; bool spatial=false;
 };
 struct EnemyShot
 {
@@ -48,6 +50,7 @@ struct Pickup { int id=0; PickupKind kind=PickupKind::Guided; double x=0,z=0,rad
 struct Effect
 {
     int id=0; EffectKind kind=EffectKind::Hit; double x=0,z=0; int value=0,entityId=0,variant=0; double size=.3;
+    double y=0; int hitRegion=-1; bool spatial=false;
 };
 class Battle
 {
@@ -70,6 +73,12 @@ public:
     bool paused=false,engagement=false;
     int safetyAdmitted=0,safetyDeferred=0,safetyUnsupported=0,safetyExistingUnsafe=0,safetyCapacity=0,safetyAuthoredRockets=0;
     double safetyHorizon=0;
+    std::array<double,6> regionHp{},regionMax{};
+    double guardHp=0,guardMax=0; int bossEpoch=0,sweepUnresolved=0;
+    boss_pose::Frame bossFrame{},previousBossFrame{};
+    bool RegionVulnerable(int Id) const;
+    double RegionHp(int Id) const;
+    double RegionMax(int Id) const;
     std::array<Target,MaxTargets> targets{};
     std::array<Shot,MaxShots> shots{};
     std::array<EnemyShot,MaxEnemyShots> enemyShots{};
@@ -106,10 +115,21 @@ private:
     uint64_t spawned=0;
     bool bossLaneLocked=false,bossArrived=false;
     double committedAttackBoost=1;
+    boss_pose::PoseDriver poseDriver{};
+    int nextShotId=1; double collapseTime=0,collapseStartY=0;
+    double GroundY() const;
+    void UpdatePose(double Dt);
+    void SyncPosePosition();
+    void DamageRegion(int Region,double Damage,const boss_pose::Vec3& Point,FriendlyKind WeaponKind,int Epoch);
+    void ExposeCore();
+    void EmitSpatial(EffectKind Type,const boss_pose::Vec3& Point,int Value,int Region,double Size=.3);
+    int AimRegion(double Origin,bool Guided,int Index) const;
     formation_safety::Workspace safetyWorkspace{};
     bool AdmitAttack(const formation_safety::Hazard* Proposed,int Count,int Source=0);
     bool AdmitRanged(const Target& Enemy);
     bool AdmitBoss(double Windup,double Aim);
+    int SweepCount() const;
+    int RocketHalfCount() const;
     void Step(double Dt);
     void SpawnTimeline();
     void SiegeTimeline();

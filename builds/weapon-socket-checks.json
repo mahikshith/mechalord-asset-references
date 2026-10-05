@@ -1,6 +1,6 @@
 {
   "scope": "CPU actual GLB position/joint verification; browser render and Android not tested here.",
-  "testedAt": "2026-10-05T20:16:49.605Z",
+  "testedAt": "2026-10-05T21:08:17.341Z",
   "passed": 9,
   "failed": 0,
   "maxSampledPoseDisplacementMetres": 2.245260379233216,
@@ -28,8 +28,8 @@
     ],
     "core": [
       0,
-      4.312,
-      0.847
+      4.2754723549,
+      1.0154446363
     ]
   }
 }

@@ -45,6 +45,11 @@ export class RelicEffects {
  private energy(color:number,opacity:number){return new T.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending,side:T.DoubleSide});}
  setReducedMotion(value:boolean){this.reduced=value;}
  get sceneImpact(){return this.impact;}
+ /** Presentation confirmation of a real observed tier transition; never a combat event. */
+ weaponUpgrade(previous:number,next:number){
+  if(this.disposed||!Number.isInteger(previous)||!Number.isInteger(next)||previous<1||next>4||next<=previous||this.pulseLife>0)return false;
+  this.pulseLife=this.pulseDuration;this.pulseType=3;this.refreshImpact();return true;
+ }
  get stats(){return {sparks:this.sparks.filter(s=>s.life>0).length,bolts:this.bolts.filter(b=>b.life>0).length,sparkCapacity:12,boltCapacity:32,clock:this.clock,pulseLife:this.pulseLife,empLife:this.empLife,stunned:this.stun.count};}
  trigger(e:Effect,s?:Snapshot){
   if(this.disposed||this.eventIDs.has(e.id))return;this.eventIDs.add(e.id);if(this.eventIDs.size>512)this.eventIDs.delete(this.eventIDs.values().next().value!);

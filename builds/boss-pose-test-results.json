@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-10-05T21:20:07.953Z",
+  "scope": "Isolated measured pose/region math, not integrated gameplay",
+  "exitCode": 0,
+  "tests": [
+    "METRIC actual_glb_component_poses=4268 max_center_error_m=3.58036167305e-15\r",
+    "PASS 388 independent retained-GLB poses including asymmetric rolls/spins\r",
+    "PASS neutral measurement receipt and native-facing sides\r",
+    "PASS left-only and right-only physical cannon contacts\r",
+    "PASS central closed oval has its own physical contact\r",
+    "PASS measured oval rejects generous circular edge hits\r",
+    "PASS broken components contribute no collision\r",
+    "PASS empty space and head misses are not broad boss hits\r",
+    "PASS analytic rounded-box central-face contact\r",
+    "PASS moving region translation cannot tunnel\r",
+    "PASS rotating joint curved contact\r",
+    "PASS nearest physical part wins in both ray directions\r",
+    "PASS separate knee and foot hierarchy follows actual pivots\r",
+    "PASS pause stun and retry restore deterministic pose\r",
+    "PASS authoritative guarded exposed windup and fire pose\r",
+    "PASS finite validation and fixed solver cap\r",
+    "PASS starting-inside impacts project onto physical surfaces\r",
+    "RESULT 16/16 passed\r"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "builtAt": "2026-10-05T21:26:18.623Z",
+  "coreAsset": "assault.73b4ca12e4df9622.wasm",
+  "coreSha256": "73b4ca12e4df96223ce7af134adb8d52a5fa10a112aa4b911eda773da484c9f1",
+  "files": {
+    "assault.73b4ca12e4df9622.wasm": {
+      "bytes": 1784901,
+      "sha256": "73b4ca12e4df96223ce7af134adb8d52a5fa10a112aa4b911eda773da484c9f1"
+    },
+    "game.js": {
+      "bytes": 780050,
+      "sha256": "0afc944a5cbc6f954223b7700f5b5b0673b2c1611caafbe6fc02cf79a144aa32"
+    },
+    "review.js": {
+      "bytes": 765549,
+      "sha256": "95d04acd62cde5f2b5d87fe50bf8be458173ee7c3f35bfbad5203de3783bef71"
+    },
+    "index.html": {
+      "bytes": 6052,
+      "sha256": "9e79655d33cb1c4570c93df85def6e6cf41acff6d0958093c858832dc774bcae"
+    },
+    "review.html": {
+      "bytes": 4169,
+      "sha256": "b4b102508c1f2b8b7f1b8b2dcc648e185a3f455ded2d221ee5b1094eb47a7b08"
+    },
+    "style.css": {
+      "bytes": 23571,
+      "sha256": "97cbce333e00523be2b48d58749776f14aa8b00a99d12f41b28947f810a7f517"
+    },
+    "commander.glb": {
+      "bytes": 2383864,
+      "sha256": "cc91ac91ceb2459e7080d5e5b9c52fd6cf9a695f0d4ccf611ba4c956e2d1102b"
+    },
+    "troop.glb": {
+      "bytes": 1642908,
+      "sha256": "60e40de578ae3b385ed3902ab53b69a96ce7063d25d076a487d46278e1677ff8"
+    },
+    "crawler.glb": {
+      "bytes": 894576,
+      "sha256": "ee4b7d37cc7fd84d9ed7c3e8f976d0ccb97e9643c81829144b9140d9dbc5a340"
+    },
+    "cinder-reaver.glb": {
+      "bytes": 692172,
+      "sha256": "f1034ad79d3d9ec13990963d3ecb496a616da1d7b10287eb8e4e183eddc4ee8d"
+    },
+    "forge-tyrant.glb": {
+      "bytes": 1041540,
+      "sha256": "1d158ca4de14fbec5e2ba2eb53bdf3f8e787be30937fba90d7b70c03b0f7e73b"
+    }
+  }
+}
