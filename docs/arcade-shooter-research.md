@@ -1,8 +1,8 @@
 # Iron Front: arcade shooter research
 
-Reviewed 5 October 2026. Scope: one polished original level, with **TwinBee central**. Sources are official manuals, rights-holder descriptions and publisher pages. This review is textual research, not hands-on playtesting or watched-video analysis. Exact attack timings below are proposals, not measurements of reference games.
+Reviewed 5 October; decision updated 6 October 2026. Scope: one polished original level. **The user rejected TwinBee bells and colour cycling; fixed original power-ups and the supporting shooter research remain active.** Sources are official manuals, rights-holder descriptions and publisher pages. This review is textual research, not hands-on playtesting or watched-video analysis. Exact attack timings below are proposals, not measurements of reference games.
 
-## TwinBee: playful power-ups with deliberate choices
+## TwinBee: historical research; bell mechanic rejected
 
 **Version boundary.** [Konami's original arcade listing](https://www.konami.com/games/jp/ja/products/dl_ps4_twinbee_arch/) identifies the 1985 game and distinguishes Bubble System and ROM versions. Detailed evidence below comes from named ports; do not treat every port's rules as identical to the arcade game. Stinger/Moero, Detana and Pop'n are separate releases and are not combined into these findings.
 
@@ -10,9 +10,9 @@ Reviewed 5 October 2026. Scope: one polished original level, with **TwinBee cent
 
 The [Famicom Wii U manual, section 7](https://www.nintendo.co.jp/data/software/manual/WUP-N-FAUJ-JPN.pdf) lists yellow score, blue speed, white twin cannon, red barrier and flashing red/white single-player doubles; ground candy grants a three-way shot. By contrast, [Konami's 1986 MSX description](https://www.konami.com/games/jp/ja/products/dl_win_twinbee_egg/) names a green doubles bell. Preserve that distinction. The [3D Classics manual, section 10](https://www.nintendo.co.jp/data/software/manual/man_sacj.pdf) documents a missed-bell score-chain reset, but explicitly describes a changed single-player adaptation; this does not verify the original arcade's exact chain values.
 
-**Iron Front hypothesis.** Make reward discovery a repeated highlight: destroy original floating salvage carriers and ground machines to reveal visually different powers. Offer twin cannons, guided missiles, a rail burst, and a protective escort as readable alternatives, with distinctive muzzle effects and countdowns. Use our own shapes, sounds and names.
+**Retained design hypothesis, not the bell system.** Make reward discovery a repeated highlight: destroy original floating salvage carriers and ground machines to reveal visually different powers. Offer twin cannons, guided missiles, a rail burst, and a protective escort as readable alternatives, with distinctive muzzle effects and countdowns. Use our own shapes, sounds and names.
 
-**One-thumb adaptation.** Constant automatic fire removes the deliberate stop-shooting decision required to preserve a desired bell colour. Therefore exposed pickups must **lock their type** and ignore further bullets. Let steering select between two clearly labelled salvage cores, with sufficient collection time. Do not copy shoot-to-cycle plus over-shoot punishment into an uncontrollable auto-fire loop. A deliberate cease-fire control is a separate future usability experiment. Standard ground attacks and a stock-limited emergency bomb are different concepts.
+**One-thumb adaptation.** Constant automatic fire removes the deliberate stop-shooting decision required to preserve a desired bell colour. Therefore exposed pickups must **lock their type** and ignore further bullets. Let steering select between two clearly labelled salvage cores, with sufficient collection time. Do not copy shoot-to-cycle plus over-shoot punishment into an uncontrollable auto-fire loop. The user subsequently rejected the bell system entirely; no cease-fire or pickup cycling is in the implementation scope. Standard ground attacks and a stock-limited emergency bomb are different concepts.
 
 ## Three supporting references
 
@@ -37,3 +37,5 @@ For every pattern, inflate hazards by the actual formation footprint and verify 
 Proposed sequence: teach one volley → generous salvage choice → entrance formation/ground target → alternate cannon pressure → brief collection reward → boss combines the learned patterns. Avoid placing a pickup choice, moving gate and new attack simultaneously. Escalate combinations after individual threats become familiar, rather than merely raising bullet count.
 
 Test fresh players with auto-fire and the largest formation: can they predict the committed lane, choose a power intentionally, notice a broken cannon's consequence, and explain a defeat? Measure damage, missed rewards and willingness to retry. Source pages establish reference mechanics; they do not establish that these mobile adaptations are fun, fair or already implemented.
+
+**Implementation status, 6 October:** Reactor Siege is being implemented in the existing Iron Front C++/WASM game. Fixed weapon pickups, committed gunners and repeated boss core openings are the bounded scope. The first fixed cannon/rail choice is checked in the rebuilt WASM; the escort and independent part targeting remain proposals. Automated rebuilt-binary tests and actual touch/visual playtests remain distinct verification steps.

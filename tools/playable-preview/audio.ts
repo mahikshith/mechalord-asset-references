@@ -51,11 +51,12 @@ export class BattleAudio {
   }
   event(event: Effect): void {
     switch (event.kind) {
-      case 'hit': this.play('hit', .55, .08); break;
-      case 'kill': this.play('explosion', .45, .11); this.play('grunt', .4, .45); break;
+      case 'hit': this.play('hit', event.value>0?.55:.16, event.value>0?.08:.12); break;
+      case 'kill': this.play('explosion', event.variant>0?.7:.35, .11); if(event.variant>0)this.play('impact', .45, .15); break;
       case 'damage': case 'contact': case 'commanderHit': this.play('impact', .7, .13); break;
       case 'block': this.play('arc', .35, .14); break;
       case 'bossShot': this.play(event.value === 3 ? 'laser' : 'cannon', .85, .09); break;
+      case 'enemyFire': this.play('cannon', event.value===2?.58:.42, .10); break;
       case 'bossPartBreak': this.play('explosion', .9, .14); this.play('impact', .75, .14); break;
       case 'heal': case 'revive': this.play('relic', .9, .25); break;
       case 'commanderDown': this.play('loss', .7); break;
@@ -71,7 +72,7 @@ export class BattleAudio {
   update(s: Snapshot, running: boolean): void {
     if (!running || !this.enabled || !this.context || this.context.state !== 'running') { if (this.rollingGain && this.context) this.rollingGain.gain.setTargetAtTime(0, this.context.currentTime, .04); return; }
     if (s.phase === 'run' || s.phase === 'boss') {
-      if (s.time - this.lastShot > (s.ability > 0 && s.relic === 2 ? .085 : .14) && s.shots.some(shot => shot.z < 1)) {
+      if (s.time - this.lastShot > (s.ability > 0 && s.relic === 2 ? .085 : .14) && s.shots.some(shot => shot.owner!=='troop' && shot.z < 1)) {
         const cue: Cue = s.weaponPower === 'railburst' ? 'rail' : s.weaponPower === 'cannons' ? 'cannon' : s.weapon >= 3 ? 'arc' : s.weapon === 2 ? 'twin' : 'pulse';
         this.play(cue, .42, .055); this.lastShot = s.time;
       }
@@ -122,6 +123,9 @@ export class BattleAudio {
         const metallic = Math.sin(phase) + Math.sin(phase * 2.17) * .22;
         value = (metallic * (cue === 'grunt' ? .42 : .27) + filtered * (['explosion','impact','cannon'].includes(cue) ? 1.6 : .28) + noise * (cue === 'rail' ? .18 : .04)) * env;
         if (cue === 'twin' && t > .05) value += Math.sin((t - .05) * 900) * Math.exp(-(t - .05) * 70) * .15;
+        // Debris impacts follow the initial blast in the same bounded buffer.
+        // No timers or additional audio sources survive pause/retry.
+        if(cue==='explosion')for(const [at,freq] of [[.09,760],[.21,460],[.37,310]]){const d=t-at;if(d>0)value+=(Math.sin(d*freq*2*Math.PI)*.12+noise*.1)*Math.exp(-d*35);}
       }
       samples[i] = Math.max(-.95, Math.min(.95, value));
     }

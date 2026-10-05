@@ -14,4 +14,8 @@ Preserved comparison builds:
 
 The Reforged archive is an experiment, not an accepted mobile release. Its last camera adjustment was built but the final verification pass was stopped at the user's request. Keep that distinction when resuming work.
 
-Next focus: one authored Iron Front level with stronger enemy roles, committed readable attacks, earned weapon transformations and impactful explosions. The user's favorite reference is TwinBee; research its power-up decisions and level rhythm alongside classic spaceship/rocket shooters. Preserve current progress and avoid another art rebuild during gameplay tuning.
+Active work, authorized 6 October 2026: one authored Iron Front level, **Reactor Siege**, with stronger enemy roles, committed readable attacks, earned weapon transformations and impactful explosions, on `codex/iron-front-reactor-siege`. Preserve current progress and the accepted presentation.
+
+**Rejected mechanic:** the user explicitly abandoned TwinBee bells and shooting to cycle pickup colours. No bells, colour cycling, reroll shooting, over-shoot punishment or cease-fire control enters the active design. The historical TwinBee research remains documented; its general power-up variety and pacing observations are hypotheses, not an instruction to copy its system. Retain original fixed equipment pickups and the useful Raiden, Gradius and Galaga research.
+
+The bounded implementation retains existing scalar boss part/armor progression while improving pressure and repeated core windows. The first carrier’s fixed cannon/rail choice is implemented and independently checked through the rebuilt WASM; a second carrier/escort pair and independently aimed boss weak points remain extensions. This decision authorizes implementation; it does not certify a rebuilt playable or Android package.

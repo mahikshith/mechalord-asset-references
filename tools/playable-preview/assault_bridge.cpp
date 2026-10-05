@@ -3,7 +3,7 @@
 static mech::assault::Battle Battle;
 static float Formation[24*3];
 static float LaserData[2*7];
-static float State[64],Targets[256*12],Shots[256*7],EnemyShots[96*8],Pickups[24*5],Effects[192*8];
+static float State[64],Targets[256*16],Shots[256*7],EnemyShots[96*9],Pickups[24*6],Effects[192*8];
 API("start_run") void Start(int Relic,int Level,int Rank) { Battle.Start(static_cast<mech::assault::Relic>(std::clamp(Relic,0,2)),Level,Rank); }
 API("level_name") const char* LevelName() { return Battle.LevelName(); }
 API("step") void Step(double Dt,double X) { Battle.Advance(Dt,X); }
@@ -38,9 +38,10 @@ API("targets") float* GetTargets()
 {
     int N=0; for(const auto& T:Battle.targets) if(T.active)
     {
-        float* O=Targets+N++*12;
+        float* O=Targets+N++*16;
         O[0]=T.id; O[1]=int(T.kind); O[2]=T.x; O[3]=T.z; O[4]=T.hp; O[5]=T.maxHp;
         O[6]=T.value; O[7]=T.op; O[8]=T.size; O[9]=T.hit; O[10]=T.variant; O[11]=T.depth;
+        O[12]=int(T.fireState); O[13]=T.aimX; O[14]=T.charge; O[15]=T.role;
     } return Targets;
 }
 API("shot_count") int ShotCount() { return Battle.ShotCount(); }
@@ -56,7 +57,7 @@ API("pickup_count") int PickupCount() { return Battle.PickupCount(); }
 API("pickups") float* GetPickups()
 {
     int N=0; for(const auto& P:Battle.pickups) if(P.active)
-    { float* O=Pickups+N++*5; O[0]=P.id; O[1]=int(P.kind); O[2]=P.x; O[3]=P.z; O[4]=P.radius; }
+    { float* O=Pickups+N++*6; O[0]=P.id; O[1]=int(P.kind); O[2]=P.x; O[3]=P.z; O[4]=P.radius; O[5]=P.choiceGroup; }
     return Pickups;
 }
 API("enemy_shot_count") int EnemyShotCount() { return Battle.EnemyShotCount(); }
@@ -65,9 +66,9 @@ API("enemy_shots") float* GetEnemyShots()
     const double Slow=Battle.HostileSpeed();
     int N=0; for(const auto& S:Battle.enemyShots) if(S.active)
     {
-        float* O=EnemyShots+N++*8;
+        float* O=EnemyShots+N++*9;
         O[0]=S.id; O[1]=S.x; O[2]=S.z; O[3]=S.dx*Slow; O[4]=S.dz*Slow;
-        O[5]=S.radius; O[6]=int(S.kind); O[7]=S.homing;
+        O[5]=S.radius; O[6]=int(S.kind); O[7]=S.homing; O[8]=S.sourceId;
     } return EnemyShots;
 }
 API("drain_effects") float* EffectsOnce()

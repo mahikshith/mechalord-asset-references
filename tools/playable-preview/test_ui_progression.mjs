@@ -22,7 +22,7 @@ await build({entryPoints:[path.join(here,'main.ts')],bundle:true,platform:'node'
     export class AssaultCore {
       constructor(){globalThis.testCore=this;this.steps=0;this.calls=[];}async load(){}
       start(relic,level=0,rank=0){
-        this.calls.push({relic,level,rank});this.s={phase:'run',time:0,duration:40,level,levelName:['Relic Causeway','Roller Foundry','Citadel Breach'][level],rank,rankReward:1,
+        this.calls.push({relic,level,rank});this.s={phase:'run',time:0,duration:40,level,levelName:['Reactor Siege','Roller Foundry','Citadel Breach'][level],rank,rankReward:1,
         weaponPower:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',starterWeapon:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',weaponPermanent:rank>0,powerTime:0,timePower:'none',timePowerTime:0,x:0,army:8+rank*2,commanderHp:100+rank*5,commanderMaxHp:100+rank*5,energy:30,ability:0,relic,weapon:1,weaponXP:0,weaponNeed:40,kills:0,
         canHeal:false,healCost:20,healAmount:25,healUsesRemaining:2,reviveAvailable:false,reviveCost:30,reviveHp:50,reviveUsed:false,lasers:[],bossPartsMask:0,bossPart:'cannon',bossPartHp:100,bossPartMax:100,bossHp:100,bossMax:100,bossArmor:100,bossArmorMax:100,bossCoreHp:40,bossCoreMax:40,bossCoreTime:0,bossState:'armored',bossRevives:0,bossAttack:0,bossLane:0,bossX:0,bossZ:20,bossY:0,bossPhase:1,bossPattern:'heavy',bossAction:'strafe',deathProgress:0,travelDistance:0,travelGoal:100,
         engagement:false,frontline:2.6,score:100,targets:[],shots:[],enemyShots:[],pickups:[],effects:[]};
@@ -48,7 +48,7 @@ globalThis.AudioContext=class {
   createBuffer(c,len){const data=new Float32Array(len);return{getChannelData:()=>data};}
 };
 let session=0;
-async function harness(savedText=null,unavailable=false,currentText=null){
+async function harness(savedText=null,unavailable=false){
   const elements=new Map(ids.map(id=>[id,new Element()]));
   const levels=[0,1,2].map(level=>Object.assign(new Element(),{dataset:{level:String(level)}}));
   const relics=[0,1,2].map(relic=>Object.assign(new Element(),{dataset:{relic:String(relic)}}));
@@ -56,13 +56,12 @@ async function harness(savedText=null,unavailable=false,currentText=null){
   globalThis.window={addEventListener(){},speechSynthesis:{getVoices:()=>[{lang:'en-US',localService:true}],addEventListener(){},removeEventListener(){},speak(s){s.onend?.();},cancel(){}}};
   globalThis.SpeechSynthesisUtterance=class{constructor(t){this.text=t;}};
   const store=new Map(savedText===null?[]:[['mechalord-iron-front-progress-v1',savedText]]);
-  if(currentText!==null)store.set('mechalord-reforged-progress-v1',currentText);
   globalThis.localStorage={getItem:k=>{if(unavailable)throw Error('Storage disabled');return store.get(k)??null;},setItem:(k,v)=>{if(unavailable)throw Error('Quota exceeded');store.set(k,v);}};
   let nextFrame,now=performance.now();globalThis.requestAnimationFrame=f=>nextFrame=f;
   await import(pathToFileURL(output).href+'?test='+session++);await new Promise(setImmediate);
   const frame=()=>{now+=16;nextFrame(now);};
   const win=()=>{testCore.s.phase='won';testCore.s.kills=20;frame();};
-  return {elements,levels,frame,win,saved:()=>JSON.parse(store.get('mechalord-reforged-progress-v1')),legacy:()=>store.get('mechalord-iron-front-progress-v1')};
+  return {elements,levels,frame,win,saved:()=>JSON.parse(store.get('mechalord-iron-front-progress-v1'))};
 }
 
 const h=await harness(),{elements:e,frame,win,saved}=h;
@@ -79,7 +78,7 @@ for(let i=0;i<3;i++){e.get('retry').click();win();}assert.equal(saved().commande
 e.get('retry').click();assert.equal(testCore.calls.at(-1).rank,3);assert.equal(testCore.s.army,14);frame();assert.equal(e.get('power-name').textContent,'RAIL BURST');
 const steps=testCore.steps;e.get('pause').click();frame();assert.equal(testCore.steps,steps);assert.equal(e.get('paused').hidden,false);
 e.get('resume').click();frame();assert.equal(testCore.steps,steps+1);
-testCore.s.phase='destroying';frame();assert.equal(e.get('phase-label').textContent,'COLOSSUS DESTROYED');assert.equal(e.get('abilities').hidden,true);assert.equal(e.get('result').hidden,true);assert.equal(testCore.steps,steps+2);
+testCore.s.phase='destroying';frame();assert.equal(e.get('phase-label').textContent,'TYRANT DESTROYED');assert.equal(e.get('abilities').hidden,true);assert.equal(e.get('result').hidden,true);assert.equal(testCore.steps,steps+2);
 testCore.s.phase='won';frame();assert.equal(e.get('result').hidden,false);assert.equal(saved().commanderXP,510);e.get('back').click();assert.equal(e.get('starter-troops').textContent,'14');assert.equal(saved().schema,2);
 console.log('PASS: earned XP, exactly-once rewards, ranks 1–4, next-stage/retry carry, distinct power/relic HUD, pause and destruction transition.');
 
@@ -100,8 +99,15 @@ for(const [kind,label,symbol] of [['freeze','HOSTILES FROZEN','❄'],['slow','SL
 testCore.s.timePower='none';testCore.s.timePowerTime=0;battleUI.frame();assert.equal(battleUI.elements.get('time-power').hidden,true);
 testCore.s.army=25;testCore.s.commanderHp=92;testCore.s.effects=[{id:1,kind:'damage',value:8},{id:2,kind:'commanderHit',value:1}];battleUI.frame();assert.equal(battleUI.elements.get('army-loss').textContent,'−8');assert.equal(battleUI.elements.get('commander-health-value').textContent,'92/100');assert(battleUI.elements.get('commander-health').classList.values.has('health-hit'));
 testCore.s.effects=[{id:3,kind:'pickup',value:6}];battleUI.frame();assert.match(battleUI.elements.get('toast').textContent,/HASTE · RISK/);assert(!battleUI.elements.get('gate-flash').classList.values.has('show-gate'),'Pickup does not cover the battlefield with a large banner');
-testCore.s.phase='boss';testCore.s.bossState='exposed';testCore.s.bossCoreHp=20;testCore.s.bossCoreTime=4.2;battleUI.frame();assert.equal(battleUI.elements.get('route-fill').style.width,'50%');assert.equal(battleUI.elements.get('phase-label').textContent,'COLOSSUS · CORE');assert.equal(battleUI.elements.get('objective').textContent,'50% · 4.2s');
-testCore.s.bossState='rebuilding';testCore.s.bossRevives=1;testCore.s.bossArmor=40;battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'REBUILDING');assert.equal(battleUI.elements.get('phase-label').textContent,'COLOSSUS · REFORGED');
+testCore.s.phase='boss';testCore.s.bossState='exposed';testCore.s.bossCoreHp=20;testCore.s.bossCoreTime=4.2;battleUI.frame();assert.equal(battleUI.elements.get('route-fill').style.width,'50%');assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · CORE');assert.equal(battleUI.elements.get('objective').textContent,'50% · 4.2s');
+testCore.s.bossState='rebuilding';testCore.s.bossRevives=1;testCore.s.bossArmor=40;battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'REBUILDING');assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · REFORGED');
+testCore.s.bossState='guarded';testCore.s.bossArmor=0;testCore.s.bossCoreHp=20;testCore.s.bossAction='strafe';testCore.s.bossPattern='heavy';battleUI.frame();
+assert.equal(battleUI.elements.get('route-fill').style.width,'50%','Closing the reactor must not hide its remaining life or refill the health bar');
+assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · CORE');assert.equal(battleUI.elements.get('objective').textContent,'CORE GUARDED');
+assert.match(battleUI.elements.get('kill-label').textContent,/CORE TO OPEN/);assert.doesNotMatch(battleUI.elements.get('kill-label').textContent,/REFORGED ARMOR/);
+testCore.s.phase='run';testCore.s.targets=[{id:9,kind:'enemy',z:14,fireState:'tracking'}];battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'CANNON CHARGING');
+testCore.s.targets[0].fireState='locked';battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'CANNON LOCKED');assert.match(battleUI.elements.get('combat-hint').textContent,/CHANGE LANE/);
+testCore.s.targets[0].z=40;battleUI.frame();assert.notEqual(battleUI.elements.get('objective').textContent,'CANNON LOCKED','An offscreen gunner must not falsely replace visible encounter guidance');
 battleUI.elements.get('pause-levels').click();battleUI.elements.get('start').click();battleUI.frame();assert.equal(battleUI.elements.get('army-loss').textContent,'');assert.equal(battleUI.elements.get('time-power').hidden,true);battleUI.elements.get('back').click();
 console.log('PASS: independent time-power icons and expiry, permanent casualty feedback, commander damage with surviving troops, compact pickup toast, single armor/core/rebuild bar and retry cleanup.');
 
@@ -135,14 +141,6 @@ const genuine=await harness(JSON.stringify({schema:2,commanderXP:35,cleared:[tru
 assert.equal(genuine.saved().commanderXP,35,'Existing nonzero schema-2 XP must not be replaced');
 genuine.elements.get('start').click();assert.equal(testCore.calls.at(-1).rank,0);genuine.elements.get('pause-levels').click();
 console.log('PASS: malformed storage, free stage selection, blocked-storage fallback, reload, schema-1 migration and intermediate zero-XP repair.');
-
-const oldSave=JSON.stringify({schema:2,commanderXP:250,cleared:[true,true,false],best:[11,22,0],lastLevel:1});
-const newSave=JSON.stringify({schema:2,commanderXP:475,cleared:[true,true,true],best:[101,102,103],lastLevel:2});
-const isolated=await harness(oldSave,false,newSave);isolated.elements.get('start').click();
-assert.equal(testCore.calls.at(-1).rank,3,'Existing Reforged progress takes precedence over the prior edition');
-assert.equal(testCore.calls.at(-1).level,2);isolated.win();assert.equal(isolated.legacy(),oldSave,'New rewards must not change the original edition save');
-assert(isolated.saved().commanderXP>475);isolated.elements.get('pause-levels').click();
-console.log('PASS: prior edition progress imports read-only; separate Reforged saves take precedence and never overwrite the original.');
 
 await build({entryPoints:[path.join(here,'audio.ts')],bundle:true,format:'esm',platform:'node',outfile:path.join(root,'builds/audio-check.mjs')});
 const {BattleAudio}=await import(pathToFileURL(path.join(root,'builds/audio-check.mjs')).href),audio=new BattleAudio();await audio.unlock();

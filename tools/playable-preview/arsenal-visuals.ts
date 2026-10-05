@@ -112,7 +112,7 @@ export class ArsenalVisuals {
   update(s:Snapshot,dt:number){
     const head=this.boss.getObjectByName('Head');if(head&&head!==this.faceHead){this.faceRig.removeFromParent();head.add(this.faceRig);this.faceHead=head;}this.faceRig.visible=!!head;
     if(this.heroRig.parent!==this.hero)this.hero.add(this.heroRig);if(this.bossRig.parent!==this.boss)this.boss.add(this.bossRig);
-    const state=s as Snapshot & {weaponPower?:ArsenalPickupKind|'none';powerTime?:number;weaponPermanent?:boolean;bossPartsMask?:number;bossPhase?:number;bossPattern?:string;bossY?:number;bossState?:'armored'|'exposed'|'rebuilding'|'destroying';bossRevives?:number;bossCoreTime?:number;timePower?:'none'|'freeze'|'slow'|'haste';timePowerTime?:number};
+    const state=s as Snapshot & {weaponPower?:ArsenalPickupKind|'none';powerTime?:number;weaponPermanent?:boolean;bossPartsMask?:number;bossPhase?:number;bossPattern?:string;bossY?:number;bossState?:'armored'|'exposed'|'rebuilding'|'destroying'|'guarded';bossRevives?:number;bossCoreTime?:number;timePower?:'none'|'freeze'|'slow'|'haste';timePowerTime?:number};
     const delta=Math.max(0,Math.min(dt,.15));this.clock+=delta;
     const timeActive=(state.timePowerTime??0)>0,bossRate=!timeActive?1:state.timePower==='freeze'?0:state.timePower==='slow'?.5:state.timePower==='haste'?1.35:1;const bossDelta=delta*bossRate;this.bossClock+=bossDelta;this.bossSpin+=bossDelta*(s.bossAction==='windup'?51:30);
     const live=s.phase==='run'||s.phase==='boss',powered=live&&((state.powerTime??0)>0||state.weaponPermanent===true);
@@ -134,13 +134,15 @@ export class ArsenalVisuals {
     const battleizer=inBoss&&((state.bossPhase??1)>=2||(state.bossRevives??0)>0||state.bossPattern==='heavy'&&(s.bossAction==='windup'||s.bossAction==='fire'));
     this.bossRig.visible=s.phase==='boss'||s.phase==='destroying'||((s.phase==='lost'||down)&&s.bossHp>0);this.unfolded+=((battleizer?1:0)-this.unfolded)*(1-Math.exp(-bossDelta*5));
     syncBossParts(this.boss,state.bossPartsMask??0);
-    this.bossCharge.visible=inBoss&&s.bossAction==='windup'&&state.bossPattern!=='laser';
+    this.bossCharge.visible=inBoss&&state.bossState!=='guarded'&&s.bossAction==='windup'&&state.bossPattern!=='laser';
     this.boss.updateWorldMatrix(true,true);
     for(let i=0;i<this.laserCharges.length;i++){const charge=this.laserCharges[i];charge.visible=false;}
     // Laser energy comes from the surviving original reactor, not detached barrels.
     if(inBoss&&state.bossPattern==='laser'&&s.bossAction==='windup'){
       const charge=this.laserCharges[0];charge.visible=true;charge.position.set(0,3.08,.605);charge.scale.setScalar(.45+Math.max(0,s.bossAttack)*1.35+.06*Math.sin(this.bossClock*20));
     }
+    // Brighten the original reactor opening only; there is no added door or chest wheel.
+    if(inBoss&&state.bossState==='exposed'){const opening=this.laserCharges[1];opening.visible=true;opening.position.set(0,3.08,.605);opening.scale.setScalar(.85+.08*Math.sin(this.bossClock*8));}
     this.bossCharge.scale.setScalar(.7+Math.max(0,s.bossAttack)*1.2+.08*Math.sin(this.bossClock*24));
     for(const wing of this.wings){wing.hinge.position.x=wing.side*(.64+this.unfolded*.70);wing.hinge.position.y=3.15+this.unfolded*.24;wing.hinge.rotation.z=wing.side*(.12+this.unfolded*.95);wing.hinge.rotation.x=-this.unfolded*.28;wing.rotor.rotation.z=-this.bossSpin;
       wing.flash.visible=inBoss&&s.bossAction==='fire'&&state.bossPattern==='heavy';wing.flash.scale.setScalar(1.2+.25*Math.sin(this.bossClock*40));

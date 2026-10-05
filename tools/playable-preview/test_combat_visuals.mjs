@@ -12,7 +12,7 @@ const bundle=await esbuild.build({entryPoints:[path.join(here,'combat-visuals.ts
   platform:'node',format:'cjs',nodePaths:[path.join(dependencyRoot,'node_modules')],write:false});
 const module=new Module('combat-visuals-cpu-check');
 module._compile(bundle.outputFiles[0].text,path.join(dependencyRoot,'combat-check-inline.cjs'));
-const {CombatVisuals,CombatMissiles,RobotFormation,ArmyAbilityVisuals,friendlyProjectilePose,combatImpactPoint}=module.exports;
+const {CombatVisuals,CombatMissiles,RobotFormation,ArmyAbilityVisuals,EnemyWeaponCues,friendlyProjectilePose,combatImpactPoint}=module.exports;
 const arsenalBundle=await esbuild.build({entryPoints:[path.join(here,'arsenal-visuals.ts')],bundle:true,
   platform:'node',format:'cjs',nodePaths:[path.join(dependencyRoot,'node_modules')],write:false});
 const arsenalModule=new Module('arsenal-visuals-cpu-check');
@@ -22,7 +22,7 @@ const worldBundle=await esbuild.build({entryPoints:[path.join(here,'world.ts')],
   platform:'node',format:'cjs',nodePaths:[path.join(dependencyRoot,'node_modules')],write:false});
 const worldModule=new Module('world-visual-integration-check');
 worldModule._compile(worldBundle.outputFiles[0].text,path.join(dependencyRoot,'world-check-inline.cjs'));
-const {Battlefield}=worldModule.exports;
+const {Battlefield,enemyArmorLabel}=worldModule.exports;
 let failures=0,passed=0;
 function test(name,run){try{run();passed++;console.log('PASS '+name);}catch(error){failures++;console.error('FAIL '+name+'\n'+error.stack);}}
 function allEffectsExpire(fx){for(let i=0;i<45;i++)fx.update(.15);}
@@ -307,10 +307,57 @@ test('laser reactor charge survives detached cannons and freezes at zero dt',()=
   const hero=new T.Group(),actor=new T.Group();for(const name of ['Barrel_L','Barrel_R']){const node=new T.Group();node.name=name;actor.add(node);}const local=new ArsenalVisuals(hero,actor),state={...arsenalState,phase:'boss',bossPattern:'laser',bossAction:'windup',bossPartsMask:3,bossAttack:.8};
   local.update(state,.1);assert(!actor.getObjectByName('Barrel_L').visible);assert(local.laserCharges[0].visible);assert.equal(local.laserCharges[0].position.y,3.08);assert.equal(local.laserCharges[0].position.z,.605);const scale=local.laserCharges[0].scale.clone();local.update(state,0);assert(scale.equals(local.laserCharges[0].scale));local.update({...state,bossAction:'fire'},.1);assert(local.laserCharges.every(c=>!c.visible));local.dispose();
 });
+test('guarded and exposed states preserve original reactor geometry and change its opening light',()=>{
+  arsenal.update({...arsenalState,phase:'boss',bossState:'exposed',bossAction:'strafe'},.1);assert(arsenal.laserCharges[1].visible);const hierarchy=arsenalBoss.children.length;
+  arsenal.update({...arsenalState,phase:'boss',bossState:'guarded',bossAction:'strafe'},.1);assert(arsenal.laserCharges.every(c=>!c.visible));assert(!arsenal.bossCharge.visible);assert.equal(arsenalBoss.children.length,hierarchy);assert.equal(arsenalBoss.getObjectByName('BossCoreShutters'),undefined);
+});
+
 test('arsenal retries keep a fixed hierarchy and disposal owns no actor meshes',()=>{
   const h=arsenalHero.children.length,b=arsenalBoss.children.length;for(let i=0;i<300;i++){arsenal.update({...arsenalState,phase:'boss',weaponPower:'guided',powerTime:3,bossPhase:2,bossY:.4},.05);arsenal.reset();assert.equal(arsenalHero.children.length,h);assert.equal(arsenalBoss.children.length,b);}
   arsenal.dispose();assert.equal(arsenalHero.children.length,0);assert.equal(arsenalBoss.children.length,0);
 });
+
+test('ordinary hits emit sparks without concealing enemies in smoke',()=>{
+  fx.reset();fx.impact(1,1.65,-4,.5);fx.update(0);assert.equal(fx.smoke.count,0);assert.equal(fx.sparkMesh.count,3);assert.equal(fx.fire.count,1);
+  for(const spark of fx.sparks)if(spark.life>0){assert.equal(spark.p.x,1);assert.equal(spark.p.y,1.65);assert.equal(spark.p.z,-4);}fx.reset();
+});
+test('mechanical deaths contain plates, wheel hubs and struts with bounded delayed elite bursts',()=>{
+  fx.reset();fx.enemyDeath(0,-5,0,1,.78);fx.update(0);assert.equal(fx.stats().debris,7);assert.equal(fx.rotors.count,2);assert.equal(fx.struts.count,2);assert.equal(fx.debris.count,3);
+  fx.reset();fx.enemyDeath(1,-8,1,1.6,1.65);assert.equal(fx.bursts.length,2);assert.equal(fx.bursts[0].p.y,1.65-.24);const delays=fx.bursts.map(b=>b.delay),sparks=fx.sparks.map(b=>b.life);fx.update(0);assert.deepEqual(fx.bursts.map(b=>b.delay),delays);assert.deepEqual(fx.sparks.map(b=>b.life),sparks);
+  for(let i=0;i<100;i++)fx.enemyDeath(i%3,-8,1,1.6,1.65);assert(fx.bursts.length<=32);fx.update(.15);assert(fx.stats().sparks<=128);assert(fx.stats().debris<=384);assert(fx.stats().fire+fx.stats().smoke<=256);allEffectsExpire(fx);assert.equal(fx.stats().queuedBursts,0);assert.equal(fx.stats().sparks,0);fx.reset();
+});
+test('world death effects share the accepted chest and front-surface anchor',()=>{
+  const calls=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{enemyDeath:(...v)=>calls.push(v)},shake:0,presentation:{targets:[{id:8,kind:'enemy',depth:1,variant:2}]}});
+  actor.trigger({kind:'kill',x:1,z:8,entityId:8,variant:2},{targets:[]});assert.deepEqual(calls[0],[1,-7.2,2,1.6,1.65]);
+});
+test('gunner warnings follow authoritative charge and only mark locked aim',()=>{
+  const cues=new EnemyWeaponCues(scene,16),target={id:9,kind:'enemy',hp:30,variant:2,x:2,z:12,aimX:-1,charge:.5,fireState:'tracking'};
+  const base=scene.children.length;cues.update([target]);assert.equal(cues.charges.count,1);assert.equal(cues.locks.count,0);const before=new T.Matrix4();cues.charges.getMatrixAt(0,before);cues.update([target]);const after=new T.Matrix4();cues.charges.getMatrixAt(0,after);assert.deepEqual(after.elements,before.elements);
+  cues.update([{...target,fireState:'locked',charge:1}]);assert.equal(cues.locks.count,1);const m=new T.Matrix4();cues.locks.getMatrixAt(0,m);assert.equal(new T.Vector3().setFromMatrixPosition(m).x,-1);
+  cues.update(Array.from({length:100},(_,id)=>({...target,id,fireState:'locked'})));assert.equal(cues.charges.count,16);assert.equal(cues.locks.count,16);assert.equal(scene.children.length,base);cues.update([{...target,fireState:'reload',charge:0}]);assert.equal(cues.charges.count,0);assert.equal(cues.locks.count,0);
+  for(let i=0;i<300;i++){cues.update([target]);cues.reset();assert.equal(cues.charges.count,0);assert.equal(scene.children.length,base);}let disposed=0;for(const mesh of [cues.charges,cues.locks])for(const r of [mesh.geometry,mesh.material])r.addEventListener('dispose',()=>disposed++);cues.dispose();assert.equal(disposed,4);
+});
+test('enemy firing cues use source identity and never fake commander recoil',()=>{
+  const muzzles=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{enemyRecoil:new Map(),fx:{muzzle:(...v)=>muzzles.push(v)},presentation:undefined});
+  actor.trigger({kind:'enemyFire',entityId:12,variant:2,x:1,z:8,value:1},{targets:[{id:12,aimX:0}]});assert.equal(actor.enemyRecoil.get(12),.24);assert.equal(muzzles[0][1],1.65);assert.equal(muzzles[0][3],true);assert(muzzles[0][2]>-8);assert.equal(actor.recoil,undefined);
+});
+test('hostile shells are separate physical geometry and launch from their actual gunner',()=>{
+  missiles.reset();const hostile={id:123,x:1,z:10,dx:0,dz:-12,radius:.2,kind:'shell',sourceId:8};
+  const options={...missileOptions,bossPhase:true,bossY:2,bossZ:15,targets:[{id:8,kind:'enemy',variant:2,x:1,z:10}]};missiles.update([], [hostile],options);assert.equal(missiles.hostileShells.count,1);assert.equal(missiles.bullets.count,0);const matrix=new T.Matrix4();missiles.hostileShells.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-1.65)<1e-6);assert.notEqual(missiles.hostileShells.geometry,missiles.bullets.geometry);
+  missiles.update([], [{...hostile,z:5}],{...options,targets:[],bossY:0});missiles.hostileShells.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-1.25)<1e-6);
+  missiles.update([],Array.from({length:1000},(_,id)=>({...hostile,id})),options);assert.equal(missiles.hostileShells.count,96);missiles.reset();assert.equal(missiles.hostileShells.count,0);assert.equal(missiles.hostileTips.count,0);assert.equal(missiles.hostileLaunchZ.size,0);
+});
+
+
+test('braced gunner cue names only the authoritative guided resistance',()=>{
+  assert.equal(enemyArmorLabel({role:'gunner',variant:2,guidedArmor:true}),'GUIDED RESIST');assert.equal(enemyArmorLabel({role:'battery',variant:2,guidedArmor:true}),'GUIDED RESIST');assert.equal(enemyArmorLabel({role:'battery',variant:2,guidedArmor:false}),'BATTERY');assert.equal(enemyArmorLabel({role:'gunner',variant:2,guidedArmor:false}),'GUNNER');
+});
+test('zero-damage reactor rounds deflect neutrally without boss damage recoil',()=>{
+  const impacts=[],deflections=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{impact:(...v)=>impacts.push(v),deflect:(...v)=>deflections.push(v)},bossHitKick:0});
+  actor.trigger({kind:'hit',x:.1,z:12,value:0,entityId:0,variant:3},{bossY:.7,targets:[]});assert.equal(impacts.length,0);assert.equal(deflections.length,1);assert.equal(actor.bossHitKick,0);assert(Math.abs(deflections[0][1]-5.01)<1e-8);assert.equal(deflections[0][2],-11.15);
+  fx.reset();fx.deflect(.1,5.01,-11.15);fx.update(0);assert.equal(fx.smoke.count,0);assert.equal(fx.sparkMesh.count,3);for(const spark of fx.sparks)if(spark.life>0)assert(spark.color.equals(new T.Color(0xaac2cc)));fx.reset();
+});
+
 test('all owned resources dispose without deleting source boss geometry',()=>{
   fx.dispose();missiles.dispose();robots.dispose();abilities.dispose();assert.equal(scene.children.length,1);assert.equal(sourceGeometryDisposed,false);
 });

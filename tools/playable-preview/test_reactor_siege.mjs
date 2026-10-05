@@ -1,0 +1,109 @@
+// Independent, bounded controller audit of the shipping C++ binary and real adapter.
+// Run with Node 24+. No writes to simulation, no state injection, no future schedule.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const binary=path.resolve(process.argv[2]??path.join(root,'delivery/playable/assault.wasm'));
+const bytes=fs.readFileSync(binary);
+globalThis.fetch=async()=>new Response(bytes);
+const {AssaultCore}=await import('./assault-core.ts');
+const core=new AssaultCore();await core.load();
+core.start(0,0,0);const identity=core.snapshot();
+assert.equal(identity.levelName,'Reactor Siege','Old WASM: do not report it as the candidate.');
+assert.equal(identity.duration,63);
+const results=[],runs=[];
+function check(name,fn){try{fn();results.push({name,status:'pass'});}catch(error){results.push({name,status:'fail',error:error.message});}}
+const clamp=x=>Math.max(-3,Math.min(3,x));
+function feasibility(s){
+ if(s.phase==='boss'){
+  if(s.lasers.length||s.bossPattern==='laser'&&s.bossAttack>.3)return s.bossLane>0?-3:3;
+  const shots=s.enemyShots.filter(p=>p.z<5.5&&p.dz<0).map(p=>({x:p.x-p.dx*p.z/p.dz,r:p.radius+.5}));
+  return [s.bossX,-2.8,2.8,-1.5,1.5,0].filter(x=>!shots.some(p=>Math.abs(x-p.x)<p.r)).sort((a,b)=>Math.abs(a-s.bossX)-Math.abs(b-s.bossX))[0]??s.bossX;
+ }
+ const pickup=s.pickups.filter(p=>p.z<6).sort((a,b)=>a.z-b.z)[0];
+ const goals=s.targets.filter(t=>t.z>1&&t.z<29&&(t.kind==='crate'||t.kind==='gate'||t.kind==='orb'||t.kind==='enemy'&&t.variant>0&&(t.z<14||s.level===0&&['gunner','battery','carrier'].includes(t.role)&&t.z<25))).sort((a,b)=>a.z-b.z);
+ let desired=pickup?.x??goals[0]?.x??0;
+ const gate=s.targets.filter(t=>t.kind==='gate'&&t.z>0&&t.z<3.5).sort((a,b)=>a.z-b.z)[0]??(goals[0]?.kind==='gate'?goals[0]:null);
+ if(gate){const pair=s.targets.filter(t=>t.kind==='gate'&&Math.abs(t.z-gate.z)<.02);pair.sort((a,b)=>(b.op?s.army*(b.value-1):b.value)-(a.op?s.army*(a.value-1):a.value));desired=pair[0].x;}
+ const hazard=s.targets.find(t=>t.kind==='hazard'&&t.z<3&&Math.abs(t.x-desired)<t.size+.5);
+ return hazard?(hazard.x>0?-3:3):desired;
+}
+function observedChoice(s){
+ // Restrict decisions to the readable approach and pickup-label range.
+ s={...s,targets:s.targets.filter(t=>t.z<=25&&t.z>-4),pickups:s.pickups.filter(p=>p.z<=19&&p.z>-2)};
+ let desired=feasibility(s);
+ // Ordinary aimed fire is visible; project its current committed path, not future AI.
+ const half=Math.max(.4,...s.formation.map(p=>Math.abs(p.x-s.x)+.36));
+ const nearby=s.enemyShots.filter(p=>p.dz<-.01&&p.z>-4&&p.z<12);
+ const candidates=[clamp(desired),-2.8,-1.4,0,1.4,2.8,clamp(s.x)];
+ function cost(x){let n=Math.abs(x-desired)*.28+Math.abs(x-s.x)*.08;
+  for(const p of nearby){const t=Math.max(0,p.z/-p.dz),impact=p.x+p.dx*t;if(Math.abs(x-impact)<half+p.radius+.12)n+=6/(1+t);}
+  for(const l of s.lasers){if(Math.abs(x-l.endX)<half+l.width+.12)n+=20;}
+  for(const t of s.targets.filter(t=>['gunner','battery'].includes(t.role)&&['locked','fire'].includes(t.fireState)&&t.z<25))if(Math.abs(x-t.aimX)<half+.45)n+=7;
+  if(s.phase==='boss'&&s.bossPattern==='laser'&&s.bossAttack>.2&&Math.abs(x-s.bossLane)<half+.35)n+=15;
+  for(const h of s.targets.filter(t=>t.kind==='hazard'&&t.z<8&&t.z>-4))if(Math.abs(x-h.x)<h.size*1.048+half)n+=5;
+  return n;
+ }
+ return candidates.sort((a,b)=>cost(a)-cost(b))[0];
+}
+function shouldActivate(s,relic){
+ if(s.energy<100||s.ability>0||s.phase==='destroying')return false;
+ const incoming=s.enemyShots.some(p=>p.z<13&&p.z>-3),committed=s.targets.some(t=>['gunner','battery'].includes(t.role)&&['locked','fire'].includes(t.fireState)&&t.z<25);
+ if(relic===0)return incoming||s.lasers.length>0||s.phase==='boss'&&s.bossAction==='windup'&&s.bossAttack>.35;
+ if(relic===1)return incoming||s.lasers.length>0||s.targets.some(t=>t.kind==='enemy'&&t.z<13&&Math.abs(t.x-s.x)<3.2);
+ return s.phase==='boss'?s.bossState!=='guarded'&&s.bossZ<18:s.targets.some(t=>t.hp>0&&t.z<25&&(Math.abs(t.x-s.x)<1.7||s.weaponPower==='guided'))||committed;
+}
+function play({level=0,rank=0,relic=0,delay=0,imperfect=false,passive=false,ability=true}){
+ core.start(relic,level,rank);let s=core.snapshot(),command=0,wanted=0;const history=[s];
+ const m={level,rank,relic,delayMs:delay*1000,controller:passive?'centre-only':imperfect?'delayed, sampled, speed-limited':'snapshot feasibility',phase:s.phase,runnerSeconds:0,bossSeconds:0,runnerRelicSeconds:0,bossRelicSeconds:0,activations:0,firstHostileShot:null,firstGunnerVolley:null,hostileShotLaunches:0,runnerHostileShotLaunches:0,bossAttacks:0,contacts:0,rollerImpacts:0,troopsLost:0,commanderDamage:0,runnerCommanderDamage:0,runnerTroopsLost:0,actualTargetHpRemoved:0,bossHpRemoved:0,recruited:0,peakArmy:s.army,coreWindows:0,coreDamage:0,coreWindowSeconds:0,coreDamagePreserved:true,gateEvents:0,pickupEvents:0,pickupTypes:[],gunnerStates:[],runnerArmy:null,runnerHp:null,firstDangerVolleyArmy:null};
+ const gates=new Set(),pickups=new Set(),seenShots=new Set(),states=new Set(),powers=new Set(),choiceGroups=new Set();let duplicateGate=0,duplicatePickup=0,silentKills=0,finite=true,monotonic=true,partPersistent=true,previousCore=s.bossCoreHp,duplicateChoice=0,siblingClosed=true,fixedPickupKinds=true;
+ for(let f=0;f<210*60&&['run','boss','destroying'].includes(s.phase);f++){
+  const b=s,lagFrames=Math.round(delay*60),observed=history[Math.max(0,history.length-1-lagFrames)];
+  if(!passive&&(!imperfect||f%15===0)){
+   // A deterministic missed decision/attention lapse every 11 seconds.
+   if(!imperfect||(f/60+rank*.7+relic*.3)%11<10.55)wanted=imperfect?observedChoice(observed):feasibility(observed);
+   if(ability&&(level===0?shouldActivate(observed,relic):observed.energy>=100&&observed.ability===0&&observed.phase!=='destroying'&&(relic===2||observed.phase==='boss'||observed.targets.some(t=>t.kind==='enemy'&&t.z<12))))if(core.activate())m.activations++;
+  }
+  command=passive?0:imperfect?command+Math.max(-5/60,Math.min(5/60,wanted-command)):wanted;
+  core.step(1/60,clamp(command));s=core.snapshot();history.push(s);if(history.length>40)history.shift();
+  const runner=b.phase==='run',boss=b.phase==='boss';if(runner)m.runnerSeconds+=1/60;if(boss)m.bossSeconds+=1/60;
+  if(b.ability>0){if(runner)m.runnerRelicSeconds+=1/60;if(boss)m.bossRelicSeconds+=1/60;}
+  m.peakArmy=Math.max(m.peakArmy,s.army);m.commanderDamage+=Math.max(0,b.commanderHp-s.commanderHp);if(runner)m.runnerCommanderDamage+=Math.max(0,b.commanderHp-s.commanderHp);
+  m.bossHpRemoved+=Math.max(0,b.bossHp-s.bossHp);m.coreDamage+=Math.max(0,b.bossCoreHp-s.bossCoreHp);if(b.bossState==='exposed')m.coreWindowSeconds+=1/60;
+  if(s.bossCoreHp>previousCore+.001)m.coreDamagePreserved=false;previousCore=s.bossCoreHp;
+  if(s.phase==='boss'&&b.phase==='run'){m.runnerArmy=s.army;m.runnerHp=s.commanderHp;}
+  for(const t of s.targets)if(t.kind==='enemy'&&['gunner','battery'].includes(t.role))states.add(t.fireState);
+  for(const p of b.pickups){const next=s.pickups.find(q=>q.id===p.id);if(next&&next.kind!==p.kind)fixedPickupKinds=false;}
+  for(const e of s.effects.filter(e=>e.kind==='pickup')){const old=b.pickups.find(p=>p.id===e.entityId);if(old?.choiceGroup){if(choiceGroups.has(old.choiceGroup))duplicateChoice++;choiceGroups.add(old.choiceGroup);siblingClosed&&=!s.pickups.some(p=>p.choiceGroup===old.choiceGroup);}}
+  for(const p of s.enemyShots)if(!seenShots.has(p.id)){seenShots.add(p.id);m.hostileShotLaunches++;if(runner){m.runnerHostileShotLaunches++;m.firstGunnerVolley??=s.time;m.firstDangerVolleyArmy??=s.army;}m.firstHostileShot??=s.time;}
+  for(const t of b.targets){const after=s.targets.find(q=>q.id===t.id),kill=s.effects.some(e=>e.kind==='kill'&&e.entityId===t.id);m.actualTargetHpRemoved+=Math.max(0,t.hp-(after?.hp??(kill?0:t.hp)));if(!after&&t.kind==='enemy'&&!s.effects.some(e=>e.entityId===t.id&&(e.kind==='kill'||e.kind==='retreat')))silentKills++;}
+  for(const e of s.effects){if(e.kind==='gate'){m.gateEvents++;if(gates.has(e.entityId))duplicateGate++;gates.add(e.entityId);}if(e.kind==='pickup'){m.pickupEvents++;if(pickups.has(e.entityId))duplicatePickup++;pickups.add(e.entityId);powers.add(e.value);}if(e.kind==='recruit')m.recruited+=e.value;if(e.kind==='damage'){m.troopsLost+=e.value;if(runner)m.runnerTroopsLost+=e.value;}if(e.kind==='contact')m.contacts++;if(e.kind==='hazardBreak')m.rollerImpacts++;if(e.kind==='bossShot')m.bossAttacks++;if(e.kind==='coreExpose')m.coreWindows++;}
+  finite&&=['time','x','commanderHp','army','bossHp','energy'].every(k=>Number.isFinite(s[k]));monotonic&&=s.travelDistance>=b.travelDistance-.0001;partPersistent&&=(s.bossPartsMask|b.bossPartsMask)===s.bossPartsMask;
+ }
+ m.phase=s.phase;m.time=s.time;m.army=s.army;m.commanderHp=s.commanderHp;m.hpMargin=s.commanderHp/s.commanderMaxHp;m.bossHpRemaining=s.bossHp;m.bossRevives=s.bossRevives;m.kills=s.kills;m.runnerRelicUptime=m.runnerSeconds?m.runnerRelicSeconds/m.runnerSeconds:0;m.pickupTypes=[...powers];m.gunnerStates=[...states];m.duplicateGate=duplicateGate;m.duplicatePickup=duplicatePickup;m.silentKills=silentKills;m.finite=finite;m.continuousTravel=monotonic;m.partPersistent=partPersistent;m.choiceGroupsCollected=choiceGroups.size;m.duplicateChoice=duplicateChoice;m.choiceSiblingClosed=siblingClosed;m.fixedPickupKinds=fixedPickupKinds;
+ return m;
+}
+// No revival, healing, schedule inspection, hidden targets or invulnerable test mode.
+for(const relic of [0,1,2])runs.push(play({relic}));
+for(const rank of [0,2])for(const relic of [0,1,2])for(const delay of [.2,.35])runs.push(play({rank,relic,delay,imperfect:true}));
+for(const rank of [0,2])runs.push(play({rank,passive:true,ability:false}));
+for(const level of [1,2])for(const relic of [0,1,2])runs.push(play({level,relic}));
+check('candidate identity and visible gunner contract',()=>{core.start(0,0);let found=false;for(let i=0;i<63*60;i++){core.step(1/60,0);const s=core.snapshot();for(const t of s.targets.filter(t=>t.kind==='enemy'&&['gunner','battery'].includes(t.role))){found=true;assert.ok(Number.isFinite(t.aimX));assert.ok(Number.isFinite(t.charge));assert.ok(typeof t.fireState==='string'&&t.fireState.length>0);}}assert.ok(found);});
+check('all observed routes have finite values, continuous travel and persistent broken parts',()=>{for(const r of runs){assert.ok(r.finite);assert.ok(r.continuousTravel);assert.ok(r.partPersistent);}});
+check('gates and physical pickups grant at most one reward per entity',()=>{for(const r of runs){assert.equal(r.duplicateGate,0);assert.equal(r.duplicatePickup,0);}});
+check('fixed carrier choices preserve types, collect one sibling and close the group',()=>{assert.ok(runs.some(r=>r.level===0&&r.choiceGroupsCollected>0),'No actual fixed choice collected');for(const r of runs){assert.equal(r.duplicateChoice,0);assert.ok(r.choiceSiblingClosed);assert.ok(r.fixedPickupKinds);}});
+check('no silently removed enemies or core damage reset across openings',()=>{for(const r of runs){assert.equal(r.silentKills,0);assert.ok(r.coreDamagePreserved);assert.ok(r.bossRevives<=1);}});
+check('legacy six relic routes remain feasible after shared charge correction',()=>{for(const r of runs.filter(r=>r.level>0))assert.equal(r.phase,'won',`Level ${r.level}, relic ${r.relic}: ${r.phase}`);});
+check('each relic at rank-0 and rank-2 has a delayed-control free winning route',()=>{for(const rank of [0,2])for(const relic of [0,1,2])assert.ok(runs.some(r=>r.level===0&&r.rank===rank&&r.relic===relic&&r.controller.startsWith('delayed')&&r.phase==='won'),`Rank ${rank}, relic ${relic}: no delayed route won`);});
+check('passive centre behavior has meaningful cost',()=>{for(const r of runs.filter(r=>r.controller==='centre-only'))assert.ok(r.phase!=='won'||r.hpMargin<.65||r.troopsLost>=15,`Rank ${r.rank}: passive route unpunished`);});
+check('new approach fires actual hostile projectiles before the boss',()=>{assert.ok(runs.filter(r=>r.level===0&&r.runnerArmy!==null).every(r=>r.runnerHostileShotLaunches>0));});
+const stable=s=>Object.fromEntries(['phase','time','x','army','commanderHp','energy','weapon','bossHp','bossCoreHp','travelDistance','bossPartsMask'].map(k=>[k,s[k]]));
+check('candidate fixed-step outcomes match at 30, 60 and 120 Hz',()=>{const replay=hz=>{core.start(1,0,2);for(let i=0;i<36*hz;i++)core.step(1/hz,-1.8);return stable(core.snapshot());};assert.deepEqual(replay(30),replay(60));assert.deepEqual(replay(120),replay(60));});
+let collisionSamples=0;
+check('actual live bodies and rollers do not silently overlap surviving formation slots',()=>{for(const lane of [-2.8,0,2.8]){core.start(2,0,2);for(let f=0;f<64*60;f++){core.step(1/60,lane);const s=core.snapshot();if(s.phase!=='run')break;const units=[{x:s.x,z:0,r:.4},...s.formation.map(p=>({...p,r:.36}))];for(const t of s.targets){if(t.kind==='enemy'&&t.op===0)for(const p of units){collisionSamples++;const overlap=((p.x-t.x)/(t.size+p.r))**2+((p.z-t.z)/(t.depth+p.r))**2;assert.ok(overlap>=.999,`Unresolved enemy ${t.id} overlap, army ${s.army}`);}if(t.kind==='hazard')for(const p of units){collisionSamples++;assert.ok(Math.abs(p.x-t.x)>=t.size*1.048+p.r-.001||Math.abs(p.z-t.z)>=.8+p.r-.001,`Unresolved roller ${t.id}`);}}}}assert.ok(collisionSamples>100);});
+check('pause freezes candidate state and retries do not accumulate memory or progression',()=>{core.start(2,0,2);for(let i=0;i<900;i++)core.step(1/60,1.8);core.pause(true);const paused=stable(core.snapshot());core.step(.25,-3);assert.deepEqual(stable(core.snapshot()),paused);core.pause(false);core.step(.25,-3);assert.ok(core.snapshot().time>paused.time);const memory=core.api.memory.buffer.byteLength;core.start(0,0,0);const baseline=stable(core.snapshot());for(let i=0;i<40;i++){core.start(i%3,0,i%3);core.step(.25,3);core.start(0,0,0);assert.deepEqual(stable(core.snapshot()),baseline);assert.equal(core.api.memory.buffer.byteLength,memory);}});
+const report={schema:1,scope:'Actual Reactor Siege WASM and browser adapter, public controls only. Bounded automated feasibility/pressure audit; not human, Android, rendering or fairness proof.',controller:{decisionIntervalMs:250,observationDelayMs:[200,350],maxCommandSpeedMetresPerSecond:5,attentionLapseMs:450,everySeconds:11,noHealOrRevival:true,visibleForwardLimitMetres:25,pickupLabelLimitMetres:19,relicPolicy:'Shield reacts to incoming shots/beam charge; EMP to incoming shots or nearby machines; Overdrive to aligned live targets, skipping guarded core.'},binary,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),testedAt:new Date().toISOString(),memoryBytes:core.api.memory.buffer.byteLength,collisionSamples,runs,tests:results.length,passed:results.filter(r=>r.status==='pass').length,failed:results.filter(r=>r.status==='fail').length,results};
+const out=path.join(root,'builds/reactor-siege-controller-audit.json');fs.writeFileSync(out,JSON.stringify(report,null,2));console.log(`${report.passed}/${report.tests} checks; receipt ${out}`);for(const r of runs)console.log(`level ${r.level} rank ${r.rank} relic ${r.relic} delay ${r.delayMs}: ${r.phase}, ${r.time.toFixed(1)}s, army ${r.army}, HP ${r.commanderHp.toFixed(1)}, runner casualties ${r.runnerTroopsLost}, shots ${r.runnerHostileShotLaunches}, boss attacks ${r.bossAttacks}`);if(report.failed)process.exitCode=1;

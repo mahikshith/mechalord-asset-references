@@ -3,12 +3,12 @@ export type Relic=0|1|2;
 export type WeaponPower='none'|'guided'|'cannons'|'railburst';
 export type TimePower='none'|'freeze'|'slow'|'haste';
 export type PickupPower=Exclude<WeaponPower|'freeze'|'slow'|'haste','none'>;
-export type BossState='armored'|'exposed'|'rebuilding'|'destroying';
-export interface Pickup {id:number;kind:PickupPower;x:number;z:number;radius:number;}
-export interface Target {id:number;kind:'enemy'|'crate'|'gate'|'hazard'|'orb';x:number;z:number;hp:number;maxHp:number;value:number;op:number;size:number;depth:number;hit:number;variant:number;}
+export type BossState='armored'|'exposed'|'rebuilding'|'destroying'|'guarded';
+export interface Pickup {id:number;kind:PickupPower;x:number;z:number;radius:number;choiceGroup:number;}
+export interface Target {id:number;kind:'enemy'|'crate'|'gate'|'hazard'|'orb';x:number;z:number;hp:number;maxHp:number;value:number;op:number;size:number;depth:number;hit:number;variant:number;fireState:'idle'|'tracking'|'locked'|'fire'|'reload';aimX:number;charge:number;role:'grunt'|'elite'|'gunner'|'battery'|'carrier';guidedArmor:boolean;}
 export interface Shot {x:number;z:number;dx:number;dz:number;heavy:boolean;kind:'pulse'|'arc'|'rail'|'missile'|'cannon';owner:'commander'|'troop';}
-export interface EnemyShot {id:number;x:number;z:number;dx:number;dz:number;radius:number;kind:'shell'|'rocket'|'orb';guided:boolean;homingTime:number;}
-export interface Effect {id:number;kind:'hit'|'kill'|'recruit'|'gate'|'damage'|'relic'|'bossShot'|'win'|'contact'|'block'|'bossDeath'|'missed'|'drop'|'pickup'|'pass'|'retreat'|'bossPhase'|'commanderHit'|'commanderDeath'|'hazardBreak'|'troopDeath'|'coreExpose'|'bossRevive'|'bossPartBreak'|'troopSacrifice'|'heal'|'revive'|'commanderDown';x:number;z:number;value:number;entityId:number;variant:number;size:number;}
+export interface EnemyShot {id:number;x:number;z:number;dx:number;dz:number;radius:number;kind:'shell'|'rocket'|'orb';guided:boolean;homingTime:number;sourceId:number;}
+export interface Effect {id:number;kind:'hit'|'kill'|'recruit'|'gate'|'damage'|'relic'|'bossShot'|'win'|'contact'|'block'|'bossDeath'|'missed'|'drop'|'pickup'|'pass'|'retreat'|'bossPhase'|'commanderHit'|'commanderDeath'|'hazardBreak'|'troopDeath'|'coreExpose'|'bossRevive'|'bossPartBreak'|'troopSacrifice'|'heal'|'revive'|'commanderDown'|'enemyFire';x:number;z:number;value:number;entityId:number;variant:number;size:number;}
 export type BossAction='strafe'|'advance'|'retreat'|'windup'|'fire'|'dying';
 export interface Laser {id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number;}
 export interface FormationUnit {index:number;x:number;z:number;}

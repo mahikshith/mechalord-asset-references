@@ -10,21 +10,23 @@ namespace mech::assault
 enum class Phase { Ready, Run, Boss, Destroying, Won, Lost, LastStand };
 enum class Kind { Enemy, Crate, Gate, Hazard, Orb };
 enum class Relic { Shield, EMP, Overdrive };
-enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown };
+enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire };
 enum class ProjectileKind { Shell, Rocket, Orb };
 enum class FriendlyKind { Pulse, Arc, Rail, Missile, Cannon };
 enum class WeaponPower { None, Guided, Cannons, Railburst };
 enum class TimePower { None, Freeze, Slow, Haste };
 enum class PickupKind { Guided=1, Cannons, Railburst, Freeze, Slow, Haste };
-enum class BossState { Armored, Exposed, Rebuilding, Destroying };
+enum class BossState { Armored, Exposed, Rebuilding, Destroying, Guarded };
 enum class BossPattern { Heavy, Sweep, Rockets, Laser };
 enum class BossAction { Strafe, Advance, Retreat, Windup, Fire, Dying };
+enum class FireState { Idle, Tracking, Locked, Fire, Reload };
 struct Target
 {
     int id=0; Kind kind=Kind::Enemy;
     double x=0,z=0,hp=0,maxHp=0,size=.3,hit=0;
     int value=0,op=0,variant=0; bool active=false;
     double originX=0,motion=0,motionRate=1,fireClock=0,motionPhase=0,depth=.3;
+    FireState fireState=FireState::Idle; double aimX=0,charge=0,fireDelay=0; int role=0,burst=0,dropPower=0;
 };
 struct Shot
 {
@@ -35,10 +37,10 @@ struct Shot
 struct EnemyShot
 {
     int id=0; double x=0,z=0,dx=0,dz=0,radius=.3; int damage=0;
-    ProjectileKind kind=ProjectileKind::Shell; bool active=false,boss=false; double homing=0;
+    ProjectileKind kind=ProjectileKind::Shell; bool active=false,boss=false; double homing=0; int sourceId=0;
 };
 struct Laser { int id=0; double x=0,z=0,endX=0,endZ=-5,width=.36,time=0,tick=0; bool active=false; };
-struct Pickup { int id=0; PickupKind kind=PickupKind::Guided; double x=0,z=0,radius=1.05; bool active=false; };
+struct Pickup { int id=0; PickupKind kind=PickupKind::Guided; double x=0,z=0,radius=1.05; bool active=false; int choiceGroup=0; };
 struct Effect
 {
     int id=0; EffectKind kind=EffectKind::Hit; double x=0,z=0; int value=0,entityId=0,variant=0; double size=.3;
@@ -93,11 +95,15 @@ private:
     Phase resumePhase=Phase::Run;
     int nextLaserId=1;
     int nextTargetId=1,nextEffectId=1,nextEnemyShotId=1,nextPickupId=1,bossVolleys=0,sweepIndex=-1;
-    double visualStrength=7,commanderChip=0,armorBudget=0,rebuildClock=0;
+    double visualStrength=7,commanderChip=0,armorBudget=0,rebuildClock=0,coreGuardClock=0;
     uint64_t spawned=0;
     bool bossLaneLocked=false;
     void Step(double Dt);
     void SpawnTimeline();
+    void SiegeTimeline();
+    void RangedStep(Target& Enemy,double Dt);
+    void SpawnRanged(double X,double Hp,bool Battery=false,double Delay=0);
+    void SpawnCarrier(double X,double Hp,int Power);
     void Spawn(Kind Type,double X,double Z,double Hp,int Value,int Op=0,double Size=.3,int Variant=0,double Motion=0);
     void Wave(int RowCount,double Hp,int Threat,int Formation,double Forward=42);
     void Emit(EffectKind Type,double X,double Z,int Value=0,int EntityId=0,int Variant=0,double Size=.3);
@@ -109,7 +115,7 @@ private:
     void FinalDefeat();
     void BreakBossParts();
     void MoveLasers(double Dt);
-    void DamageBoss(double Damage,double AtX);
+    void DamageBoss(double Damage,double AtX,FriendlyKind WeaponKind=FriendlyKind::Pulse);
     void UpdateBossHealth();
     bool FormationHit(double X0,double Z0,double X1,double Z1,double Radius,bool Leader,int& Slot,double& HitX,double& HitZ,double Depth=-1) const;
     void Charge(double Amount);
@@ -117,14 +123,14 @@ private:
     void MoveShots(double Dt);
     void MoveTargets(double Dt,double TravelDelta);
     void MoveEnemyShots(double Dt);
-    void DropPickup(double X,double Z,PickupKind Power,int Source);
+    void DropPickup(double X,double Z,PickupKind Power,int Source,int ChoiceGroup=0);
     void MovePickups(double Dt);
-    void SpawnEnemyShot(double OriginX,double OriginZ,double AimX,double Speed,double Radius,int Damage,ProjectileKind Type,bool Boss);
+    void SpawnEnemyShot(double OriginX,double OriginZ,double AimX,double Speed,double Radius,int Damage,ProjectileKind Type,bool Boss,int Source=0);
     void BossVolley();
     void GatePair(int Index,double Forward=40);
     void AwardWeaponXP(int Amount);
     void BossStep(double Dt);
     void BeginBossDeath();
-    void HitTarget(Target& Enemy,double Damage);
+    void HitTarget(Target& Enemy,double Damage,FriendlyKind WeaponKind=FriendlyKind::Pulse);
 };
 }

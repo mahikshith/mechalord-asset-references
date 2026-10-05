@@ -2,14 +2,14 @@ import type {GameCore,Snapshot,Relic,Target,Shot,EnemyShot,Effect,Phase,BossActi
 
 const phases:Phase[]=['ready','run','boss','destroying','won','lost','lastStand'];
 const targetKinds:Target['kind'][]=['enemy','crate','gate','hazard','orb'];
-const effectKinds:Effect['kind'][]=['hit','kill','recruit','gate','damage','relic','bossShot','win','contact','block','bossDeath','missed','drop','pickup','pass','retreat','bossPhase','commanderHit','commanderDeath','hazardBreak','troopDeath','coreExpose','bossRevive','bossPartBreak','troopSacrifice','heal','revive','commanderDown'];
+const effectKinds:Effect['kind'][]=['hit','kill','recruit','gate','damage','relic','bossShot','win','contact','block','bossDeath','missed','drop','pickup','pass','retreat','bossPhase','commanderHit','commanderDeath','hazardBreak','troopDeath','coreExpose','bossRevive','bossPartBreak','troopSacrifice','heal','revive','commanderDown','enemyFire'];
 const projectileKinds:EnemyShot['kind'][]=['shell','rocket','orb'];
 const friendlyKinds:Shot['kind'][]=['pulse','arc','rail','missile','cannon'];
 const bossActions:BossAction[]=['strafe','advance','retreat','windup','fire','dying'];
 const powers:WeaponPower[]=['none','guided','cannons','railburst'];
 const pickupPowers:Pickup['kind'][]=['guided','cannons','railburst','freeze','slow','haste'];
 const times:Snapshot['timePower'][]=['none','freeze','slow','haste'];
-const bossStates:Snapshot['bossState'][]=['armored','exposed','rebuilding','destroying'];
+const bossStates:Snapshot['bossState'][]=['armored','exposed','rebuilding','destroying','guarded'];
 
 export class AssaultCore implements GameCore {
   api:any;
@@ -43,14 +43,14 @@ export class AssaultCore implements GameCore {
     const formation:Snapshot['formation']=[],fs=this.read('formation',this.api.formation_count()*3);
     for(let i=0;i<fs.length;i+=3)formation.push({index:fs[i],x:fs[i+1],z:fs[i+2]});
     const targets:Target[]=[],shots:Shot[]=[],enemyShots:EnemyShot[]=[],effects:Effect[]=[];
-    const pickups:Pickup[]=[],ps=this.read('pickups',this.api.pickup_count()*5);
-    for(let i=0;i<ps.length;i+=5)pickups.push({id:ps[i],kind:pickupPowers[ps[i+1]-1],x:ps[i+2],z:ps[i+3],radius:ps[i+4]});
-    const ts=this.read('targets',this.api.target_count()*12);
-    for(let i=0;i<ts.length;i+=12)targets.push({id:ts[i],kind:targetKinds[ts[i+1]],x:ts[i+2],z:ts[i+3],hp:ts[i+4],maxHp:ts[i+5],value:ts[i+6],op:ts[i+7],size:ts[i+8],hit:ts[i+9],variant:ts[i+10],depth:ts[i+11]});
+    const pickups:Pickup[]=[],ps=this.read('pickups',this.api.pickup_count()*6);
+    for(let i=0;i<ps.length;i+=6)pickups.push({id:ps[i],kind:pickupPowers[ps[i+1]-1],x:ps[i+2],z:ps[i+3],radius:ps[i+4],choiceGroup:ps[i+5]});
+    const ts=this.read('targets',this.api.target_count()*16);
+    for(let i=0;i<ts.length;i+=16)targets.push({id:ts[i],kind:targetKinds[ts[i+1]],x:ts[i+2],z:ts[i+3],hp:ts[i+4],maxHp:ts[i+5],value:ts[i+6],op:ts[i+7],size:ts[i+8],hit:ts[i+9],variant:ts[i+10],depth:ts[i+11],fireState:['idle','tracking','locked','fire','reload'][ts[i+12]] as Target['fireState'],aimX:ts[i+13],charge:ts[i+14],role:(ts[i+15]?['grunt','gunner','battery','carrier'][ts[i+15]]:ts[i+10]>0?'elite':'grunt') as Target['role'],guidedArmor:s[18]===0&&(ts[i+15]===1||ts[i+15]===2)&&(ts[i+12]===1||ts[i+12]===2)});
     const ss=this.read('shots',this.api.shot_count()*7);
     for(let i=0;i<ss.length;i+=7)shots.push({x:ss[i],z:ss[i+1],dx:ss[i+2],dz:ss[i+3],heavy:Boolean(ss[i+4]),kind:friendlyKinds[ss[i+5]],owner:ss[i+6]?'troop':'commander'});
-    const hostile=this.read('enemy_shots',this.api.enemy_shot_count()*8);
-    for(let i=0;i<hostile.length;i+=8)enemyShots.push({id:hostile[i],x:hostile[i+1],z:hostile[i+2],dx:hostile[i+3],dz:hostile[i+4],radius:hostile[i+5],kind:projectileKinds[hostile[i+6]],guided:hostile[i+7]>0,homingTime:hostile[i+7]});
+    const hostile=this.read('enemy_shots',this.api.enemy_shot_count()*9);
+    for(let i=0;i<hostile.length;i+=9)enemyShots.push({id:hostile[i],x:hostile[i+1],z:hostile[i+2],dx:hostile[i+3],dz:hostile[i+4],radius:hostile[i+5],kind:projectileKinds[hostile[i+6]],guided:hostile[i+7]>0,homingTime:hostile[i+7],sourceId:hostile[i+8]});
     const lasers:Snapshot['lasers']=[],ls=this.read('lasers',this.api.laser_count()*7);
     for(let i=0;i<ls.length;i+=7)lasers.push({id:ls[i],x:ls[i+1],z:ls[i+2],endX:ls[i+3],endZ:ls[i+4],width:ls[i+5],time:ls[i+6]});
     const count=this.api.effect_count();

@@ -8,7 +8,6 @@ const core=new AssaultCore(),world=new Battlefield(canvas);
 let state:Snapshot,paused=false,previous=performance.now(),speed=1;
 let seekPower:PickupPower|undefined,missCore=false;
 const status=document.querySelector('output')!;
-document.querySelector('#toggle-tools')!.addEventListener('click',()=>{const collapsed=document.querySelector('aside')!.classList.toggle('collapsed');document.querySelector('#toggle-tools')!.textContent=collapsed?'Show controls':'Hide controls';});
 function aim(s:Snapshot){
  if(s.phase==='boss'){
   if(missCore&&s.bossState==='exposed')return s.bossX>=0?-3:3;
@@ -24,7 +23,20 @@ function aim(s:Snapshot){
  function choice(first:Snapshot['targets'][number]){const pair=s.targets.filter(t=>t.kind==='gate'&&Math.abs(t.z-first.z)<.02);pair.sort((a,b)=>(b.op?s.army*(b.value-1):b.value)-(a.op?s.army*(a.value-1):a.value));return pair[0]?.x??desired;}
  if(goals[0]?.kind==='gate')desired=choice(goals[0]);
  const close=s.targets.filter(t=>t.kind==='gate'&&t.z>0&&t.z<3.5).sort((a,b)=>a.z-b.z)[0];if(close)desired=choice(close);
- const hazard=s.targets.find(t=>t.kind==='hazard'&&t.z<3&&Math.abs(t.x-desired)<t.size+.5);return hazard?(hazard.x>0?-3:3):desired;
+ const hazard=s.targets.find(t=>t.kind==='hazard'&&t.z<3&&Math.abs(t.x-desired)<t.size+.5);if(hazard)desired=hazard.x>0?-3:3;
+ if(s.level!==0)return desired;
+ // This review route sees the same published attack cues as the rendered game.
+ // It is an automated visual-QA aid, not evidence of human difficulty or aim.
+ const half=Math.max(.4,...s.formation.map(unit=>Math.abs(unit.x-s.x)+.36));
+ const nearby=s.enemyShots.filter(shot=>shot.dz<-.01&&shot.z>-4&&shot.z<12);
+ const candidates=[Math.max(-3,Math.min(3,desired)),-2.8,-1.4,0,1.4,2.8,s.x];
+ function cost(lane:number){let value=Math.abs(lane-desired)*.28+Math.abs(lane-s.x)*.08;
+  for(const shot of nearby){const until=Math.max(0,shot.z/-shot.dz),impact=shot.x+shot.dx*until;if(Math.abs(lane-impact)<half+shot.radius+.12)value+=6/(1+until);}
+  for(const gunner of s.targets.filter(t=>(t.role==='gunner'||t.role==='battery')&&(t.fireState==='locked'||t.fireState==='fire')&&t.z>3&&t.z<25))if(Math.abs(lane-gunner.aimX)<half+.45)value+=7;
+  for(const roller of s.targets.filter(t=>t.kind==='hazard'&&t.z<8&&t.z>-4))if(Math.abs(lane-roller.x)<roller.size*1.048+half)value+=5;
+  return value;
+ }
+ return candidates.sort((a,b)=>cost(a)-cost(b))[0];
 }
 function tick(dt:number,render=true,draw=true){
  if(state.phase==='lastStand')return;
@@ -59,6 +71,9 @@ function replayUntil(predicate:(s:Snapshot)=>boolean){
  world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event,state);world.update(state,.12,'play');paused=true;
 }
 document.querySelector('#core')!.addEventListener('click',()=>{start();replayUntil(s=>s.bossState==='exposed');});
+document.querySelector('#gunner')!.addEventListener('click',()=>{start();replayUntil(s=>s.targets.some(t=>(t.role==='gunner'||t.role==='battery')&&t.fireState==='locked'&&t.z<25));});
+document.querySelector('#elite')!.addEventListener('click',()=>{start();replayUntil(s=>s.effects.some(e=>e.kind==='kill'&&(e.variant===1||e.variant===2)));});
+document.querySelector('#guard')!.addEventListener('click',()=>{start();missCore=true;replayUntil(s=>s.bossState==='guarded');missCore=false;});
 document.querySelector('#revive')!.addEventListener('click',()=>{start();missCore=true;replayUntil(s=>s.bossState==='rebuilding');missCore=false;});
 document.querySelector('#collect')!.addEventListener('click',()=>{start();seekPower=(document.querySelector('#pickup') as HTMLSelectElement).value as PickupPower;replayUntil(s=>s.effects.some(e=>e.kind==='pickup'&&powerKind(e.value)===seekPower));seekPower=undefined;});
 document.querySelector('#part')!.addEventListener('click',()=>{start();replayUntil(s=>s.effects.some(e=>e.kind==='bossPartBreak'));});
@@ -78,7 +93,5 @@ function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=n
  if(!paused){for(let i=0;i<speed;i++)tick(dt,true,i===speed-1);}else world.update(state,0,'paused');
  status.textContent=`${state.phase} · ${state.time.toFixed(1)}s · army ${state.army} (${state.formation.length} visible) · Marshal ${state.commanderHp.toFixed(0)}HP · kills ${state.kills} · weapon ${state.weapon} · ${state.weaponPower} ${state.weaponPermanent?'full run':state.powerTime.toFixed(1)+'s'} · ${state.timePower} ${state.timePowerTime.toFixed(1)}s · ${state.bossState} ${state.bossCoreTime.toFixed(1)}s · armor ${state.bossArmor.toFixed(0)} · core ${state.bossCoreHp.toFixed(0)} · broken mask ${state.bossPartsMask} · next ${state.bossPart} · beams ${state.lasers.length} · heal ${state.canHeal} · revive ${state.reviveAvailable} · revives ${state.bossRevives} · phase ${state.bossPhase} ${state.bossPattern}`;
  status.textContent+=` · relic active ${state.ability.toFixed(1)}s · energy ${state.energy.toFixed(0)}`;
- const info=world.renderer.info;
- status.textContent+=` · render ${info.render.calls} calls / ${Math.round(info.render.triangles/1000)}k triangles · ${info.memory.geometries} geometries / ${info.memory.textures} textures`;
  canvas.dataset.phase=state.phase;requestAnimationFrame(frame);
 }requestAnimationFrame(frame);
