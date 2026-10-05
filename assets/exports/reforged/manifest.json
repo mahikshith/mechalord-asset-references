@@ -1,0 +1,5238 @@
+{
+  "format": 1,
+  "units": "metres",
+  "up": "+Y",
+  "forward": "+Z",
+  "conversion": "source centimetres (x,y,z) -> glTF metres (x,z,-y)/100",
+  "rotation": "Exact Unreal FRotator quaternion, basis-conjugated to glTF",
+  "geometry": "Exact source masters; no simplification; normals split at42 degrees",
+  "materials": "Native palette/PBR parameters; procedural noise approximated with subtle vertex modulation",
+  "palette": {
+    "ivory": {
+      "linearRGB": [
+        0.7605245046752924,
+        0.7230551289219693,
+        0.6307571363461468
+      ],
+      "roughness": 0.34,
+      "metalness": 0.18,
+      "emission": 0.045
+    },
+    "teal": {
+      "linearRGB": [
+        0.016807375752887384,
+        0.21223075741405523,
+        0.26225065752969623
+      ],
+      "roughness": 0.31,
+      "metalness": 0.3,
+      "emission": 0.045
+    },
+    "bronze": {
+      "linearRGB": [
+        0.467783796112159,
+        0.29177064981753587,
+        0.11697066775851084
+      ],
+      "roughness": 0.29,
+      "metalness": 0.64,
+      "emission": 0.045
+    },
+    "dark": {
+      "linearRGB": [
+        0.03433980680868217,
+        0.05780543019106723,
+        0.07818742180518633
+      ],
+      "roughness": 0.52,
+      "metalness": 0.3,
+      "emission": 0.065
+    },
+    "steel": {
+      "linearRGB": [
+        0.26225065752969623,
+        0.4072402119017367,
+        0.45641102318040466
+      ],
+      "roughness": 0.31,
+      "metalness": 0.65,
+      "emission": 0.035
+    },
+    "red": {
+      "linearRGB": [
+        0.41254261348390375,
+        0.04518620438567554,
+        0.052860647023180246
+      ],
+      "roughness": 0.36,
+      "metalness": 0.3,
+      "emission": 0.04
+    },
+    "rust": {
+      "linearRGB": [
+        0.4072402119017367,
+        0.07421356838014963,
+        0.03954623527673284
+      ],
+      "roughness": 0.4,
+      "metalness": 0.32,
+      "emission": 0.045
+    },
+    "rubber": {
+      "linearRGB": [
+        0.009134058702220787,
+        0.017641954488384078,
+        0.02518685962736163
+      ],
+      "roughness": 0.75,
+      "metalness": 0.02,
+      "emission": 0.035
+    },
+    "cyan": {
+      "linearRGB": [
+        0.05126945837404324,
+        0.7230551289219693,
+        0.8549926081242338
+      ],
+      "roughness": 0.32,
+      "metalness": 0.12,
+      "emission": 2.3
+    },
+    "amber": {
+      "linearRGB": [
+        1.0,
+        0.4178850708481375,
+        0.03189603307301153
+      ],
+      "roughness": 0.36,
+      "metalness": 0.1,
+      "emission": 2.1
+    },
+    "redglow": {
+      "linearRGB": [
+        1.0,
+        0.06124605423161761,
+        0.0295568344378088
+      ],
+      "roughness": 0.3,
+      "metalness": 0.1,
+      "emission": 2.1
+    }
+  },
+  "runtimePerformanceValidated": false,
+  "assets": {
+    "RelicMarshal": {
+      "file": "RelicMarshal.glb",
+      "name": "RelicMarshal",
+      "category": "character",
+      "boundsM": {
+        "min": [
+          -0.97,
+          0.0,
+          -0.49
+        ],
+        "max": [
+          0.88,
+          2.82,
+          0.685
+        ]
+      },
+      "heightM": 2.82,
+      "sourceBoundsM": {
+        "min": [
+          -0.97,
+          0.0,
+          -0.49
+        ],
+        "max": [
+          0.88,
+          2.82,
+          0.685
+        ]
+      },
+      "originOffsetM": [
+        0,
+        -0.0,
+        0
+      ],
+      "anchorsM": {
+        "reactor": [
+          0.0,
+          -0.402,
+          -1.86
+        ],
+        "muzzle": [
+          -0.64,
+          -0.685,
+          -1.43
+        ]
+      },
+      "triangles": 61232,
+      "vertices": 43104,
+      "primitives": 72,
+      "parts": [
+        {
+          "id": "Torso",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            1.49,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            1.49,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.44,
+              -0.55,
+              -0.49
+            ],
+            "max": [
+              0.44,
+              0.72,
+              0.42
+            ]
+          },
+          "triangles": 10980,
+          "vertices": 8416,
+          "materials": [
+            "dark",
+            "teal",
+            "ivory",
+            "bronze",
+            "cyan",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.44,
+              0.94,
+              -0.49
+            ],
+            "max": [
+              0.44,
+              2.21,
+              0.42
+            ]
+          }
+        },
+        {
+          "id": "Head",
+          "parent": "Torso",
+          "pivotM": [
+            0.0,
+            2.19,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.7,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.29,
+              0.01,
+              -0.2125
+            ],
+            "max": [
+              0.29,
+              0.63,
+              0.244
+            ]
+          },
+          "triangles": 3364,
+          "vertices": 2746,
+          "materials": [
+            "ivory",
+            "dark",
+            "cyan",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.29,
+              2.1999999999999997,
+              -0.2125
+            ],
+            "max": [
+              0.29,
+              2.82,
+              0.244
+            ]
+          }
+        },
+        {
+          "id": "UpperArmL",
+          "parent": "Torso",
+          "pivotM": [
+            0.53,
+            2.07,
+            0.0
+          ],
+          "localPivotM": [
+            0.53,
+            0.58,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.35,
+              -0.47,
+              -0.34
+            ],
+            "max": [
+              0.35,
+              0.31,
+              0.3675
+            ]
+          },
+          "triangles": 6320,
+          "vertices": 3938,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.18000000000000005,
+              1.5999999999999999,
+              -0.34
+            ],
+            "max": [
+              0.88,
+              2.38,
+              0.3675
+            ]
+          }
+        },
+        {
+          "id": "ForearmL",
+          "parent": "UpperArmL",
+          "pivotM": [
+            0.58,
+            1.59,
+            0.0
+          ],
+          "localPivotM": [
+            0.05,
+            -0.48,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.16,
+              -0.435,
+              -0.16
+            ],
+            "max": [
+              0.22,
+              0.11,
+              0.21
+            ]
+          },
+          "triangles": 2940,
+          "vertices": 2572,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.41999999999999993,
+              1.155,
+              -0.16
+            ],
+            "max": [
+              0.7999999999999999,
+              1.7000000000000002,
+              0.21
+            ]
+          }
+        },
+        {
+          "id": "HandL",
+          "parent": "ForearmL",
+          "pivotM": [
+            0.62,
+            1.18,
+            0.0
+          ],
+          "localPivotM": [
+            0.04,
+            -0.41,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.1,
+              -0.24599999999999994,
+              -0.075
+            ],
+            "max": [
+              0.14547524418361932,
+              0.015,
+              0.13699999999999998
+            ]
+          },
+          "triangles": 4784,
+          "vertices": 2760,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.52,
+              0.9339999999999999,
+              -0.075
+            ],
+            "max": [
+              0.7654752441836193,
+              1.1949999999999998,
+              0.13699999999999998
+            ]
+          }
+        },
+        {
+          "id": "ThighL",
+          "parent": "Torso",
+          "pivotM": [
+            0.23,
+            1.3,
+            0.0
+          ],
+          "localPivotM": [
+            0.23,
+            -0.19,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.2,
+              -0.49,
+              -0.23
+            ],
+            "max": [
+              0.26,
+              0.055,
+              0.23
+            ]
+          },
+          "triangles": 2288,
+          "vertices": 1504,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.03,
+              0.81,
+              -0.23
+            ],
+            "max": [
+              0.49,
+              1.355,
+              0.23
+            ]
+          }
+        },
+        {
+          "id": "ShinL",
+          "parent": "ThighL",
+          "pivotM": [
+            0.26,
+            0.77,
+            0.0
+          ],
+          "localPivotM": [
+            0.03,
+            -0.53,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.19,
+              -0.59,
+              -0.18
+            ],
+            "max": [
+              0.19,
+              0.155,
+              0.25
+            ]
+          },
+          "triangles": 4328,
+          "vertices": 3026,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.07,
+              0.18000000000000005,
+              -0.18
+            ],
+            "max": [
+              0.45,
+              0.925,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "FootL",
+          "parent": "ShinL",
+          "pivotM": [
+            0.26,
+            0.2,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            -0.57,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.2,
+              -0.2,
+              -0.16
+            ],
+            "max": [
+              0.2,
+              0.09,
+              0.34
+            ]
+          },
+          "triangles": 1160,
+          "vertices": 927,
+          "materials": [
+            "rubber",
+            "bronze",
+            "ivory"
+          ],
+          "boundsM": {
+            "min": [
+              0.06,
+              0.0,
+              -0.16
+            ],
+            "max": [
+              0.46,
+              0.29000000000000004,
+              0.34
+            ]
+          }
+        },
+        {
+          "id": "UpperArmR",
+          "parent": "Torso",
+          "pivotM": [
+            -0.53,
+            2.07,
+            0.0
+          ],
+          "localPivotM": [
+            -0.53,
+            0.58,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.35,
+              -0.47,
+              -0.34
+            ],
+            "max": [
+              0.35,
+              0.31,
+              0.3675
+            ]
+          },
+          "triangles": 6320,
+          "vertices": 3938,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.88,
+              1.5999999999999999,
+              -0.34
+            ],
+            "max": [
+              -0.18000000000000005,
+              2.38,
+              0.3675
+            ]
+          }
+        },
+        {
+          "id": "ForearmR",
+          "parent": "UpperArmR",
+          "pivotM": [
+            -0.58,
+            1.59,
+            0.0
+          ],
+          "localPivotM": [
+            -0.05,
+            -0.48,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.22,
+              -0.435,
+              -0.16
+            ],
+            "max": [
+              0.16,
+              0.11,
+              0.21
+            ]
+          },
+          "triangles": 2940,
+          "vertices": 2572,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.7999999999999999,
+              1.155,
+              -0.16
+            ],
+            "max": [
+              -0.41999999999999993,
+              1.7000000000000002,
+              0.21
+            ]
+          }
+        },
+        {
+          "id": "HandR",
+          "parent": "ForearmR",
+          "pivotM": [
+            -0.62,
+            1.18,
+            0.0
+          ],
+          "localPivotM": [
+            -0.04,
+            -0.41,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.14547524418361932,
+              -0.24599999999999994,
+              -0.075
+            ],
+            "max": [
+              0.1,
+              0.015,
+              0.13699999999999998
+            ]
+          },
+          "triangles": 4784,
+          "vertices": 2760,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.7654752441836193,
+              0.9339999999999999,
+              -0.075
+            ],
+            "max": [
+              -0.52,
+              1.1949999999999998,
+              0.13699999999999998
+            ]
+          }
+        },
+        {
+          "id": "ThighR",
+          "parent": "Torso",
+          "pivotM": [
+            -0.23,
+            1.3,
+            0.0
+          ],
+          "localPivotM": [
+            -0.23,
+            -0.19,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.26,
+              -0.49,
+              -0.23
+            ],
+            "max": [
+              0.2,
+              0.055,
+              0.23
+            ]
+          },
+          "triangles": 2288,
+          "vertices": 1504,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.49,
+              0.81,
+              -0.23
+            ],
+            "max": [
+              -0.03,
+              1.355,
+              0.23
+            ]
+          }
+        },
+        {
+          "id": "ShinR",
+          "parent": "ThighR",
+          "pivotM": [
+            -0.26,
+            0.77,
+            0.0
+          ],
+          "localPivotM": [
+            -0.03,
+            -0.53,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.19,
+              -0.59,
+              -0.18
+            ],
+            "max": [
+              0.19,
+              0.155,
+              0.25
+            ]
+          },
+          "triangles": 4328,
+          "vertices": 3026,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.45,
+              0.18000000000000005,
+              -0.18
+            ],
+            "max": [
+              -0.07,
+              0.925,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "FootR",
+          "parent": "ShinR",
+          "pivotM": [
+            -0.26,
+            0.2,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            -0.57,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.2,
+              -0.2,
+              -0.16
+            ],
+            "max": [
+              0.2,
+              0.09,
+              0.34
+            ]
+          },
+          "triangles": 1160,
+          "vertices": 927,
+          "materials": [
+            "rubber",
+            "bronze",
+            "ivory"
+          ],
+          "boundsM": {
+            "min": [
+              -0.46,
+              0.0,
+              -0.16
+            ],
+            "max": [
+              -0.06,
+              0.29000000000000004,
+              0.34
+            ]
+          }
+        },
+        {
+          "id": "Weapon",
+          "parent": "ForearmR",
+          "pivotM": [
+            -0.64,
+            1.37,
+            0.18
+          ],
+          "localPivotM": [
+            -0.06,
+            -0.22,
+            0.18
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.33,
+              -0.19,
+              -0.065
+            ],
+            "max": [
+              0.33,
+              0.29,
+              0.505
+            ]
+          },
+          "triangles": 3248,
+          "vertices": 2488,
+          "materials": [
+            "dark",
+            "teal",
+            "ivory",
+            "steel",
+            "bronze",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -0.97,
+              1.1800000000000002,
+              0.11499999999999999
+            ],
+            "max": [
+              -0.31,
+              1.6600000000000001,
+              0.685
+            ]
+          }
+        }
+      ],
+      "bytes": 2340984,
+      "sha256": "ee8c1a81cd14248d01fe66dbe4ac5549c615c2a83430a1d72dc9f0db363fba66"
+    },
+    "GearlingSentinel": {
+      "file": "GearlingSentinel.glb",
+      "name": "GearlingSentinel",
+      "category": "character",
+      "boundsM": {
+        "min": [
+          -0.695,
+          0.0,
+          -0.41
+        ],
+        "max": [
+          0.695,
+          1.51,
+          0.615
+        ]
+      },
+      "heightM": 1.51,
+      "sourceBoundsM": {
+        "min": [
+          -0.695,
+          2.886579864025407e-17,
+          -0.41
+        ],
+        "max": [
+          0.695,
+          1.51,
+          0.615
+        ]
+      },
+      "originOffsetM": [
+        0,
+        -2.886579864025407e-17,
+        0
+      ],
+      "anchorsM": {
+        "muzzle": [
+          0.0,
+          -0.615,
+          -1.38
+        ],
+        "visor": [
+          0.0,
+          -0.38000000000000006,
+          -0.85
+        ]
+      },
+      "triangles": 17720,
+      "vertices": 14014,
+      "primitives": 21,
+      "parts": [
+        {
+          "id": "GearlingHull",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.54,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.54,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.5300000000000001,
+              -0.32,
+              -0.41
+            ],
+            "max": [
+              0.5300000000000001,
+              0.63,
+              0.4025
+            ]
+          },
+          "triangles": 8228,
+          "vertices": 5612,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "teal",
+            "steel",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -0.5300000000000001,
+              0.22000000000000003,
+              -0.41
+            ],
+            "max": [
+              0.5300000000000001,
+              1.17,
+              0.4025
+            ]
+          }
+        },
+        {
+          "id": "WheelL",
+          "parent": "GearlingHull",
+          "pivotM": [
+            0.5,
+            0.4074999999999999,
+            0.0
+          ],
+          "localPivotM": [
+            0.5,
+            -0.1325,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.265,
+              -0.4075,
+              -0.4075
+            ],
+            "max": [
+              0.195,
+              0.4075,
+              0.4075
+            ]
+          },
+          "triangles": 3612,
+          "vertices": 3196,
+          "materials": [
+            "rubber",
+            "bronze",
+            "teal",
+            "dark",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.235,
+              -5.551115123125783e-17,
+              -0.4075
+            ],
+            "max": [
+              0.6950000000000001,
+              0.815,
+              0.4075
+            ]
+          }
+        },
+        {
+          "id": "WheelR",
+          "parent": "GearlingHull",
+          "pivotM": [
+            -0.5,
+            0.4074999999999999,
+            0.0
+          ],
+          "localPivotM": [
+            -0.5,
+            -0.1325,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.195,
+              -0.4075,
+              -0.4075
+            ],
+            "max": [
+              0.265,
+              0.4075,
+              0.4075
+            ]
+          },
+          "triangles": 3612,
+          "vertices": 3196,
+          "materials": [
+            "rubber",
+            "bronze",
+            "teal",
+            "dark",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.6950000000000001,
+              -5.551115123125783e-17,
+              -0.4075
+            ],
+            "max": [
+              -0.235,
+              0.815,
+              0.4075
+            ]
+          }
+        },
+        {
+          "id": "Turret",
+          "parent": "GearlingHull",
+          "pivotM": [
+            0.0,
+            1.13,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.59,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.4256211806128555,
+              0.01,
+              -0.19
+            ],
+            "max": [
+              0.4256211806128555,
+              0.38,
+              0.615
+            ]
+          },
+          "triangles": 2268,
+          "vertices": 2010,
+          "materials": [
+            "bronze",
+            "teal",
+            "ivory",
+            "steel",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -0.4256211806128555,
+              1.14,
+              -0.19
+            ],
+            "max": [
+              0.4256211806128555,
+              1.5099999999999998,
+              0.615
+            ]
+          }
+        }
+      ],
+      "bytes": 735596,
+      "sha256": "99196c197041dc8e22e4921049cf00e128edd97c29b9d7683a53789ad5155bbb"
+    },
+    "AegisVanguard": {
+      "file": "AegisVanguard.glb",
+      "name": "AegisVanguard",
+      "category": "character",
+      "boundsM": {
+        "min": [
+          -1.05,
+          0.0,
+          -0.5
+        ],
+        "max": [
+          1.273125,
+          3.06,
+          0.845
+        ]
+      },
+      "heightM": 3.06,
+      "sourceBoundsM": {
+        "min": [
+          -1.05,
+          0.0,
+          -0.5
+        ],
+        "max": [
+          1.273125,
+          3.06,
+          0.845
+        ]
+      },
+      "originOffsetM": [
+        0,
+        -0.0,
+        0
+      ],
+      "anchorsM": {
+        "reactor": [
+          0.0,
+          -0.42,
+          -1.92
+        ],
+        "muzzle": [
+          -0.76,
+          -0.845,
+          -1.46
+        ]
+      },
+      "triangles": 47560,
+      "vertices": 33682,
+      "primitives": 73,
+      "parts": [
+        {
+          "id": "Torso",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            1.49,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            1.49,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.52,
+              -0.55,
+              -0.5
+            ],
+            "max": [
+              0.52,
+              0.79,
+              0.435
+            ]
+          },
+          "triangles": 4336,
+          "vertices": 3124,
+          "materials": [
+            "dark",
+            "teal",
+            "ivory",
+            "bronze",
+            "cyan",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.52,
+              0.94,
+              -0.5
+            ],
+            "max": [
+              0.52,
+              2.2800000000000002,
+              0.435
+            ]
+          }
+        },
+        {
+          "id": "Head",
+          "parent": "Torso",
+          "pivotM": [
+            0.0,
+            2.29,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.8,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.24375,
+              0.0,
+              -0.215625
+            ],
+            "max": [
+              0.24375,
+              0.77,
+              0.26
+            ]
+          },
+          "triangles": 1164,
+          "vertices": 808,
+          "materials": [
+            "ivory",
+            "dark",
+            "cyan",
+            "bronze",
+            "teal"
+          ],
+          "boundsM": {
+            "min": [
+              -0.24375,
+              2.29,
+              -0.215625
+            ],
+            "max": [
+              0.24375,
+              3.06,
+              0.26
+            ]
+          }
+        },
+        {
+          "id": "UpperArmL",
+          "parent": "Torso",
+          "pivotM": [
+            0.65,
+            2.13,
+            0.0
+          ],
+          "localPivotM": [
+            0.65,
+            0.64,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.36,
+              -0.47,
+              -0.36
+            ],
+            "max": [
+              0.4,
+              0.39,
+              0.36
+            ]
+          },
+          "triangles": 2480,
+          "vertices": 1624,
+          "materials": [
+            "dark",
+            "bronze",
+            "teal",
+            "ivory"
+          ],
+          "boundsM": {
+            "min": [
+              0.29000000000000004,
+              1.66,
+              -0.36
+            ],
+            "max": [
+              1.05,
+              2.52,
+              0.36
+            ]
+          }
+        },
+        {
+          "id": "ForearmL",
+          "parent": "UpperArmL",
+          "pivotM": [
+            0.7,
+            1.65,
+            0.0
+          ],
+          "localPivotM": [
+            0.05,
+            -0.48,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.16,
+              -0.435,
+              -0.16
+            ],
+            "max": [
+              0.22,
+              0.11,
+              0.21
+            ]
+          },
+          "triangles": 2940,
+          "vertices": 2572,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.5399999999999999,
+              1.2149999999999999,
+              -0.16
+            ],
+            "max": [
+              0.9199999999999999,
+              1.76,
+              0.21
+            ]
+          }
+        },
+        {
+          "id": "HandL",
+          "parent": "ForearmL",
+          "pivotM": [
+            0.74,
+            1.24,
+            0.0
+          ],
+          "localPivotM": [
+            0.04,
+            -0.41,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.1,
+              -0.24599999999999994,
+              -0.075
+            ],
+            "max": [
+              0.14547524418361932,
+              0.015,
+              0.13699999999999998
+            ]
+          },
+          "triangles": 4784,
+          "vertices": 2760,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.64,
+              0.994,
+              -0.075
+            ],
+            "max": [
+              0.8854752441836193,
+              1.255,
+              0.13699999999999998
+            ]
+          }
+        },
+        {
+          "id": "ThighL",
+          "parent": "Torso",
+          "pivotM": [
+            0.23,
+            1.3,
+            0.0
+          ],
+          "localPivotM": [
+            0.23,
+            -0.19,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.2,
+              -0.49,
+              -0.23
+            ],
+            "max": [
+              0.26,
+              0.055,
+              0.23
+            ]
+          },
+          "triangles": 2288,
+          "vertices": 1504,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.03,
+              0.81,
+              -0.23
+            ],
+            "max": [
+              0.49,
+              1.355,
+              0.23
+            ]
+          }
+        },
+        {
+          "id": "ShinL",
+          "parent": "ThighL",
+          "pivotM": [
+            0.26,
+            0.77,
+            0.0
+          ],
+          "localPivotM": [
+            0.03,
+            -0.53,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.19,
+              -0.59,
+              -0.18
+            ],
+            "max": [
+              0.19,
+              0.155,
+              0.25
+            ]
+          },
+          "triangles": 4328,
+          "vertices": 3026,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.07,
+              0.18000000000000005,
+              -0.18
+            ],
+            "max": [
+              0.45,
+              0.925,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "FootL",
+          "parent": "ShinL",
+          "pivotM": [
+            0.26,
+            0.2,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            -0.57,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.2,
+              -0.2,
+              -0.16
+            ],
+            "max": [
+              0.2,
+              0.09,
+              0.34
+            ]
+          },
+          "triangles": 1160,
+          "vertices": 927,
+          "materials": [
+            "rubber",
+            "bronze",
+            "ivory"
+          ],
+          "boundsM": {
+            "min": [
+              0.06,
+              0.0,
+              -0.16
+            ],
+            "max": [
+              0.46,
+              0.29000000000000004,
+              0.34
+            ]
+          }
+        },
+        {
+          "id": "UpperArmR",
+          "parent": "Torso",
+          "pivotM": [
+            -0.65,
+            2.13,
+            0.0
+          ],
+          "localPivotM": [
+            -0.65,
+            0.64,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.4,
+              -0.47,
+              -0.36
+            ],
+            "max": [
+              0.36,
+              0.39,
+              0.36
+            ]
+          },
+          "triangles": 2480,
+          "vertices": 1624,
+          "materials": [
+            "dark",
+            "bronze",
+            "teal",
+            "ivory"
+          ],
+          "boundsM": {
+            "min": [
+              -1.05,
+              1.66,
+              -0.36
+            ],
+            "max": [
+              -0.29000000000000004,
+              2.52,
+              0.36
+            ]
+          }
+        },
+        {
+          "id": "ForearmR",
+          "parent": "UpperArmR",
+          "pivotM": [
+            -0.7,
+            1.65,
+            0.0
+          ],
+          "localPivotM": [
+            -0.05,
+            -0.48,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.22,
+              -0.435,
+              -0.16
+            ],
+            "max": [
+              0.16,
+              0.11,
+              0.21
+            ]
+          },
+          "triangles": 2940,
+          "vertices": 2572,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.9199999999999999,
+              1.2149999999999999,
+              -0.16
+            ],
+            "max": [
+              -0.5399999999999999,
+              1.76,
+              0.21
+            ]
+          }
+        },
+        {
+          "id": "HandR",
+          "parent": "ForearmR",
+          "pivotM": [
+            -0.74,
+            1.24,
+            0.0
+          ],
+          "localPivotM": [
+            -0.04,
+            -0.41,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.14547524418361932,
+              -0.24599999999999994,
+              -0.075
+            ],
+            "max": [
+              0.1,
+              0.015,
+              0.13699999999999998
+            ]
+          },
+          "triangles": 4784,
+          "vertices": 2760,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.8854752441836193,
+              0.994,
+              -0.075
+            ],
+            "max": [
+              -0.64,
+              1.255,
+              0.13699999999999998
+            ]
+          }
+        },
+        {
+          "id": "ThighR",
+          "parent": "Torso",
+          "pivotM": [
+            -0.23,
+            1.3,
+            0.0
+          ],
+          "localPivotM": [
+            -0.23,
+            -0.19,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.26,
+              -0.49,
+              -0.23
+            ],
+            "max": [
+              0.2,
+              0.055,
+              0.23
+            ]
+          },
+          "triangles": 2288,
+          "vertices": 1504,
+          "materials": [
+            "dark",
+            "ivory",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.49,
+              0.81,
+              -0.23
+            ],
+            "max": [
+              -0.03,
+              1.355,
+              0.23
+            ]
+          }
+        },
+        {
+          "id": "ShinR",
+          "parent": "ThighR",
+          "pivotM": [
+            -0.26,
+            0.77,
+            0.0
+          ],
+          "localPivotM": [
+            -0.03,
+            -0.53,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.19,
+              -0.59,
+              -0.18
+            ],
+            "max": [
+              0.19,
+              0.155,
+              0.25
+            ]
+          },
+          "triangles": 4328,
+          "vertices": 3026,
+          "materials": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.45,
+              0.18000000000000005,
+              -0.18
+            ],
+            "max": [
+              -0.07,
+              0.925,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "FootR",
+          "parent": "ShinR",
+          "pivotM": [
+            -0.26,
+            0.2,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            -0.57,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.2,
+              -0.2,
+              -0.16
+            ],
+            "max": [
+              0.2,
+              0.09,
+              0.34
+            ]
+          },
+          "triangles": 1160,
+          "vertices": 927,
+          "materials": [
+            "rubber",
+            "bronze",
+            "ivory"
+          ],
+          "boundsM": {
+            "min": [
+              -0.46,
+              0.0,
+              -0.16
+            ],
+            "max": [
+              -0.06,
+              0.29000000000000004,
+              0.34
+            ]
+          }
+        },
+        {
+          "id": "Weapon",
+          "parent": "ForearmR",
+          "pivotM": [
+            -0.76,
+            1.44,
+            0.18
+          ],
+          "localPivotM": [
+            -0.06,
+            -0.21,
+            0.18
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.235,
+              -0.23,
+              -0.17
+            ],
+            "max": [
+              0.235,
+              0.22,
+              0.22000000000000008
+            ]
+          },
+          "triangles": 692,
+          "vertices": 608,
+          "materials": [
+            "teal",
+            "bronze",
+            "ivory"
+          ],
+          "boundsM": {
+            "min": [
+              -0.995,
+              1.21,
+              0.009999999999999981
+            ],
+            "max": [
+              -0.525,
+              1.66,
+              0.4000000000000001
+            ]
+          }
+        },
+        {
+          "id": "CannonRotor",
+          "parent": "Weapon",
+          "pivotM": [
+            -0.76,
+            1.46,
+            0.35
+          ],
+          "localPivotM": [
+            0.0,
+            0.02,
+            0.17
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.16,
+              -0.16,
+              0.015
+            ],
+            "max": [
+              0.16,
+              0.16,
+              0.495
+            ]
+          },
+          "triangles": 2432,
+          "vertices": 2432,
+          "materials": [
+            "dark",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.92,
+              1.3,
+              0.365
+            ],
+            "max": [
+              -0.6,
+              1.6199999999999999,
+              0.845
+            ]
+          }
+        },
+        {
+          "id": "Shield",
+          "parent": "ForearmL",
+          "pivotM": [
+            0.74,
+            1.56,
+            0.14
+          ],
+          "localPivotM": [
+            0.04,
+            -0.09,
+            0.14
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.173125,
+              -0.92,
+              0.13
+            ],
+            "max": [
+              0.533125,
+              0.68,
+              0.41
+            ]
+          },
+          "triangles": 2976,
+          "vertices": 1884,
+          "materials": [
+            "bronze",
+            "ivory",
+            "teal",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              0.566875,
+              0.64,
+              0.27
+            ],
+            "max": [
+              1.2731249999999998,
+              2.24,
+              0.55
+            ]
+          }
+        }
+      ],
+      "bytes": 1838356,
+      "sha256": "9c5ef3b3873b5a2298dabb3c16dd01790265c1093742cbf261f011fd59b66ff0"
+    },
+    "RustCrawler": {
+      "file": "RustCrawler.glb",
+      "name": "RustCrawler",
+      "category": "character",
+      "boundsM": {
+        "min": [
+          -0.94,
+          0.0,
+          -0.77
+        ],
+        "max": [
+          0.94,
+          1.5360992723813203,
+          1.005
+        ]
+      },
+      "heightM": 1.5360992723813203,
+      "sourceBoundsM": {
+        "min": [
+          -0.94,
+          -0.006099272381320162,
+          -0.77
+        ],
+        "max": [
+          0.94,
+          1.53,
+          1.005
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0.006099272381320162,
+        0
+      ],
+      "anchorsM": {
+        "muzzle": [
+          0.0,
+          -0.9989007276186798,
+          -1.1
+        ]
+      },
+      "triangles": 13376,
+      "vertices": 10623,
+      "primitives": 21,
+      "parts": [
+        {
+          "id": "Chassis",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.4360992723813202,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.43,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.51,
+              -0.255,
+              -0.745
+            ],
+            "max": [
+              0.51,
+              0.61,
+              0.6032
+            ]
+          },
+          "triangles": 2740,
+          "vertices": 2141,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.51,
+              0.18109927238132018,
+              -0.745
+            ],
+            "max": [
+              0.51,
+              1.04609927238132,
+              0.6032
+            ]
+          }
+        },
+        {
+          "id": "Track_L",
+          "parent": "Chassis",
+          "pivotM": [
+            -0.66,
+            0.3760992723813202,
+            -0.04
+          ],
+          "localPivotM": [
+            -0.66,
+            -0.06,
+            -0.04
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.28,
+              -0.3760992723813202,
+              -0.73
+            ],
+            "max": [
+              0.17,
+              0.3760992723813202,
+              0.73
+            ]
+          },
+          "triangles": 3576,
+          "vertices": 2876,
+          "materials": [
+            "rubber",
+            "rust",
+            "bronze",
+            "dark",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.9400000000000001,
+              0.0,
+              -0.77
+            ],
+            "max": [
+              -0.49,
+              0.7521985447626404,
+              0.69
+            ]
+          }
+        },
+        {
+          "id": "Track_R",
+          "parent": "Chassis",
+          "pivotM": [
+            0.66,
+            0.3760992723813202,
+            -0.04
+          ],
+          "localPivotM": [
+            0.66,
+            -0.06,
+            -0.04
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.17,
+              -0.3760992723813202,
+              -0.73
+            ],
+            "max": [
+              0.28,
+              0.3760992723813202,
+              0.73
+            ]
+          },
+          "triangles": 3576,
+          "vertices": 2876,
+          "materials": [
+            "rubber",
+            "rust",
+            "bronze",
+            "dark",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.49,
+              0.0,
+              -0.77
+            ],
+            "max": [
+              0.9400000000000001,
+              0.7521985447626404,
+              0.69
+            ]
+          }
+        },
+        {
+          "id": "Turret",
+          "parent": "Chassis",
+          "pivotM": [
+            0.0,
+            0.9160992723813202,
+            -0.08
+          ],
+          "localPivotM": [
+            0.0,
+            0.48,
+            -0.08
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.5205367850299193,
+              0.0,
+              -0.37
+            ],
+            "max": [
+              0.5205367850299193,
+              0.62,
+              0.455
+            ]
+          },
+          "triangles": 2492,
+          "vertices": 1738,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -0.5205367850299193,
+              0.9160992723813202,
+              -0.45
+            ],
+            "max": [
+              0.5205367850299193,
+              1.5360992723813203,
+              0.375
+            ]
+          }
+        },
+        {
+          "id": "Cannon",
+          "parent": "Turret",
+          "pivotM": [
+            0.0,
+            1.1060992723813203,
+            0.33
+          ],
+          "localPivotM": [
+            0.0,
+            0.19,
+            0.41
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.25,
+              -0.25,
+              -0.07000000000000003
+            ],
+            "max": [
+              0.25,
+              0.25,
+              0.675
+            ]
+          },
+          "triangles": 992,
+          "vertices": 992,
+          "materials": [
+            "bronze",
+            "steel",
+            "dark"
+          ],
+          "boundsM": {
+            "min": [
+              -0.25,
+              0.8560992723813203,
+              0.26
+            ],
+            "max": [
+              0.25,
+              1.3560992723813203,
+              1.0050000000000001
+            ]
+          }
+        }
+      ],
+      "bytes": 561124,
+      "sha256": "e6e030f74e5d90e481e42b2458a183a38101a181f7ce38fcf72e57ca96f994f6"
+    },
+    "ArcWarden": {
+      "file": "ArcWarden.glb",
+      "name": "ArcWarden",
+      "category": "character",
+      "boundsM": {
+        "min": [
+          -0.98,
+          0.0,
+          -0.39
+        ],
+        "max": [
+          1.41,
+          3.05,
+          0.8
+        ]
+      },
+      "heightM": 3.05,
+      "sourceBoundsM": {
+        "min": [
+          -0.98,
+          0.0,
+          -0.39
+        ],
+        "max": [
+          1.41,
+          3.05,
+          0.8
+        ]
+      },
+      "originOffsetM": [
+        0,
+        -0.0,
+        0
+      ],
+      "anchorsM": {
+        "reactor": [
+          0.0,
+          -0.43,
+          -2.01
+        ],
+        "muzzle": [
+          -0.65,
+          -0.8,
+          -1.49
+        ]
+      },
+      "triangles": 17728,
+      "vertices": 11854,
+      "primitives": 37,
+      "parts": [
+        {
+          "id": "Pelvis",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            1.41,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            1.41,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.46,
+              -0.29,
+              -0.305
+            ],
+            "max": [
+              0.46,
+              0.24,
+              0.42
+            ]
+          },
+          "triangles": 372,
+          "vertices": 334,
+          "materials": [
+            "dark",
+            "bronze",
+            "rust"
+          ],
+          "boundsM": {
+            "min": [
+              -0.46,
+              1.1199999999999999,
+              -0.305
+            ],
+            "max": [
+              0.46,
+              1.65,
+              0.42
+            ]
+          }
+        },
+        {
+          "id": "Torso",
+          "parent": "Pelvis",
+          "pivotM": [
+            0.0,
+            1.69,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.28,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.56,
+              -0.06,
+              -0.39
+            ],
+            "max": [
+              0.56,
+              0.816583306619933,
+              0.455
+            ]
+          },
+          "triangles": 4100,
+          "vertices": 2548,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "amber",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.56,
+              1.63,
+              -0.39
+            ],
+            "max": [
+              0.56,
+              2.506583306619933,
+              0.455
+            ]
+          }
+        },
+        {
+          "id": "Head",
+          "parent": "Torso",
+          "pivotM": [
+            0.0,
+            2.44,
+            -0.02
+          ],
+          "localPivotM": [
+            0.0,
+            0.75,
+            -0.02
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.27,
+              -0.015,
+              -0.205
+            ],
+            "max": [
+              0.27,
+              0.61,
+              0.31
+            ]
+          },
+          "triangles": 892,
+          "vertices": 676,
+          "materials": [
+            "dark",
+            "ivory",
+            "redglow",
+            "bronze"
+          ],
+          "boundsM": {
+            "min": [
+              -0.27,
+              2.425,
+              -0.22499999999999998
+            ],
+            "max": [
+              0.27,
+              3.05,
+              0.29
+            ]
+          }
+        },
+        {
+          "id": "Leg_L",
+          "parent": "Pelvis",
+          "pivotM": [
+            -0.31,
+            1.38,
+            -0.03
+          ],
+          "localPivotM": [
+            -0.31,
+            -0.03,
+            -0.03
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.245,
+              -1.38,
+              -0.215
+            ],
+            "max": [
+              0.245,
+              0.015,
+              0.48
+            ]
+          },
+          "triangles": 2504,
+          "vertices": 1740,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.5549999999999999,
+              0.0,
+              -0.245
+            ],
+            "max": [
+              -0.065,
+              1.3949999999999998,
+              0.44999999999999996
+            ]
+          }
+        },
+        {
+          "id": "Arm_L",
+          "parent": "Torso",
+          "pivotM": [
+            -0.65,
+            2.23,
+            0.0
+          ],
+          "localPivotM": [
+            -0.65,
+            0.54,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.33,
+              -0.7,
+              -0.31
+            ],
+            "max": [
+              0.33,
+              0.33,
+              0.32
+            ]
+          },
+          "triangles": 1756,
+          "vertices": 1123,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.98,
+              1.53,
+              -0.31
+            ],
+            "max": [
+              -0.32,
+              2.56,
+              0.32
+            ]
+          }
+        },
+        {
+          "id": "Leg_R",
+          "parent": "Pelvis",
+          "pivotM": [
+            0.31,
+            1.38,
+            -0.03
+          ],
+          "localPivotM": [
+            0.31,
+            -0.03,
+            -0.03
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.245,
+              -1.38,
+              -0.215
+            ],
+            "max": [
+              0.245,
+              0.015,
+              0.48
+            ]
+          },
+          "triangles": 2504,
+          "vertices": 1740,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.065,
+              0.0,
+              -0.245
+            ],
+            "max": [
+              0.5549999999999999,
+              1.3949999999999998,
+              0.44999999999999996
+            ]
+          }
+        },
+        {
+          "id": "Arm_R",
+          "parent": "Torso",
+          "pivotM": [
+            0.65,
+            2.23,
+            0.0
+          ],
+          "localPivotM": [
+            0.65,
+            0.54,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.33,
+              -0.7,
+              -0.31
+            ],
+            "max": [
+              0.33,
+              0.33,
+              0.32
+            ]
+          },
+          "triangles": 1756,
+          "vertices": 1123,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.32,
+              1.53,
+              -0.31
+            ],
+            "max": [
+              0.98,
+              2.56,
+              0.32
+            ]
+          }
+        },
+        {
+          "id": "Shield_R",
+          "parent": "Arm_R",
+          "pivotM": [
+            0.69,
+            1.65,
+            0.11
+          ],
+          "localPivotM": [
+            0.04,
+            -0.58,
+            0.11
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.18,
+              -1.06,
+              0.06205771365940052
+            ],
+            "max": [
+              0.72,
+              0.84,
+              0.38
+            ]
+          },
+          "triangles": 2620,
+          "vertices": 1600,
+          "materials": [
+            "bronze",
+            "rust",
+            "dark",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              0.51,
+              0.5899999999999999,
+              0.17205771365940054
+            ],
+            "max": [
+              1.41,
+              2.4899999999999998,
+              0.49
+            ]
+          }
+        },
+        {
+          "id": "Cannon_L",
+          "parent": "Arm_L",
+          "pivotM": [
+            -0.65,
+            1.64,
+            0.07
+          ],
+          "localPivotM": [
+            0.0,
+            -0.59,
+            0.07
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.245,
+              -0.405,
+              -0.265
+            ],
+            "max": [
+              0.235,
+              0.08,
+              0.73
+            ]
+          },
+          "triangles": 1224,
+          "vertices": 970,
+          "materials": [
+            "dark",
+            "bronze",
+            "steel",
+            "rust",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -0.895,
+              1.2349999999999999,
+              -0.195
+            ],
+            "max": [
+              -0.41500000000000004,
+              1.72,
+              0.8
+            ]
+          }
+        }
+      ],
+      "bytes": 668764,
+      "sha256": "de6af3f6a8b803aa539de6955fbea64abc9f4c4b25971e681abcc86c56ed3ca5"
+    },
+    "ForgeColossus": {
+      "file": "ForgeColossus.glb",
+      "name": "ForgeColossus",
+      "category": "character",
+      "boundsM": {
+        "min": [
+          -1.99,
+          0.0,
+          -1.195
+        ],
+        "max": [
+          1.99,
+          5.86,
+          1.26
+        ]
+      },
+      "heightM": 5.86,
+      "sourceBoundsM": {
+        "min": [
+          -1.99,
+          0.0,
+          -1.195
+        ],
+        "max": [
+          1.99,
+          5.86,
+          1.26
+        ]
+      },
+      "originOffsetM": [
+        0,
+        -0.0,
+        0
+      ],
+      "anchorsM": {
+        "reactor": [
+          0.0,
+          -0.74,
+          -4.01
+        ],
+        "muzzleL": [
+          -1.33,
+          -1.26,
+          -2.91
+        ],
+        "muzzleR": [
+          1.33,
+          -1.26,
+          -2.91
+        ],
+        "rocketL": [
+          -1.53,
+          -0.31,
+          -5.32
+        ],
+        "rocketR": [
+          1.53,
+          -0.31,
+          -5.32
+        ]
+      },
+      "triangles": 67140,
+      "vertices": 48862,
+      "primitives": 68,
+      "parts": [
+        {
+          "id": "Pelvis",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            2.8,
+            -0.07
+          ],
+          "localPivotM": [
+            0.0,
+            2.8,
+            -0.07
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.81,
+              -0.64,
+              -0.52
+            ],
+            "max": [
+              0.81,
+              0.45,
+              0.735
+            ]
+          },
+          "triangles": 700,
+          "vertices": 520,
+          "materials": [
+            "dark",
+            "bronze",
+            "rust"
+          ],
+          "boundsM": {
+            "min": [
+              -0.81,
+              2.1599999999999997,
+              -0.5900000000000001
+            ],
+            "max": [
+              0.81,
+              3.25,
+              0.665
+            ]
+          }
+        },
+        {
+          "id": "Torso",
+          "parent": "Pelvis",
+          "pivotM": [
+            0.0,
+            3.21,
+            -0.07
+          ],
+          "localPivotM": [
+            0.0,
+            0.41,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -1.1,
+              -0.04,
+              -0.67
+            ],
+            "max": [
+              1.1,
+              1.75,
+              0.8389042320290423
+            ]
+          },
+          "triangles": 10940,
+          "vertices": 7244,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "cyan",
+            "ivory",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -1.1,
+              3.17,
+              -0.74
+            ],
+            "max": [
+              1.1,
+              4.96,
+              0.7689042320290422
+            ]
+          }
+        },
+        {
+          "id": "Head",
+          "parent": "Torso",
+          "pivotM": [
+            0.0,
+            4.86,
+            -0.06
+          ],
+          "localPivotM": [
+            0.0,
+            1.65,
+            0.01
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.58,
+              -0.085,
+              -0.375
+            ],
+            "max": [
+              0.58,
+              1.0,
+              0.525
+            ]
+          },
+          "triangles": 4988,
+          "vertices": 3654,
+          "materials": [
+            "dark",
+            "steel",
+            "redglow",
+            "bronze",
+            "rust"
+          ],
+          "boundsM": {
+            "min": [
+              -0.58,
+              4.775,
+              -0.435
+            ],
+            "max": [
+              0.58,
+              5.86,
+              0.465
+            ]
+          }
+        },
+        {
+          "id": "Leg_L",
+          "parent": "Pelvis",
+          "pivotM": [
+            -0.62,
+            2.81,
+            -0.08
+          ],
+          "localPivotM": [
+            -0.62,
+            0.01,
+            -0.01
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.45,
+              -2.81,
+              -0.385
+            ],
+            "max": [
+              0.45,
+              0.205,
+              0.86
+            ]
+          },
+          "triangles": 7296,
+          "vertices": 4858,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -1.07,
+              0.0,
+              -0.465
+            ],
+            "max": [
+              -0.16999999999999998,
+              3.015,
+              0.78
+            ]
+          }
+        },
+        {
+          "id": "UpperArm_L",
+          "parent": "Torso",
+          "pivotM": [
+            -1.05,
+            4.5,
+            -0.04
+          ],
+          "localPivotM": [
+            -1.05,
+            1.29,
+            0.03
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.92,
+              -1.42,
+              -0.55
+            ],
+            "max": [
+              0.36,
+              0.75,
+              0.525
+            ]
+          },
+          "triangles": 5232,
+          "vertices": 3330,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -1.9700000000000002,
+              3.08,
+              -0.5900000000000001
+            ],
+            "max": [
+              -0.6900000000000001,
+              5.25,
+              0.48500000000000004
+            ]
+          }
+        },
+        {
+          "id": "Forearm_L",
+          "parent": "UpperArm_L",
+          "pivotM": [
+            -1.33,
+            3.37,
+            -0.01
+          ],
+          "localPivotM": [
+            -0.28,
+            -1.13,
+            0.03
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.44,
+              -0.54,
+              -0.31
+            ],
+            "max": [
+              0.44,
+              0.26,
+              0.525
+            ]
+          },
+          "triangles": 2132,
+          "vertices": 1356,
+          "materials": [
+            "steel",
+            "rust",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -1.77,
+              2.83,
+              -0.32
+            ],
+            "max": [
+              -0.8900000000000001,
+              3.63,
+              0.515
+            ]
+          }
+        },
+        {
+          "id": "Cannon_L",
+          "parent": "Forearm_L",
+          "pivotM": [
+            -1.33,
+            3.03,
+            0.08
+          ],
+          "localPivotM": [
+            0.0,
+            -0.34,
+            0.09
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.515,
+              -0.6119965626587223,
+              -0.39
+            ],
+            "max": [
+              0.515,
+              0.3719965626587225,
+              1.18
+            ]
+          },
+          "triangles": 3444,
+          "vertices": 3488,
+          "materials": [
+            "bronze",
+            "dark",
+            "steel",
+            "rust"
+          ],
+          "boundsM": {
+            "min": [
+              -1.8450000000000002,
+              2.4180034373412775,
+              -0.31
+            ],
+            "max": [
+              -0.8150000000000001,
+              3.4019965626587223,
+              1.26
+            ]
+          }
+        },
+        {
+          "id": "Jet_L",
+          "parent": "Torso",
+          "pivotM": [
+            -0.73,
+            4.2,
+            -0.62
+          ],
+          "localPivotM": [
+            -0.73,
+            0.99,
+            -0.55
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.33,
+              -1.03,
+              -0.575
+            ],
+            "max": [
+              0.33,
+              0.53,
+              0.12
+            ]
+          },
+          "triangles": 3096,
+          "vertices": 2642,
+          "materials": [
+            "steel",
+            "rust",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -1.06,
+              3.17,
+              -1.1949999999999998
+            ],
+            "max": [
+              -0.39999999999999997,
+              4.73,
+              -0.5
+            ]
+          }
+        },
+        {
+          "id": "Leg_R",
+          "parent": "Pelvis",
+          "pivotM": [
+            0.62,
+            2.81,
+            -0.08
+          ],
+          "localPivotM": [
+            0.62,
+            0.01,
+            -0.01
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.45,
+              -2.81,
+              -0.385
+            ],
+            "max": [
+              0.45,
+              0.205,
+              0.86
+            ]
+          },
+          "triangles": 7296,
+          "vertices": 4858,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.16999999999999998,
+              0.0,
+              -0.465
+            ],
+            "max": [
+              1.07,
+              3.015,
+              0.78
+            ]
+          }
+        },
+        {
+          "id": "UpperArm_R",
+          "parent": "Torso",
+          "pivotM": [
+            1.05,
+            4.5,
+            -0.04
+          ],
+          "localPivotM": [
+            1.05,
+            1.29,
+            0.03
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.36,
+              -1.42,
+              -0.55
+            ],
+            "max": [
+              0.92,
+              0.75,
+              0.525
+            ]
+          },
+          "triangles": 5232,
+          "vertices": 3330,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              0.6900000000000001,
+              3.08,
+              -0.5900000000000001
+            ],
+            "max": [
+              1.9700000000000002,
+              5.25,
+              0.48500000000000004
+            ]
+          }
+        },
+        {
+          "id": "Forearm_R",
+          "parent": "UpperArm_R",
+          "pivotM": [
+            1.33,
+            3.37,
+            -0.01
+          ],
+          "localPivotM": [
+            0.28,
+            -1.13,
+            0.03
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.44,
+              -0.54,
+              -0.31
+            ],
+            "max": [
+              0.44,
+              0.26,
+              0.525
+            ]
+          },
+          "triangles": 2132,
+          "vertices": 1356,
+          "materials": [
+            "steel",
+            "rust",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              0.8900000000000001,
+              2.83,
+              -0.32
+            ],
+            "max": [
+              1.77,
+              3.63,
+              0.515
+            ]
+          }
+        },
+        {
+          "id": "Cannon_R",
+          "parent": "Forearm_R",
+          "pivotM": [
+            1.33,
+            3.03,
+            0.08
+          ],
+          "localPivotM": [
+            0.0,
+            -0.34,
+            0.09
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.515,
+              -0.6119965626587223,
+              -0.39
+            ],
+            "max": [
+              0.515,
+              0.3719965626587225,
+              1.18
+            ]
+          },
+          "triangles": 3444,
+          "vertices": 3488,
+          "materials": [
+            "bronze",
+            "dark",
+            "steel",
+            "rust"
+          ],
+          "boundsM": {
+            "min": [
+              0.8150000000000001,
+              2.4180034373412775,
+              -0.31
+            ],
+            "max": [
+              1.8450000000000002,
+              3.4019965626587223,
+              1.26
+            ]
+          }
+        },
+        {
+          "id": "Jet_R",
+          "parent": "Torso",
+          "pivotM": [
+            0.73,
+            4.2,
+            -0.62
+          ],
+          "localPivotM": [
+            0.73,
+            0.99,
+            -0.55
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.33,
+              -1.03,
+              -0.575
+            ],
+            "max": [
+              0.33,
+              0.53,
+              0.12
+            ]
+          },
+          "triangles": 3096,
+          "vertices": 2642,
+          "materials": [
+            "steel",
+            "rust",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              0.39999999999999997,
+              3.17,
+              -1.1949999999999998
+            ],
+            "max": [
+              1.06,
+              4.73,
+              -0.5
+            ]
+          }
+        },
+        {
+          "id": "RocketPod_L",
+          "parent": "Torso",
+          "pivotM": [
+            -1.53,
+            4.91,
+            -0.45
+          ],
+          "localPivotM": [
+            -1.53,
+            1.7,
+            -0.38
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.46,
+              -0.195,
+              -0.43
+            ],
+            "max": [
+              0.46,
+              0.935,
+              0.77
+            ]
+          },
+          "triangles": 4056,
+          "vertices": 3048,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -1.99,
+              4.715,
+              -0.88
+            ],
+            "max": [
+              -1.07,
+              5.845000000000001,
+              0.32
+            ]
+          }
+        },
+        {
+          "id": "RocketPod_R",
+          "parent": "Torso",
+          "pivotM": [
+            1.53,
+            4.91,
+            -0.45
+          ],
+          "localPivotM": [
+            1.53,
+            1.7,
+            -0.38
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.46,
+              -0.195,
+              -0.43
+            ],
+            "max": [
+              0.46,
+              0.935,
+              0.77
+            ]
+          },
+          "triangles": 4056,
+          "vertices": 3048,
+          "materials": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              1.07,
+              4.715,
+              -0.88
+            ],
+            "max": [
+              1.99,
+              5.845000000000001,
+              0.32
+            ]
+          }
+        }
+      ],
+      "bytes": 2616172,
+      "sha256": "305172fc3fd5da6c4c4ed7f068bfb5315ceb331a079e76d45f9f32ca2ce071df"
+    },
+    "SuspendedIsland": {
+      "file": "SuspendedIsland.glb",
+      "name": "SuspendedIsland",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -5.74,
+          -1.12,
+          -5.232
+        ],
+        "max": [
+          5.74,
+          1.0650000000000004,
+          5.232
+        ]
+      },
+      "heightM": 2.1850000000000005,
+      "sourceBoundsM": {
+        "min": [
+          -5.74,
+          -1.12,
+          -5.232
+        ],
+        "max": [
+          5.74,
+          1.0650000000000004,
+          5.232
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 3928,
+      "vertices": 4456,
+      "primitives": 4,
+      "parts": [
+        {
+          "id": "island",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -5.74,
+              -1.12,
+              -5.232
+            ],
+            "max": [
+              5.74,
+              1.0650000000000004,
+              5.232
+            ]
+          },
+          "triangles": 3928,
+          "vertices": 4456,
+          "materials": [
+            "dark",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -5.74,
+              -1.12,
+              -5.232
+            ],
+            "max": [
+              5.74,
+              1.0650000000000004,
+              5.232
+            ]
+          }
+        }
+      ],
+      "bytes": 213808,
+      "sha256": "8814a3fbb6f0075da10c3b9ba2f939b86bb9a88d29bee939e7c49daca2a69ac2"
+    },
+    "SpineConnector": {
+      "file": "SpineConnector.glb",
+      "name": "SpineConnector",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -4.01,
+          -0.49,
+          -2.4
+        ],
+        "max": [
+          4.01,
+          1.0550000000000004,
+          2.4
+        ]
+      },
+      "heightM": 1.5450000000000004,
+      "sourceBoundsM": {
+        "min": [
+          -4.01,
+          -0.49,
+          -2.4
+        ],
+        "max": [
+          4.01,
+          1.0550000000000004,
+          2.4
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 2984,
+      "vertices": 3248,
+      "primitives": 4,
+      "parts": [
+        {
+          "id": "joint",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -4.01,
+              -0.49,
+              -2.4
+            ],
+            "max": [
+              4.01,
+              1.0550000000000004,
+              2.4
+            ]
+          },
+          "triangles": 2984,
+          "vertices": 3248,
+          "materials": [
+            "dark",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -4.01,
+              -0.49,
+              -2.4
+            ],
+            "max": [
+              4.01,
+              1.0550000000000004,
+              2.4
+            ]
+          }
+        }
+      ],
+      "bytes": 159000,
+      "sha256": "348d666f7da1bf5da009cb2fb6fe5caee489430c25008fc1f4e5f17c7ff3a87e"
+    },
+    "TaperedButtress": {
+      "file": "TaperedButtress.glb",
+      "name": "TaperedButtress",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -1.25,
+          -5.2,
+          -1.09
+        ],
+        "max": [
+          1.25,
+          -0.21,
+          1.09
+        ]
+      },
+      "heightM": 4.99,
+      "sourceBoundsM": {
+        "min": [
+          -1.25,
+          -5.2,
+          -1.09
+        ],
+        "max": [
+          1.25,
+          -0.21,
+          1.09
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 1720,
+      "vertices": 1840,
+      "primitives": 4,
+      "parts": [
+        {
+          "id": "support",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -1.25,
+              -5.2,
+              -1.09
+            ],
+            "max": [
+              1.25,
+              -0.21,
+              1.09
+            ]
+          },
+          "triangles": 1720,
+          "vertices": 1840,
+          "materials": [
+            "steel",
+            "bronze",
+            "dark",
+            "teal"
+          ],
+          "boundsM": {
+            "min": [
+              -1.25,
+              -5.2,
+              -1.09
+            ],
+            "max": [
+              1.25,
+              -0.21,
+              1.09
+            ]
+          }
+        }
+      ],
+      "bytes": 93124,
+      "sha256": "99719c937afbd663de32377d42edd5f650c1649827fe8b1c760970aa5fbda363"
+    },
+    "SunkenRoute": {
+      "file": "SunkenRoute.glb",
+      "name": "SunkenRoute",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -5.24,
+          -0.72,
+          -5.5
+        ],
+        "max": [
+          5.24,
+          1.0650000000000002,
+          5.5
+        ]
+      },
+      "heightM": 1.7850000000000001,
+      "sourceBoundsM": {
+        "min": [
+          -5.24,
+          -0.72,
+          -5.5
+        ],
+        "max": [
+          5.24,
+          1.0650000000000002,
+          5.5
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 4148,
+      "vertices": 4640,
+      "primitives": 5,
+      "parts": [
+        {
+          "id": "trench",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -5.24,
+              -0.72,
+              -5.5
+            ],
+            "max": [
+              5.24,
+              1.0650000000000002,
+              5.5
+            ]
+          },
+          "triangles": 4148,
+          "vertices": 4640,
+          "materials": [
+            "dark",
+            "rust",
+            "cyan",
+            "steel",
+            "bronze"
+          ],
+          "boundsM": {
+            "min": [
+              -5.24,
+              -0.72,
+              -5.5
+            ],
+            "max": [
+              5.24,
+              1.0650000000000002,
+              5.5
+            ]
+          }
+        }
+      ],
+      "bytes": 223740,
+      "sha256": "c7d1f773c93c744e6676a9947a4763610acb10330486c042ebb0049695e25122"
+    },
+    "ReactorBank": {
+      "file": "ReactorBank.glb",
+      "name": "ReactorBank",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -1.74,
+          0.0,
+          -4.7
+        ],
+        "max": [
+          1.1,
+          6.2,
+          4.72
+        ]
+      },
+      "heightM": 6.2,
+      "sourceBoundsM": {
+        "min": [
+          -1.74,
+          0.0,
+          -4.7
+        ],
+        "max": [
+          1.1,
+          6.2,
+          4.72
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 1836,
+      "vertices": 2000,
+      "primitives": 5,
+      "parts": [
+        {
+          "id": "bank",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -1.74,
+              0.0,
+              -4.7
+            ],
+            "max": [
+              1.1,
+              6.2,
+              4.72
+            ]
+          },
+          "triangles": 1836,
+          "vertices": 2000,
+          "materials": [
+            "dark",
+            "steel",
+            "bronze",
+            "teal",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -1.74,
+              0.0,
+              -4.7
+            ],
+            "max": [
+              1.1,
+              6.2,
+              4.72
+            ]
+          }
+        }
+      ],
+      "bytes": 100884,
+      "sha256": "4cc8b87c9c24329739f8c3a271bb3710fc348ddbe96957d50e6fcbe225f5d1a7"
+    },
+    "PressureVessel": {
+      "file": "PressureVessel.glb",
+      "name": "PressureVessel",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -1.35,
+          0.0,
+          -1.35
+        ],
+        "max": [
+          1.64,
+          5.45,
+          1.56
+        ]
+      },
+      "heightM": 5.45,
+      "sourceBoundsM": {
+        "min": [
+          -1.35,
+          0.0,
+          -1.35
+        ],
+        "max": [
+          1.64,
+          5.45,
+          1.56
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 6596,
+      "vertices": 4374,
+      "primitives": 7,
+      "parts": [
+        {
+          "id": "vessel",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -1.35,
+              0.0,
+              -1.35
+            ],
+            "max": [
+              1.64,
+              5.45,
+              1.5275
+            ]
+          },
+          "triangles": 3336,
+          "vertices": 2646,
+          "materials": [
+            "steel",
+            "teal",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -1.35,
+              0.0,
+              -1.35
+            ],
+            "max": [
+              1.64,
+              5.45,
+              1.5275
+            ]
+          }
+        },
+        {
+          "id": "fan",
+          "parent": "vessel",
+          "pivotM": [
+            0.0,
+            2.4,
+            1.44
+          ],
+          "localPivotM": [
+            0.0,
+            2.4,
+            1.44
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.62,
+              -0.5408533757520178,
+              -0.12
+            ],
+            "max": [
+              0.62,
+              0.5408533757520178,
+              0.12
+            ]
+          },
+          "triangles": 3260,
+          "vertices": 1728,
+          "materials": [
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -0.62,
+              1.8591466242479822,
+              1.3199999999999998
+            ],
+            "max": [
+              0.62,
+              2.9408533757520177,
+              1.56
+            ]
+          }
+        }
+      ],
+      "bytes": 244968,
+      "sha256": "3bb44a85e7724a55e228e7558e29250f5524a6b8c0b011e53da1f6880c1080cb"
+    },
+    "CoolingStack": {
+      "file": "CoolingStack.glb",
+      "name": "CoolingStack",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -1.38,
+          0.0,
+          -1.38
+        ],
+        "max": [
+          1.75,
+          4.6,
+          1.38
+        ]
+      },
+      "heightM": 4.6,
+      "sourceBoundsM": {
+        "min": [
+          -1.38,
+          0.0,
+          -1.38
+        ],
+        "max": [
+          1.75,
+          4.6,
+          1.38
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 2124,
+      "vertices": 2112,
+      "primitives": 5,
+      "parts": [
+        {
+          "id": "stack",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -1.38,
+              0.0,
+              -1.38
+            ],
+            "max": [
+              1.75,
+              4.6,
+              1.38
+            ]
+          },
+          "triangles": 2124,
+          "vertices": 2112,
+          "materials": [
+            "steel",
+            "dark",
+            "bronze",
+            "teal",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -1.38,
+              0.0,
+              -1.38
+            ],
+            "max": [
+              1.75,
+              4.6,
+              1.38
+            ]
+          }
+        }
+      ],
+      "bytes": 108380,
+      "sha256": "ddb52830dca176b25a9588f9a7b221980720fa43f417bd708144462b2fa53ba4"
+    },
+    "ArticulatedServiceArm": {
+      "file": "ArticulatedServiceArm.glb",
+      "name": "ArticulatedServiceArm",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -1.05,
+          0.0,
+          -1.04
+        ],
+        "max": [
+          1.05,
+          3.84,
+          4.83
+        ]
+      },
+      "heightM": 3.84,
+      "sourceBoundsM": {
+        "min": [
+          -1.05,
+          0.0,
+          -1.04
+        ],
+        "max": [
+          1.05,
+          3.84,
+          4.83
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 4260,
+      "vertices": 3130,
+      "primitives": 15,
+      "parts": [
+        {
+          "id": "base",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -1.05,
+              0.0,
+              -1.04
+            ],
+            "max": [
+              1.05,
+              2.5,
+              1.04
+            ]
+          },
+          "triangles": 1132,
+          "vertices": 1010,
+          "materials": [
+            "dark",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -1.05,
+              0.0,
+              -1.04
+            ],
+            "max": [
+              1.05,
+              2.5,
+              1.04
+            ]
+          }
+        },
+        {
+          "id": "shoulder",
+          "parent": "base",
+          "pivotM": [
+            0.0,
+            2.25,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            2.25,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.41,
+              -0.41,
+              -0.45
+            ],
+            "max": [
+              0.45,
+              0.41,
+              2.9
+            ]
+          },
+          "triangles": 1368,
+          "vertices": 852,
+          "materials": [
+            "bronze",
+            "steel",
+            "teal",
+            "dark"
+          ],
+          "boundsM": {
+            "min": [
+              -0.41,
+              1.84,
+              -0.45
+            ],
+            "max": [
+              0.45,
+              2.66,
+              2.9
+            ]
+          }
+        },
+        {
+          "id": "forearm",
+          "parent": "shoulder",
+          "pivotM": [
+            0.0,
+            2.25,
+            2.52
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            2.52
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.31,
+              -0.1053910524340094,
+              -0.0753910524340094
+            ],
+            "max": [
+              0.35,
+              1.59,
+              1.625
+            ]
+          },
+          "triangles": 932,
+          "vertices": 682,
+          "materials": [
+            "steel",
+            "bronze",
+            "teal"
+          ],
+          "boundsM": {
+            "min": [
+              -0.31,
+              2.1446089475659904,
+              2.4446089475659907
+            ],
+            "max": [
+              0.35,
+              3.84,
+              4.145
+            ]
+          }
+        },
+        {
+          "id": "claw",
+          "parent": "forearm",
+          "pivotM": [
+            0.0,
+            3.53,
+            3.82
+          ],
+          "localPivotM": [
+            0.0,
+            1.28,
+            1.3
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.395,
+              -0.41,
+              -0.07
+            ],
+            "max": [
+              0.395,
+              0.25,
+              1.01
+            ]
+          },
+          "triangles": 828,
+          "vertices": 586,
+          "materials": [
+            "dark",
+            "bronze",
+            "steel",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -0.395,
+              3.1199999999999997,
+              3.75
+            ],
+            "max": [
+              0.395,
+              3.78,
+              4.83
+            ]
+          }
+        }
+      ],
+      "bytes": 177776,
+      "sha256": "37046d56e7849d4a63146db071b3f6cb746c4752b87b05f04288f833256122c4"
+    },
+    "RelicGate": {
+      "file": "RelicGate.glb",
+      "name": "RelicGate",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -4.84,
+          0.0,
+          -0.725
+        ],
+        "max": [
+          4.84,
+          4.95,
+          0.9175
+        ]
+      },
+      "heightM": 4.95,
+      "sourceBoundsM": {
+        "min": [
+          -4.84,
+          0.0,
+          -0.725
+        ],
+        "max": [
+          4.84,
+          4.95,
+          0.9175
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 2116,
+      "vertices": 2208,
+      "primitives": 6,
+      "parts": [
+        {
+          "id": "arch",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -4.84,
+              0.0,
+              -0.725
+            ],
+            "max": [
+              4.84,
+              4.95,
+              0.9175
+            ]
+          },
+          "triangles": 2116,
+          "vertices": 2208,
+          "materials": [
+            "dark",
+            "bronze",
+            "cyan",
+            "steel",
+            "teal",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -4.84,
+              0.0,
+              -0.725
+            ],
+            "max": [
+              4.84,
+              4.95,
+              0.9175
+            ]
+          }
+        }
+      ],
+      "bytes": 112412,
+      "sha256": "3b102f772a67e5da3b9a015b6da76da6efd7130b3a95267b103cd1050fab57de"
+    },
+    "ReactorBulkhead": {
+      "file": "ReactorBulkhead.glb",
+      "name": "ReactorBulkhead",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -7.0,
+          0.0,
+          -1.5
+        ],
+        "max": [
+          7.0,
+          10.8,
+          2.31
+        ]
+      },
+      "heightM": 10.8,
+      "sourceBoundsM": {
+        "min": [
+          -7.0,
+          0.0,
+          -1.5
+        ],
+        "max": [
+          7.0,
+          10.8,
+          2.31
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 1764,
+      "vertices": 1706,
+      "primitives": 5,
+      "parts": [
+        {
+          "id": "bulkhead",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -7.0,
+              0.0,
+              -1.5
+            ],
+            "max": [
+              7.0,
+              10.8,
+              2.31
+            ]
+          },
+          "triangles": 1764,
+          "vertices": 1706,
+          "materials": [
+            "dark",
+            "bronze",
+            "teal",
+            "steel",
+            "amber"
+          ],
+          "boundsM": {
+            "min": [
+              -7.0,
+              0.0,
+              -1.5
+            ],
+            "max": [
+              7.0,
+              10.8,
+              2.31
+            ]
+          }
+        }
+      ],
+      "bytes": 89448,
+      "sha256": "f36b4a105c05c7cfaf10588baddb75499225bc877413f4c51ed81c531adc834c"
+    },
+    "CitadelBowl": {
+      "file": "CitadelBowl.glb",
+      "name": "CitadelBowl",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -10.96,
+          -1.9,
+          -13.26
+        ],
+        "max": [
+          10.96,
+          1.0650000000000002,
+          13.26
+        ]
+      },
+      "heightM": 2.965,
+      "sourceBoundsM": {
+        "min": [
+          -10.96,
+          -1.9,
+          -13.26
+        ],
+        "max": [
+          10.96,
+          1.0650000000000002,
+          13.26
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 4712,
+      "vertices": 5128,
+      "primitives": 4,
+      "parts": [
+        {
+          "id": "arena",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -10.96,
+              -1.9,
+              -13.26
+            ],
+            "max": [
+              10.96,
+              1.0650000000000002,
+              13.26
+            ]
+          },
+          "triangles": 4712,
+          "vertices": 5128,
+          "materials": [
+            "dark",
+            "bronze",
+            "teal",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -10.96,
+              -1.9,
+              -13.26
+            ],
+            "max": [
+              10.96,
+              1.0650000000000002,
+              13.26
+            ]
+          }
+        }
+      ],
+      "bytes": 247404,
+      "sha256": "54ffa40c23678e62a9b97851d3db7ed6990868768d1228f1e8ac8c039ec7b745"
+    },
+    "CitadelSpire": {
+      "file": "CitadelSpire.glb",
+      "name": "CitadelSpire",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -1.05,
+          0.0,
+          -1.2124355652982142
+        ],
+        "max": [
+          1.13,
+          9.4,
+          1.28
+        ]
+      },
+      "heightM": 9.4,
+      "sourceBoundsM": {
+        "min": [
+          -1.05,
+          0.0,
+          -1.2124355652982142
+        ],
+        "max": [
+          1.13,
+          9.4,
+          1.28
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 212,
+      "vertices": 260,
+      "primitives": 4,
+      "parts": [
+        {
+          "id": "spire",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -1.05,
+              0.0,
+              -1.2124355652982142
+            ],
+            "max": [
+              1.13,
+              9.4,
+              1.28
+            ]
+          },
+          "triangles": 212,
+          "vertices": 260,
+          "materials": [
+            "dark",
+            "bronze",
+            "redglow",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -1.05,
+              0.0,
+              -1.2124355652982142
+            ],
+            "max": [
+              1.13,
+              9.4,
+              1.28
+            ]
+          }
+        }
+      ],
+      "bytes": 18112,
+      "sha256": "0c9049047c0f30b4df6c7049ca44c4e977804842576984a94b37ec62cc518019"
+    },
+    "CableDrum": {
+      "file": "CableDrum.glb",
+      "name": "CableDrum",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -0.925,
+          0.0,
+          -1.15
+        ],
+        "max": [
+          0.925,
+          1.58,
+          1.15
+        ]
+      },
+      "heightM": 1.58,
+      "sourceBoundsM": {
+        "min": [
+          -0.925,
+          0.0,
+          -1.15
+        ],
+        "max": [
+          0.925,
+          1.58,
+          1.15
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 504,
+      "vertices": 512,
+      "primitives": 4,
+      "parts": [
+        {
+          "id": "drum",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.925,
+              0.0,
+              -1.15
+            ],
+            "max": [
+              0.925,
+              1.58,
+              1.15
+            ]
+          },
+          "triangles": 504,
+          "vertices": 512,
+          "materials": [
+            "dark",
+            "bronze",
+            "rubber",
+            "teal"
+          ],
+          "boundsM": {
+            "min": [
+              -0.925,
+              0.0,
+              -1.15
+            ],
+            "max": [
+              0.925,
+              1.58,
+              1.15
+            ]
+          }
+        }
+      ],
+      "bytes": 30708,
+      "sha256": "6ac8e2191b8d48dcd79e4b051be436390fd9e563fb4fcda49488858f7a3a8bc0"
+    },
+    "RelicLauncher": {
+      "file": "RelicLauncher.glb",
+      "name": "RelicLauncher",
+      "category": "weapon",
+      "boundsM": {
+        "min": [
+          -1.1967999999999999,
+          0.0,
+          -1.35
+        ],
+        "max": [
+          1.1967999999999999,
+          2.22,
+          2.145
+        ]
+      },
+      "heightM": 2.22,
+      "sourceBoundsM": {
+        "min": [
+          -1.1967999999999999,
+          0.0,
+          -1.35
+        ],
+        "max": [
+          1.1967999999999999,
+          2.22,
+          2.145
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {
+        "muzzle": [
+          0.0,
+          -2.145,
+          -1.76
+        ]
+      },
+      "triangles": 11052,
+      "vertices": 7016,
+      "primitives": 15,
+      "parts": [
+        {
+          "id": "chassis",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -1.1967999999999999,
+              0.0,
+              -1.35
+            ],
+            "max": [
+              1.1967999999999999,
+              1.03,
+              1.35
+            ]
+          },
+          "triangles": 4828,
+          "vertices": 2872,
+          "materials": [
+            "dark",
+            "ivory",
+            "teal",
+            "rubber",
+            "bronze",
+            "steel"
+          ],
+          "boundsM": {
+            "min": [
+              -1.1967999999999999,
+              0.0,
+              -1.35
+            ],
+            "max": [
+              1.1967999999999999,
+              1.03,
+              1.35
+            ]
+          }
+        },
+        {
+          "id": "turret",
+          "parent": "chassis",
+          "pivotM": [
+            0.0,
+            1.06,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            1.06,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.65,
+              -0.15,
+              -0.65
+            ],
+            "max": [
+              0.65,
+              1.08,
+              0.75
+            ]
+          },
+          "triangles": 1208,
+          "vertices": 692,
+          "materials": [
+            "bronze",
+            "dark",
+            "ivory",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -0.65,
+              0.91,
+              -0.65
+            ],
+            "max": [
+              0.65,
+              2.14,
+              0.75
+            ]
+          }
+        },
+        {
+          "id": "yoke",
+          "parent": "turret",
+          "pivotM": [
+            0.0,
+            1.76,
+            0.44
+          ],
+          "localPivotM": [
+            0.0,
+            0.7,
+            0.44
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.72,
+              -0.445,
+              -0.575
+            ],
+            "max": [
+              0.72,
+              0.26,
+              0.26
+            ]
+          },
+          "triangles": 1176,
+          "vertices": 660,
+          "materials": [
+            "steel",
+            "bronze"
+          ],
+          "boundsM": {
+            "min": [
+              -0.72,
+              1.315,
+              -0.13499999999999995
+            ],
+            "max": [
+              0.72,
+              2.02,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "barrels",
+          "parent": "yoke",
+          "pivotM": [
+            0.0,
+            1.76,
+            0.45
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.01
+          ],
+          "localBoundsM": {
+            "min": [
+              -0.46,
+              -0.46,
+              -0.14000000000000007
+            ],
+            "max": [
+              0.46,
+              0.46,
+              1.695
+            ]
+          },
+          "triangles": 3840,
+          "vertices": 2792,
+          "materials": [
+            "bronze",
+            "steel",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -0.46,
+              1.3,
+              0.30999999999999994
+            ],
+            "max": [
+              0.46,
+              2.22,
+              2.145
+            ]
+          }
+        }
+      ],
+      "bytes": 399276,
+      "sha256": "728554ae18fc79f945a190aea31e95d85f2800f05f7ed5d2f909f8b8eb838430"
+    },
+    "DistantFoundryWorks": {
+      "file": "DistantFoundryWorks.glb",
+      "name": "DistantFoundryWorks",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -4.1,
+          -58.0,
+          -4.38
+        ],
+        "max": [
+          4.1,
+          19.115,
+          3.63
+        ]
+      },
+      "heightM": 77.115,
+      "sourceBoundsM": {
+        "min": [
+          -4.1,
+          -58.0,
+          -4.38
+        ],
+        "max": [
+          4.1,
+          19.115,
+          3.63
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 4024,
+      "vertices": 4202,
+      "primitives": 5,
+      "parts": [
+        {
+          "id": "architecture",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -4.1,
+              -58.0,
+              -4.38
+            ],
+            "max": [
+              4.1,
+              19.115,
+              3.63
+            ]
+          },
+          "triangles": 4024,
+          "vertices": 4202,
+          "materials": [
+            "dark",
+            "steel",
+            "bronze",
+            "teal",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -4.1,
+              -58.0,
+              -4.38
+            ],
+            "max": [
+              4.1,
+              19.115,
+              3.63
+            ]
+          }
+        }
+      ],
+      "bytes": 206492,
+      "sha256": "fe9a992735341a5a569ef485aaaf8529d508ae1ad1f696cc9a5b632ba748f388"
+    },
+    "DistantTransferGallery": {
+      "file": "DistantTransferGallery.glb",
+      "name": "DistantTransferGallery",
+      "category": "environment",
+      "boundsM": {
+        "min": [
+          -11.2,
+          -70.0,
+          -2.3
+        ],
+        "max": [
+          11.2,
+          4.97,
+          2.25
+        ]
+      },
+      "heightM": 74.97,
+      "sourceBoundsM": {
+        "min": [
+          -11.2,
+          -70.0,
+          -2.3
+        ],
+        "max": [
+          11.2,
+          4.97,
+          2.25
+        ]
+      },
+      "originOffsetM": [
+        0,
+        0,
+        0
+      ],
+      "anchorsM": {},
+      "triangles": 1612,
+      "vertices": 1700,
+      "primitives": 5,
+      "parts": [
+        {
+          "id": "architecture",
+          "parent": null,
+          "pivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localPivotM": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "localBoundsM": {
+            "min": [
+              -11.2,
+              -70.0,
+              -2.3
+            ],
+            "max": [
+              11.2,
+              4.97,
+              2.25
+            ]
+          },
+          "triangles": 1612,
+          "vertices": 1700,
+          "materials": [
+            "dark",
+            "steel",
+            "teal",
+            "bronze",
+            "cyan"
+          ],
+          "boundsM": {
+            "min": [
+              -11.2,
+              -70.0,
+              -2.3
+            ],
+            "max": [
+              11.2,
+              4.97,
+              2.25
+            ]
+          }
+        }
+      ],
+      "bytes": 87444,
+      "sha256": "13c0e8556d26498ecaa258d06243a331f07773e2365689b965e8ecbfeb169387"
+    }
+  }
+}

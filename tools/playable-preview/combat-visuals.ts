@@ -276,26 +276,27 @@ export class RobotFormation {
   dispose(){for(const mesh of [this.body,this.eyes,this.treadMark]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 
-export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
+export type ProjectileAnchorProfile={troopHeight?:number;commanderHeight?:number;commanderOriginZ?:number;enemyHeight?:number;eliteHeight?:number;crateHeight?:number;orbHeight?:number};
+export type MissileOptions={anchors?:ProjectileAnchorProfile;depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
 type FriendlyPath={shot:Shot;originZ:number;launch:number;targetZ:number;targetHeight:number;targetId?:number;boss:boolean};
 /** The core owns X/Z collision. These anchors lift that same plane onto visible geometry. */
-function targetHeight(kind:Target['kind'],variant=0){return kind==='enemy'?(variant>0?1.65:.78):kind==='crate'?.68:kind==='orb'?1.1:kind==='hazard'?.7:1.1;}
+function targetHeight(kind:Target['kind'],variant=0,anchors?:ProjectileAnchorProfile){return kind==='enemy'?(variant>0?(anchors?.eliteHeight??1.65):(anchors?.enemyHeight??.78)):kind==='crate'?(anchors?.crateHeight??.68):kind==='orb'?(anchors?.orbHeight??1.1):kind==='hazard'?.7:1.1;}
 function targetSurface(target:Target){return target.z-Math.min(.85,Math.max(0,target.depth??0)*.8);}
 export function combatImpactPoint(effect:Pick<Effect,'x'|'z'|'variant'|'entityId'>,options:MissileOptions){
   const boss=effect.variant===3||effect.variant===4;
   const target=options.targets?.find(t=>t.id===effect.entityId);
   const kind=target?.kind??(effect.variant===-1?'crate':effect.variant===-3?'orb':'enemy');
-  return new T.Vector3(effect.x,boss?(options.bossY??0)+(options.bossImpactHeight??4.31):targetHeight(kind,effect.variant),
+  return new T.Vector3(effect.x,boss?(options.bossY??0)+(options.bossImpactHeight??4.31):targetHeight(kind,effect.variant,options.anchors),
     -(boss?effect.z-(options.bossSurfaceOffset??.85):effect.z-(target?Math.min(.85,Math.max(0,target.depth??0)*.8):0))*options.depthScale);
 }
 function acquirePath(shot:Shot,options:MissileOptions,delta:number):FriendlyPath{
-  const troop=shot.owner==='troop',launch=troop?.9:shot.kind==='missile'?2.08:shot.kind==='cannon'?1.42:shot.kind==='rail'?1.8:1.35;
+  const troop=shot.owner==='troop',launch=troop?(options.anchors?.troopHeight??.9):(options.anchors?.commanderHeight??(shot.kind==='missile'?2.08:shot.kind==='cannon'?1.42:shot.kind==='rail'?1.8:1.35));
   const source=troop?options.formation?.filter(p=>Math.abs(p.x-shot.x)<.18).sort((a,b)=>Math.abs(a.z-(shot.z-shot.dz*delta))-Math.abs(b.z-(shot.z-shot.dz*delta)))[0]:undefined;
-  const originZ=source?.z??(troop?Math.min(-.75,shot.z-shot.dz*delta):.4);
+  const originZ=source?.z??(troop?Math.min(-.75,shot.z-shot.dz*delta):(options.anchors?.commanderOriginZ??.4));
   const path:FriendlyPath={shot:{...shot},originZ,launch,targetZ:10,targetHeight:1.25,boss:false};
   // Predict only the already-authoritative horizontal ray; ordinary fire never steers.
   const target=options.targets?.filter(t=>t.hp>0&&t.kind!=='hazard'&&t.op!==2&&t.z>shot.z-.2&&Math.abs(t.x-(shot.x+shot.dx*(t.z-shot.z)/Math.max(1,shot.dz)))<t.size+.08).sort((a,b)=>a.z-b.z)[0];
-  if(target){path.targetId=target.id;path.targetZ=targetSurface(target);path.targetHeight=targetHeight(target.kind,target.variant);}
+  if(target){path.targetId=target.id;path.targetZ=targetSurface(target);path.targetHeight=targetHeight(target.kind,target.variant,options.anchors);}
   else if(options.bossPhase){path.boss=true;path.targetZ=(options.bossZ??12)-(options.bossSurfaceOffset??.85);path.targetHeight=(options.bossY??0)+(options.bossImpactHeight??4.31);}
   return path;
 }
@@ -349,7 +350,7 @@ export class CombatMissiles {
       for(const old of this.friendlyPaths){if(used.has(old)||old.shot.kind!==p.kind||old.shot.owner!==p.owner)continue;
         const error=Math.hypot(old.shot.x+p.dx*delta-p.x,old.shot.z+p.dz*delta-p.z);if(error<best){best=error;path=old;}}
       if(path){used.add(path);if(path.boss&&options.bossPhase){path.targetZ=(options.bossZ??12)-(options.bossSurfaceOffset??.85);path.targetHeight=(options.bossY??0)+(options.bossImpactHeight??4.31);}
-        else if(path.targetId!==undefined){const target=options.targets?.find(t=>t.id===path!.targetId);if(target){path.targetZ=targetSurface(target);path.targetHeight=targetHeight(target.kind,target.variant);}}
+        else if(path.targetId!==undefined){const target=options.targets?.find(t=>t.id===path!.targetId);if(target){path.targetZ=targetSurface(target);path.targetHeight=targetHeight(target.kind,target.variant,options.anchors);}}
       }else path=acquirePath(p,options,delta||1/60);
       // Retain the prior aim plane if a target dies; surviving rail rounds never jump to another height.
       path.shot={...p};paths.push(path);const pose=presentPath(p,path,options);

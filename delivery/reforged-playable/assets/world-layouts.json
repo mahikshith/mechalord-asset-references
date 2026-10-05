@@ -1,0 +1,4035 @@
+{
+  "format": 1,
+  "units": "metres",
+  "up": "+Y",
+  "forward": "+Z",
+  "artDirection": {
+    "palette": "Dark blue slate floors, warm bronze structure, teal machinery; ivory confined to small armour plates.",
+    "floor": "Continuous dark deck, thin raised maintenance hatches and noncoplanar engineered seams; no checkerboard tile grid.",
+    "silhouette": "Octagonal suspended islands, offset tapered supports, vertical reactor banks and a broad citadel bowl.",
+    "rhythm": "Asymmetrical large landmarks with quiet gaps; tiny random clutter is deliberately excluded.",
+    "play_space": "Route centre remains open. Structural machinery sits outside the central +/-350cm travel strip.",
+    "articulation": "Robot arm shoulder/forearm/claw, pressure-vessel turbine and launcher turret/barrels retain explicit pivots.",
+    "camera": "Portrait overview places the commander near the lower quarter; separate oblique inspection views show real depth.",
+    "scope": "Detailed native master meshes with rounded equipment, fasteners and hydraulic/conduit assemblies; mobile reduction follows visual acceptance."
+  },
+  "levels": [
+    {
+      "name": "SkyforgeViaduct",
+      "label": "Skyforge Viaduct",
+      "description": "Suspended octagonal islands overlap into a narrow spine. Offset buttresses, a lone maintenance arm and distant machinery reveal the height without fencing the battle route.",
+      "placements": [
+        {
+          "asset": "RelicMarshal",
+          "label": "Commander",
+          "p": [
+            0.0,
+            0.0,
+            -2.8
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicMarshal",
+            "label": "Commander",
+            "p": [
+              0,
+              280,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_00",
+          "p": [
+            -1.35,
+            0.0,
+            -4.15
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_00",
+            "p": [
+              -135,
+              415,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_01",
+          "p": [
+            -0.45,
+            0.0,
+            -4.15
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_01",
+            "p": [
+              -45,
+              415,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_02",
+          "p": [
+            0.45,
+            0.0,
+            -4.15
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_02",
+            "p": [
+              45,
+              415,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_03",
+          "p": [
+            1.35,
+            0.0,
+            -4.15
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_03",
+            "p": [
+              135,
+              415,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SuspendedIsland",
+          "label": "SkyIsland_0",
+          "p": [
+            0.0,
+            0.0,
+            -2.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SuspendedIsland",
+            "label": "SkyIsland_0",
+            "p": [
+              0,
+              220,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "LeftSuspension_0",
+          "p": [
+            -4.9,
+            -0.35,
+            -0.1
+          ],
+          "quaternion": [
+            -0.0,
+            -0.15643446504023087,
+            -0.0,
+            0.9876883405951378
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "LeftSuspension_0",
+            "p": [
+              -490,
+              10,
+              -35
+            ],
+            "r": [
+              0,
+              -18,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "RightSuspension_0",
+          "p": [
+            4.9,
+            -0.35,
+            -3.9
+          ],
+          "quaternion": [
+            0.0,
+            0.9876883405951378,
+            0.0,
+            0.15643446504023092
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "RightSuspension_0",
+            "p": [
+              490,
+              390,
+              -35
+            ],
+            "r": [
+              0,
+              162,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SuspendedIsland",
+          "label": "SkyIsland_1",
+          "p": [
+            -0.7,
+            0.0,
+            8.6
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SuspendedIsland",
+            "label": "SkyIsland_1",
+            "p": [
+              -70,
+              -860,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "LeftSuspension_1",
+          "p": [
+            -5.6,
+            -0.35,
+            10.7
+          ],
+          "quaternion": [
+            -0.0,
+            -0.15643446504023087,
+            -0.0,
+            0.9876883405951378
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "LeftSuspension_1",
+            "p": [
+              -560,
+              -1070,
+              -35
+            ],
+            "r": [
+              0,
+              -18,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "RightSuspension_1",
+          "p": [
+            4.2,
+            -0.35,
+            6.9
+          ],
+          "quaternion": [
+            0.0,
+            0.9876883405951378,
+            0.0,
+            0.15643446504023092
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "RightSuspension_1",
+            "p": [
+              420,
+              -690,
+              -35
+            ],
+            "r": [
+              0,
+              162,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SuspendedIsland",
+          "label": "SkyIsland_2",
+          "p": [
+            0.7,
+            0.0,
+            19.4
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SuspendedIsland",
+            "label": "SkyIsland_2",
+            "p": [
+              70,
+              -1940,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "LeftSuspension_2",
+          "p": [
+            -4.2,
+            -0.35,
+            21.5
+          ],
+          "quaternion": [
+            -0.0,
+            -0.15643446504023087,
+            -0.0,
+            0.9876883405951378
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "LeftSuspension_2",
+            "p": [
+              -420,
+              -2150,
+              -35
+            ],
+            "r": [
+              0,
+              -18,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "RightSuspension_2",
+          "p": [
+            5.6,
+            -0.35,
+            17.7
+          ],
+          "quaternion": [
+            0.0,
+            0.9876883405951378,
+            0.0,
+            0.15643446504023092
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "RightSuspension_2",
+            "p": [
+              560,
+              -1770,
+              -35
+            ],
+            "r": [
+              0,
+              162,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SuspendedIsland",
+          "label": "SkyIsland_3",
+          "p": [
+            0.0,
+            0.0,
+            30.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SuspendedIsland",
+            "label": "SkyIsland_3",
+            "p": [
+              0,
+              -3020,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "LeftSuspension_3",
+          "p": [
+            -4.9,
+            -0.35,
+            32.3
+          ],
+          "quaternion": [
+            -0.0,
+            -0.15643446504023087,
+            -0.0,
+            0.9876883405951378
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "LeftSuspension_3",
+            "p": [
+              -490,
+              -3230,
+              -35
+            ],
+            "r": [
+              0,
+              -18,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "RightSuspension_3",
+          "p": [
+            4.9,
+            -0.35,
+            28.5
+          ],
+          "quaternion": [
+            0.0,
+            0.9876883405951378,
+            0.0,
+            0.15643446504023092
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "RightSuspension_3",
+            "p": [
+              490,
+              -2850,
+              -35
+            ],
+            "r": [
+              0,
+              162,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SpineConnector",
+          "label": "SuspensionSpine_0",
+          "p": [
+            0.0,
+            0.0,
+            3.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SpineConnector",
+            "label": "SuspensionSpine_0",
+            "p": [
+              0,
+              -320,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SpineConnector",
+          "label": "SuspensionSpine_1",
+          "p": [
+            0.0,
+            0.0,
+            14.0
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SpineConnector",
+            "label": "SuspensionSpine_1",
+            "p": [
+              0,
+              -1400,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SpineConnector",
+          "label": "SuspensionSpine_2",
+          "p": [
+            0.0,
+            0.0,
+            24.8
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SpineConnector",
+            "label": "SuspensionSpine_2",
+            "p": [
+              0,
+              -2480,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RelicGate",
+          "label": "SkyforgeRelicArch",
+          "p": [
+            -0.2,
+            0.0,
+            10.3
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicGate",
+            "label": "SkyforgeRelicArch",
+            "p": [
+              -20,
+              -1030,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ArticulatedServiceArm",
+          "label": "LeftBridgeMaintenance",
+          "p": [
+            -8.05,
+            0.1,
+            12.7
+          ],
+          "quaternion": [
+            -0.0,
+            -0.49999999999999994,
+            -0.0,
+            0.8660254037844387
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ArticulatedServiceArm",
+            "label": "LeftBridgeMaintenance",
+            "p": [
+              -805,
+              -1270,
+              10
+            ],
+            "r": [
+              0,
+              -60,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "PressureVessel",
+          "label": "SkyPressureNorth",
+          "p": [
+            9.0,
+            -1.6,
+            24.8
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "PressureVessel",
+            "label": "SkyPressureNorth",
+            "p": [
+              900,
+              -2480,
+              -160
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "CoolingStack",
+          "label": "SkyCoolingSouth",
+          "p": [
+            -8.5,
+            -0.6,
+            4.5
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            0.85,
+            0.85,
+            0.85
+          ],
+          "source": {
+            "asset": "CoolingStack",
+            "label": "SkyCoolingSouth",
+            "p": [
+              -850,
+              -450,
+              -60
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              0.85,
+              0.85,
+              0.85
+            ]
+          }
+        },
+        {
+          "asset": "CableDrum",
+          "label": "SkyCableCradle",
+          "p": [
+            7.0,
+            -0.05,
+            8.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "CableDrum",
+            "label": "SkyCableCradle",
+            "p": [
+              700,
+              -820,
+              -5
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RelicLauncher",
+          "label": "SkyforgeLauncher",
+          "p": [
+            -8.2,
+            0.0,
+            -1.8
+          ],
+          "quaternion": [
+            0.0,
+            0.08715574274765817,
+            0.0,
+            0.9961946980917455
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicLauncher",
+            "label": "SkyforgeLauncher",
+            "p": [
+              -820,
+              180,
+              0
+            ],
+            "r": [
+              0,
+              10,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RustCrawler",
+          "label": "SkyScoutLeft",
+          "p": [
+            -2.1,
+            0.0,
+            16.5
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RustCrawler",
+            "label": "SkyScoutLeft",
+            "p": [
+              -210,
+              -1650,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RustCrawler",
+          "label": "SkyScoutRight",
+          "p": [
+            2.35,
+            0.0,
+            21.0
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RustCrawler",
+            "label": "SkyScoutRight",
+            "p": [
+              235,
+              -2100,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ArcWarden",
+          "label": "SkyforgeElite",
+          "p": [
+            0.0,
+            0.0,
+            28.3
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ArcWarden",
+            "label": "SkyforgeElite",
+            "p": [
+              0,
+              -2830,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "CitadelSpire",
+          "label": "FarSkyBeacon",
+          "p": [
+            8.65,
+            -1.5,
+            34.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            0.65,
+            0.65,
+            0.65
+          ],
+          "source": {
+            "asset": "CitadelSpire",
+            "label": "FarSkyBeacon",
+            "p": [
+              865,
+              -3420,
+              -150
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              0.65,
+              0.65,
+              0.65
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "LeftBridgeMaintenance_Foundation",
+          "p": [
+            -8.05,
+            0.82,
+            12.7
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "LeftBridgeMaintenance_Foundation",
+            "p": [
+              -805,
+              -1270,
+              82
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "SkyPressureNorth_Foundation",
+          "p": [
+            9.0,
+            -0.88,
+            24.8
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "SkyPressureNorth_Foundation",
+            "p": [
+              900,
+              -2480,
+              -88
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "SkyCoolingSouth_Foundation",
+          "p": [
+            -8.5,
+            0.12,
+            4.5
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "SkyCoolingSouth_Foundation",
+            "p": [
+              -850,
+              -450,
+              12
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "SkyCableCradle_Foundation",
+          "p": [
+            7.0,
+            0.67,
+            8.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "SkyCableCradle_Foundation",
+            "p": [
+              700,
+              -820,
+              67
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "SkyforgeLauncher_Foundation",
+          "p": [
+            -8.2,
+            0.72,
+            -1.8
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "SkyforgeLauncher_Foundation",
+            "p": [
+              -820,
+              180,
+              72
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "DistantFoundryWorks",
+          "label": "SkyWorksWest",
+          "p": [
+            -10.7,
+            -5.2,
+            48.5
+          ],
+          "quaternion": [
+            -0.0,
+            -0.07845909572784494,
+            -0.0,
+            0.996917333733128
+          ],
+          "scale": [
+            1.1,
+            1.28,
+            1
+          ],
+          "source": {
+            "asset": "DistantFoundryWorks",
+            "label": "SkyWorksWest",
+            "p": [
+              -1070,
+              -4850,
+              -520
+            ],
+            "r": [
+              0,
+              -9,
+              0
+            ],
+            "scale": [
+              1.1,
+              1,
+              1.28
+            ]
+          }
+        },
+        {
+          "asset": "DistantFoundryWorks",
+          "label": "SkyWorksEast",
+          "p": [
+            10.0,
+            -6.3,
+            55.4
+          ],
+          "quaternion": [
+            0.0,
+            0.13052619222005157,
+            0.0,
+            0.9914448613738104
+          ],
+          "scale": [
+            0.82,
+            1.03,
+            1.12
+          ],
+          "source": {
+            "asset": "DistantFoundryWorks",
+            "label": "SkyWorksEast",
+            "p": [
+              1000,
+              -5540,
+              -630
+            ],
+            "r": [
+              0,
+              15,
+              0
+            ],
+            "scale": [
+              0.82,
+              1.12,
+              1.03
+            ]
+          }
+        },
+        {
+          "asset": "DistantTransferGallery",
+          "label": "SkyTransferHorizon",
+          "p": [
+            0.0,
+            11.6,
+            57.9
+          ],
+          "quaternion": [
+            -0.0,
+            -0.052335956242943835,
+            -0.0,
+            0.9986295347545738
+          ],
+          "scale": [
+            1.05,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "DistantTransferGallery",
+            "label": "SkyTransferHorizon",
+            "p": [
+              0,
+              -5790,
+              1160
+            ],
+            "r": [
+              0,
+              -6,
+              0
+            ],
+            "scale": [
+              1.05,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "cameras": [
+        {
+          "name": "SkyforgePortrait",
+          "p": [
+            0.75,
+            16.4,
+            -16.9
+          ],
+          "target": [
+            0.0,
+            0.35,
+            10.3
+          ],
+          "fov": 34,
+          "aspect": 0.5625
+        },
+        {
+          "name": "SkyforgeOblique",
+          "p": [
+            21.5,
+            16.4,
+            -5.2
+          ],
+          "target": [
+            -0.35,
+            -1.2,
+            13.2
+          ],
+          "fov": 48,
+          "aspect": 0.5625
+        }
+      ]
+    },
+    {
+      "name": "ReactorTrench",
+      "label": "Reactor Trench",
+      "description": "A continuous dark route cuts below towering reactor banks. Different bank silhouettes alternate by position, while pressure equipment stays above and outside the playable trench.",
+      "placements": [
+        {
+          "asset": "RelicMarshal",
+          "label": "Commander",
+          "p": [
+            0.0,
+            0.0,
+            -2.9
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicMarshal",
+            "label": "Commander",
+            "p": [
+              0,
+              290,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_00",
+          "p": [
+            -1.35,
+            0.0,
+            -4.25
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_00",
+            "p": [
+              -135,
+              425,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_01",
+          "p": [
+            -0.45,
+            0.0,
+            -4.25
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_01",
+            "p": [
+              -45,
+              425,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_02",
+          "p": [
+            0.45,
+            0.0,
+            -4.25
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_02",
+            "p": [
+              45,
+              425,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_03",
+          "p": [
+            1.35,
+            0.0,
+            -4.25
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_03",
+            "p": [
+              135,
+              425,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SunkenRoute",
+          "label": "TrenchRun_0",
+          "p": [
+            0.0,
+            0.0,
+            -2.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SunkenRoute",
+            "label": "TrenchRun_0",
+            "p": [
+              0,
+              220,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SunkenRoute",
+          "label": "TrenchRun_1",
+          "p": [
+            0.0,
+            0.0,
+            8.5
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SunkenRoute",
+            "label": "TrenchRun_1",
+            "p": [
+              0,
+              -850,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SunkenRoute",
+          "label": "TrenchRun_2",
+          "p": [
+            0.0,
+            0.0,
+            19.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SunkenRoute",
+            "label": "TrenchRun_2",
+            "p": [
+              0,
+              -1920,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ReactorBank",
+          "label": "ReactorBank_0",
+          "p": [
+            7.0,
+            1.0,
+            3.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ReactorBank",
+            "label": "ReactorBank_0",
+            "p": [
+              700,
+              -320,
+              100
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ReactorBank",
+          "label": "ReactorBank_1",
+          "p": [
+            -7.2,
+            1.0,
+            10.0
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ReactorBank",
+            "label": "ReactorBank_1",
+            "p": [
+              -720,
+              -1000,
+              100
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ReactorBank",
+          "label": "ReactorBank_2",
+          "p": [
+            7.3,
+            1.0,
+            17.6
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ReactorBank",
+            "label": "ReactorBank_2",
+            "p": [
+              730,
+              -1760,
+              100
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ReactorBank",
+          "label": "ReactorBank_3",
+          "p": [
+            -7.6,
+            1.0,
+            24.3
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ReactorBank",
+            "label": "ReactorBank_3",
+            "p": [
+              -760,
+              -2430,
+              100
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "PressureVessel",
+          "label": "TrenchMainPressure",
+          "p": [
+            -10.1,
+            0.1,
+            2.6
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.2,
+            1.2,
+            1.2
+          ],
+          "source": {
+            "asset": "PressureVessel",
+            "label": "TrenchMainPressure",
+            "p": [
+              -1010,
+              -260,
+              10
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.2,
+              1.2,
+              1.2
+            ]
+          }
+        },
+        {
+          "asset": "CoolingStack",
+          "label": "TrenchExhaust",
+          "p": [
+            10.4,
+            0.0,
+            16.6
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            1.3,
+            1.3
+          ],
+          "source": {
+            "asset": "CoolingStack",
+            "label": "TrenchExhaust",
+            "p": [
+              1040,
+              -1660,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              1.3
+            ]
+          }
+        },
+        {
+          "asset": "ArticulatedServiceArm",
+          "label": "TrenchRepairArm",
+          "p": [
+            7.75,
+            0.6,
+            -1.0
+          ],
+          "quaternion": [
+            0.0,
+            0.573576436351046,
+            0.0,
+            0.8191520442889918
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ArticulatedServiceArm",
+            "label": "TrenchRepairArm",
+            "p": [
+              775,
+              100,
+              60
+            ],
+            "r": [
+              0,
+              70,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RelicGate",
+          "label": "TrenchRelicArch",
+          "p": [
+            0.0,
+            0.0,
+            10.9
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicGate",
+            "label": "TrenchRelicArch",
+            "p": [
+              0,
+              -1090,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ReactorBulkhead",
+          "label": "SealedReactorDoor",
+          "p": [
+            0.0,
+            0.0,
+            28.6
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ReactorBulkhead",
+            "label": "SealedReactorDoor",
+            "p": [
+              0,
+              -2860,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "CableDrum",
+          "label": "TrenchCableOne",
+          "p": [
+            -6.5,
+            0.3,
+            17.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "CableDrum",
+            "label": "TrenchCableOne",
+            "p": [
+              -650,
+              -1720,
+              30
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "CableDrum",
+          "label": "TrenchCableTwo",
+          "p": [
+            6.65,
+            0.3,
+            23.5
+          ],
+          "quaternion": [
+            0.0,
+            0.3007057995042731,
+            0.0,
+            0.9537169507482269
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "CableDrum",
+            "label": "TrenchCableTwo",
+            "p": [
+              665,
+              -2350,
+              30
+            ],
+            "r": [
+              0,
+              35,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RelicLauncher",
+          "label": "TrenchLauncher",
+          "p": [
+            -7.3,
+            0.3,
+            -4.0
+          ],
+          "quaternion": [
+            -0.0,
+            -0.10452846326765347,
+            -0.0,
+            0.9945218953682733
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicLauncher",
+            "label": "TrenchLauncher",
+            "p": [
+              -730,
+              400,
+              30
+            ],
+            "r": [
+              0,
+              -12,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RustCrawler",
+          "label": "TrenchScout",
+          "p": [
+            -2.25,
+            0.0,
+            6.9
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RustCrawler",
+            "label": "TrenchScout",
+            "p": [
+              -225,
+              -690,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ArcWarden",
+          "label": "TrenchSentinel",
+          "p": [
+            2.3,
+            0.0,
+            20.8
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ArcWarden",
+            "label": "TrenchSentinel",
+            "p": [
+              230,
+              -2080,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "TrenchMainPressure_Foundation",
+          "p": [
+            -10.1,
+            0.82,
+            2.6
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "TrenchMainPressure_Foundation",
+            "p": [
+              -1010,
+              -260,
+              82
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "TrenchExhaust_Foundation",
+          "p": [
+            10.4,
+            0.72,
+            16.6
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "TrenchExhaust_Foundation",
+            "p": [
+              1040,
+              -1660,
+              72
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "TrenchRepairArm_Foundation",
+          "p": [
+            7.75,
+            1.32,
+            -1.0
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "TrenchRepairArm_Foundation",
+            "p": [
+              775,
+              100,
+              132
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "TrenchCableOne_Foundation",
+          "p": [
+            -6.5,
+            1.02,
+            17.2
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "TrenchCableOne_Foundation",
+            "p": [
+              -650,
+              -1720,
+              102
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "TrenchCableTwo_Foundation",
+          "p": [
+            6.65,
+            1.02,
+            23.5
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "TrenchCableTwo_Foundation",
+            "p": [
+              665,
+              -2350,
+              102
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "TrenchLauncher_Foundation",
+          "p": [
+            -7.3,
+            1.02,
+            -4.0
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "TrenchLauncher_Foundation",
+            "p": [
+              -730,
+              400,
+              102
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "DistantFoundryWorks",
+          "label": "TrenchFarCooling",
+          "p": [
+            -11.0,
+            -8.5,
+            44.1
+          ],
+          "quaternion": [
+            -0.0,
+            -0.20791169081775934,
+            -0.0,
+            0.9781476007338057
+          ],
+          "scale": [
+            1.26,
+            1.45,
+            1.14
+          ],
+          "source": {
+            "asset": "DistantFoundryWorks",
+            "label": "TrenchFarCooling",
+            "p": [
+              -1100,
+              -4410,
+              -850
+            ],
+            "r": [
+              0,
+              -24,
+              0
+            ],
+            "scale": [
+              1.26,
+              1.14,
+              1.45
+            ]
+          }
+        },
+        {
+          "asset": "DistantFoundryWorks",
+          "label": "TrenchFarProcessing",
+          "p": [
+            10.3,
+            -4.0,
+            50.5
+          ],
+          "quaternion": [
+            0.0,
+            0.24192189559966773,
+            0.0,
+            0.9702957262759965
+          ],
+          "scale": [
+            0.92,
+            1.03,
+            1.1
+          ],
+          "source": {
+            "asset": "DistantFoundryWorks",
+            "label": "TrenchFarProcessing",
+            "p": [
+              1030,
+              -5050,
+              -400
+            ],
+            "r": [
+              0,
+              28,
+              0
+            ],
+            "scale": [
+              0.92,
+              1.1,
+              1.03
+            ]
+          }
+        },
+        {
+          "asset": "DistantTransferGallery",
+          "label": "TrenchTransferHorizon",
+          "p": [
+            1.0,
+            13.8,
+            55.0
+          ],
+          "quaternion": [
+            0.0,
+            0.07845909572784494,
+            0.0,
+            0.996917333733128
+          ],
+          "scale": [
+            1.3,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "DistantTransferGallery",
+            "label": "TrenchTransferHorizon",
+            "p": [
+              100,
+              -5500,
+              1380
+            ],
+            "r": [
+              0,
+              9,
+              0
+            ],
+            "scale": [
+              1.3,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "cameras": [
+        {
+          "name": "TrenchPortrait",
+          "p": [
+            -0.8,
+            16.8,
+            -17.0
+          ],
+          "target": [
+            0.0,
+            0.55,
+            9.8
+          ],
+          "fov": 34,
+          "aspect": 0.5625
+        },
+        {
+          "name": "TrenchLowSurvey",
+          "p": [
+            -20.5,
+            8.8,
+            -6.0
+          ],
+          "target": [
+            0.5,
+            2.4,
+            13.2
+          ],
+          "fov": 51,
+          "aspect": 0.5625
+        }
+      ]
+    },
+    {
+      "name": "CoreCitadel",
+      "label": "Core Citadel",
+      "description": "A narrow arrival opens into a heavy twelve-sided battle bowl. The giant boss anchors the far half, with asymmetric spires and a sealed rear reactor framing its silhouette instead of covering the lane.",
+      "placements": [
+        {
+          "asset": "RelicMarshal",
+          "label": "Commander",
+          "p": [
+            0.0,
+            0.0,
+            -2.6
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicMarshal",
+            "label": "Commander",
+            "p": [
+              0,
+              260,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_00",
+          "p": [
+            -1.35,
+            0.0,
+            -3.95
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_00",
+            "p": [
+              -135,
+              395,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_01",
+          "p": [
+            -0.45,
+            0.0,
+            -3.95
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_01",
+            "p": [
+              -45,
+              395,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_02",
+          "p": [
+            0.45,
+            0.0,
+            -3.95
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_02",
+            "p": [
+              45,
+              395,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "GearlingSentinel",
+          "label": "Legion_03",
+          "p": [
+            1.35,
+            0.0,
+            -3.95
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "GearlingSentinel",
+            "label": "Legion_03",
+            "p": [
+              135,
+              395,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SuspendedIsland",
+          "label": "CitadelArrival",
+          "p": [
+            0.0,
+            0.0,
+            -1.9
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "SuspendedIsland",
+            "label": "CitadelArrival",
+            "p": [
+              0,
+              190,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "SpineConnector",
+          "label": "CitadelThreshold",
+          "p": [
+            0.0,
+            0.0,
+            4.05
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.12,
+            1,
+            1.3
+          ],
+          "source": {
+            "asset": "SpineConnector",
+            "label": "CitadelThreshold",
+            "p": [
+              0,
+              -405,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.12,
+              1.3,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "CitadelBowl",
+          "label": "CoreArena",
+          "p": [
+            0.0,
+            0.0,
+            16.4
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "CitadelBowl",
+            "label": "CoreArena",
+            "p": [
+              0,
+              -1640,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ForgeColossus",
+          "label": "CitadelBoss",
+          "p": [
+            0.0,
+            0.0,
+            21.1
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ForgeColossus",
+            "label": "CitadelBoss",
+            "p": [
+              0,
+              -2110,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ArcWarden",
+          "label": "CitadelGuard",
+          "p": [
+            -3.4,
+            0.0,
+            13.5
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ArcWarden",
+            "label": "CitadelGuard",
+            "p": [
+              -340,
+              -1350,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RustCrawler",
+          "label": "CitadelScout",
+          "p": [
+            2.85,
+            0.0,
+            9.3
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RustCrawler",
+            "label": "CitadelScout",
+            "p": [
+              285,
+              -930,
+              0
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RelicGate",
+          "label": "CitadelArrivalArch",
+          "p": [
+            0.0,
+            0.0,
+            5.7
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicGate",
+            "label": "CitadelArrivalArch",
+            "p": [
+              0,
+              -570,
+              0
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "RelicLauncher",
+          "label": "CitadelSiegeLauncher",
+          "p": [
+            -7.2,
+            0.0,
+            -3.7
+          ],
+          "quaternion": [
+            -0.0,
+            -0.06104853953485687,
+            -0.0,
+            0.9981347984218669
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "RelicLauncher",
+            "label": "CitadelSiegeLauncher",
+            "p": [
+              -720,
+              370,
+              0
+            ],
+            "r": [
+              0,
+              -7,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "ArticulatedServiceArm",
+          "label": "CitadelForgeArm",
+          "p": [
+            11.6,
+            0.0,
+            17.6
+          ],
+          "quaternion": [
+            0.0,
+            0.3826834323650898,
+            0.0,
+            0.9238795325112867
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "source": {
+            "asset": "ArticulatedServiceArm",
+            "label": "CitadelForgeArm",
+            "p": [
+              1160,
+              -1760,
+              0
+            ],
+            "r": [
+              0,
+              45,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "asset": "PressureVessel",
+          "label": "CitadelFuelReservoir",
+          "p": [
+            -11.9,
+            -1.7,
+            20.5
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.45,
+            1.45,
+            1.45
+          ],
+          "source": {
+            "asset": "PressureVessel",
+            "label": "CitadelFuelReservoir",
+            "p": [
+              -1190,
+              -2050,
+              -170
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.45,
+              1.45,
+              1.45
+            ]
+          }
+        },
+        {
+          "asset": "CoolingStack",
+          "label": "CitadelCoolingTower",
+          "p": [
+            11.7,
+            -1.7,
+            27.1
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.2,
+            1.2,
+            1.2
+          ],
+          "source": {
+            "asset": "CoolingStack",
+            "label": "CitadelCoolingTower",
+            "p": [
+              1170,
+              -2710,
+              -170
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.2,
+              1.2,
+              1.2
+            ]
+          }
+        },
+        {
+          "asset": "ReactorBulkhead",
+          "label": "CitadelRearSeal",
+          "p": [
+            0.0,
+            -0.8,
+            32.2
+          ],
+          "quaternion": [
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "scale": [
+            1.25,
+            1.12,
+            1.1
+          ],
+          "source": {
+            "asset": "ReactorBulkhead",
+            "label": "CitadelRearSeal",
+            "p": [
+              0,
+              -3220,
+              -80
+            ],
+            "r": [
+              0,
+              180,
+              0
+            ],
+            "scale": [
+              1.25,
+              1.1,
+              1.12
+            ]
+          }
+        },
+        {
+          "asset": "CitadelSpire",
+          "label": "CitadelSpire_0",
+          "p": [
+            -9.7,
+            -0.5,
+            8.0
+          ],
+          "quaternion": [
+            -0.0,
+            -0.10452846326765347,
+            -0.0,
+            0.9945218953682733
+          ],
+          "scale": [
+            0.8,
+            0.8,
+            0.8
+          ],
+          "source": {
+            "asset": "CitadelSpire",
+            "label": "CitadelSpire_0",
+            "p": [
+              -970,
+              -800,
+              -50
+            ],
+            "r": [
+              0,
+              -12,
+              0
+            ],
+            "scale": [
+              0.8,
+              0.8,
+              0.8
+            ]
+          }
+        },
+        {
+          "asset": "CitadelSpire",
+          "label": "CitadelSpire_1",
+          "p": [
+            10.7,
+            -0.5,
+            10.8
+          ],
+          "quaternion": [
+            0.0,
+            0.15643446504023087,
+            0.0,
+            0.9876883405951378
+          ],
+          "scale": [
+            0.9,
+            0.9,
+            0.9
+          ],
+          "source": {
+            "asset": "CitadelSpire",
+            "label": "CitadelSpire_1",
+            "p": [
+              1070,
+              -1080,
+              -50
+            ],
+            "r": [
+              0,
+              18,
+              0
+            ],
+            "scale": [
+              0.9,
+              0.9,
+              0.9
+            ]
+          }
+        },
+        {
+          "asset": "CitadelSpire",
+          "label": "CitadelSpire_2",
+          "p": [
+            -10.8,
+            -0.5,
+            27.9
+          ],
+          "quaternion": [
+            -0.0,
+            -0.10452846326765347,
+            -0.0,
+            0.9945218953682733
+          ],
+          "scale": [
+            1.05,
+            1.05,
+            1.05
+          ],
+          "source": {
+            "asset": "CitadelSpire",
+            "label": "CitadelSpire_2",
+            "p": [
+              -1080,
+              -2790,
+              -50
+            ],
+            "r": [
+              0,
+              -12,
+              0
+            ],
+            "scale": [
+              1.05,
+              1.05,
+              1.05
+            ]
+          }
+        },
+        {
+          "asset": "CitadelSpire",
+          "label": "CitadelSpire_3",
+          "p": [
+            10.5,
+            -0.5,
+            30.5
+          ],
+          "quaternion": [
+            0.0,
+            0.15643446504023087,
+            0.0,
+            0.9876883405951378
+          ],
+          "scale": [
+            1.15,
+            1.15,
+            1.15
+          ],
+          "source": {
+            "asset": "CitadelSpire",
+            "label": "CitadelSpire_3",
+            "p": [
+              1050,
+              -3050,
+              -50
+            ],
+            "r": [
+              0,
+              18,
+              0
+            ],
+            "scale": [
+              1.15,
+              1.15,
+              1.15
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "CitadelFoundation_0",
+          "p": [
+            -5.2,
+            -0.4,
+            -0.8
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.2,
+            1.2,
+            1.2
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "CitadelFoundation_0",
+            "p": [
+              -520,
+              80,
+              -40
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.2,
+              1.2,
+              1.2
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "CitadelFoundation_1",
+          "p": [
+            4.9,
+            -0.4,
+            1.0
+          ],
+          "quaternion": [
+            0.0,
+            0.8191520442889918,
+            0.0,
+            0.573576436351046
+          ],
+          "scale": [
+            1.2,
+            1.2,
+            1.2
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "CitadelFoundation_1",
+            "p": [
+              490,
+              -100,
+              -40
+            ],
+            "r": [
+              0,
+              110,
+              0
+            ],
+            "scale": [
+              1.2,
+              1.2,
+              1.2
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "CitadelFoundation_2",
+          "p": [
+            -9.4,
+            -0.4,
+            23.8
+          ],
+          "quaternion": [
+            0.0,
+            0.9396926207859084,
+            -0.0,
+            -0.3420201433256687
+          ],
+          "scale": [
+            1.2,
+            1.2,
+            1.2
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "CitadelFoundation_2",
+            "p": [
+              -940,
+              -2380,
+              -40
+            ],
+            "r": [
+              0,
+              220,
+              0
+            ],
+            "scale": [
+              1.2,
+              1.2,
+              1.2
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "CitadelSiegeLauncher_Foundation",
+          "p": [
+            -7.2,
+            0.72,
+            -3.7
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "CitadelSiegeLauncher_Foundation",
+            "p": [
+              -720,
+              370,
+              72
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "CitadelForgeArm_Foundation",
+          "p": [
+            11.6,
+            0.72,
+            17.6
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "CitadelForgeArm_Foundation",
+            "p": [
+              1160,
+              -1760,
+              72
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "CitadelFuelReservoir_Foundation",
+          "p": [
+            -11.9,
+            -0.98,
+            20.5
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "CitadelFuelReservoir_Foundation",
+            "p": [
+              -1190,
+              -2050,
+              -98
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "TaperedButtress",
+          "label": "CitadelCoolingTower_Foundation",
+          "p": [
+            11.7,
+            -0.98,
+            27.1
+          ],
+          "quaternion": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.3,
+            3,
+            1.3
+          ],
+          "source": {
+            "asset": "TaperedButtress",
+            "label": "CitadelCoolingTower_Foundation",
+            "p": [
+              1170,
+              -2710,
+              -98
+            ],
+            "r": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.3,
+              3
+            ]
+          }
+        },
+        {
+          "asset": "DistantFoundryWorks",
+          "label": "CitadelWestIndustry",
+          "p": [
+            -13.6,
+            -8.0,
+            49.9
+          ],
+          "quaternion": [
+            -0.0,
+            -0.11320321376790672,
+            -0.0,
+            0.9935718556765875
+          ],
+          "scale": [
+            1.3,
+            1.58,
+            1.12
+          ],
+          "source": {
+            "asset": "DistantFoundryWorks",
+            "label": "CitadelWestIndustry",
+            "p": [
+              -1360,
+              -4990,
+              -800
+            ],
+            "r": [
+              0,
+              -13,
+              0
+            ],
+            "scale": [
+              1.3,
+              1.12,
+              1.58
+            ]
+          }
+        },
+        {
+          "asset": "DistantFoundryWorks",
+          "label": "CitadelEastIndustry",
+          "p": [
+            12.9,
+            -6.0,
+            56.9
+          ],
+          "quaternion": [
+            0.0,
+            0.18223552549214747,
+            0.0,
+            0.9832549075639546
+          ],
+          "scale": [
+            1.18,
+            1.21,
+            1.23
+          ],
+          "source": {
+            "asset": "DistantFoundryWorks",
+            "label": "CitadelEastIndustry",
+            "p": [
+              1290,
+              -5690,
+              -600
+            ],
+            "r": [
+              0,
+              21,
+              0
+            ],
+            "scale": [
+              1.18,
+              1.23,
+              1.21
+            ]
+          }
+        },
+        {
+          "asset": "DistantTransferGallery",
+          "label": "CitadelTransferHorizon",
+          "p": [
+            -1.0,
+            17.4,
+            62.1
+          ],
+          "quaternion": [
+            -0.0,
+            -0.043619387365336,
+            -0.0,
+            0.9990482215818578
+          ],
+          "scale": [
+            1.45,
+            1.12,
+            1.2
+          ],
+          "source": {
+            "asset": "DistantTransferGallery",
+            "label": "CitadelTransferHorizon",
+            "p": [
+              -100,
+              -6210,
+              1740
+            ],
+            "r": [
+              0,
+              -5,
+              0
+            ],
+            "scale": [
+              1.45,
+              1.2,
+              1.12
+            ]
+          }
+        }
+      ],
+      "cameras": [
+        {
+          "name": "CitadelPortrait",
+          "p": [
+            1.1,
+            13.1,
+            -16.8
+          ],
+          "target": [
+            0.0,
+            0.55,
+            11.1
+          ],
+          "fov": 37,
+          "aspect": 0.5625
+        },
+        {
+          "name": "CitadelBossThreeQuarter",
+          "p": [
+            17.8,
+            8.8,
+            2.1
+          ],
+          "target": [
+            0.0,
+            2.5,
+            17.7
+          ],
+          "fov": 47,
+          "aspect": 0.5625
+        }
+      ]
+    }
+  ]
+}

@@ -48,7 +48,7 @@ globalThis.AudioContext=class {
   createBuffer(c,len){const data=new Float32Array(len);return{getChannelData:()=>data};}
 };
 let session=0;
-async function harness(savedText=null,unavailable=false){
+async function harness(savedText=null,unavailable=false,currentText=null){
   const elements=new Map(ids.map(id=>[id,new Element()]));
   const levels=[0,1,2].map(level=>Object.assign(new Element(),{dataset:{level:String(level)}}));
   const relics=[0,1,2].map(relic=>Object.assign(new Element(),{dataset:{relic:String(relic)}}));
@@ -56,12 +56,13 @@ async function harness(savedText=null,unavailable=false){
   globalThis.window={addEventListener(){},speechSynthesis:{getVoices:()=>[{lang:'en-US',localService:true}],addEventListener(){},removeEventListener(){},speak(s){s.onend?.();},cancel(){}}};
   globalThis.SpeechSynthesisUtterance=class{constructor(t){this.text=t;}};
   const store=new Map(savedText===null?[]:[['mechalord-iron-front-progress-v1',savedText]]);
+  if(currentText!==null)store.set('mechalord-reforged-progress-v1',currentText);
   globalThis.localStorage={getItem:k=>{if(unavailable)throw Error('Storage disabled');return store.get(k)??null;},setItem:(k,v)=>{if(unavailable)throw Error('Quota exceeded');store.set(k,v);}};
   let nextFrame,now=performance.now();globalThis.requestAnimationFrame=f=>nextFrame=f;
   await import(pathToFileURL(output).href+'?test='+session++);await new Promise(setImmediate);
   const frame=()=>{now+=16;nextFrame(now);};
   const win=()=>{testCore.s.phase='won';testCore.s.kills=20;frame();};
-  return {elements,levels,frame,win,saved:()=>JSON.parse(store.get('mechalord-iron-front-progress-v1'))};
+  return {elements,levels,frame,win,saved:()=>JSON.parse(store.get('mechalord-reforged-progress-v1')),legacy:()=>store.get('mechalord-iron-front-progress-v1')};
 }
 
 const h=await harness(),{elements:e,frame,win,saved}=h;
@@ -78,7 +79,7 @@ for(let i=0;i<3;i++){e.get('retry').click();win();}assert.equal(saved().commande
 e.get('retry').click();assert.equal(testCore.calls.at(-1).rank,3);assert.equal(testCore.s.army,14);frame();assert.equal(e.get('power-name').textContent,'RAIL BURST');
 const steps=testCore.steps;e.get('pause').click();frame();assert.equal(testCore.steps,steps);assert.equal(e.get('paused').hidden,false);
 e.get('resume').click();frame();assert.equal(testCore.steps,steps+1);
-testCore.s.phase='destroying';frame();assert.equal(e.get('phase-label').textContent,'TYRANT DESTROYED');assert.equal(e.get('abilities').hidden,true);assert.equal(e.get('result').hidden,true);assert.equal(testCore.steps,steps+2);
+testCore.s.phase='destroying';frame();assert.equal(e.get('phase-label').textContent,'COLOSSUS DESTROYED');assert.equal(e.get('abilities').hidden,true);assert.equal(e.get('result').hidden,true);assert.equal(testCore.steps,steps+2);
 testCore.s.phase='won';frame();assert.equal(e.get('result').hidden,false);assert.equal(saved().commanderXP,510);e.get('back').click();assert.equal(e.get('starter-troops').textContent,'14');assert.equal(saved().schema,2);
 console.log('PASS: earned XP, exactly-once rewards, ranks 1–4, next-stage/retry carry, distinct power/relic HUD, pause and destruction transition.');
 
@@ -99,8 +100,8 @@ for(const [kind,label,symbol] of [['freeze','HOSTILES FROZEN','❄'],['slow','SL
 testCore.s.timePower='none';testCore.s.timePowerTime=0;battleUI.frame();assert.equal(battleUI.elements.get('time-power').hidden,true);
 testCore.s.army=25;testCore.s.commanderHp=92;testCore.s.effects=[{id:1,kind:'damage',value:8},{id:2,kind:'commanderHit',value:1}];battleUI.frame();assert.equal(battleUI.elements.get('army-loss').textContent,'−8');assert.equal(battleUI.elements.get('commander-health-value').textContent,'92/100');assert(battleUI.elements.get('commander-health').classList.values.has('health-hit'));
 testCore.s.effects=[{id:3,kind:'pickup',value:6}];battleUI.frame();assert.match(battleUI.elements.get('toast').textContent,/HASTE · RISK/);assert(!battleUI.elements.get('gate-flash').classList.values.has('show-gate'),'Pickup does not cover the battlefield with a large banner');
-testCore.s.phase='boss';testCore.s.bossState='exposed';testCore.s.bossCoreHp=20;testCore.s.bossCoreTime=4.2;battleUI.frame();assert.equal(battleUI.elements.get('route-fill').style.width,'50%');assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · CORE');assert.equal(battleUI.elements.get('objective').textContent,'50% · 4.2s');
-testCore.s.bossState='rebuilding';testCore.s.bossRevives=1;testCore.s.bossArmor=40;battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'REBUILDING');assert.equal(battleUI.elements.get('phase-label').textContent,'TYRANT · REFORGED');
+testCore.s.phase='boss';testCore.s.bossState='exposed';testCore.s.bossCoreHp=20;testCore.s.bossCoreTime=4.2;battleUI.frame();assert.equal(battleUI.elements.get('route-fill').style.width,'50%');assert.equal(battleUI.elements.get('phase-label').textContent,'COLOSSUS · CORE');assert.equal(battleUI.elements.get('objective').textContent,'50% · 4.2s');
+testCore.s.bossState='rebuilding';testCore.s.bossRevives=1;testCore.s.bossArmor=40;battleUI.frame();assert.equal(battleUI.elements.get('objective').textContent,'REBUILDING');assert.equal(battleUI.elements.get('phase-label').textContent,'COLOSSUS · REFORGED');
 battleUI.elements.get('pause-levels').click();battleUI.elements.get('start').click();battleUI.frame();assert.equal(battleUI.elements.get('army-loss').textContent,'');assert.equal(battleUI.elements.get('time-power').hidden,true);battleUI.elements.get('back').click();
 console.log('PASS: independent time-power icons and expiry, permanent casualty feedback, commander damage with surviving troops, compact pickup toast, single armor/core/rebuild bar and retry cleanup.');
 
@@ -134,6 +135,14 @@ const genuine=await harness(JSON.stringify({schema:2,commanderXP:35,cleared:[tru
 assert.equal(genuine.saved().commanderXP,35,'Existing nonzero schema-2 XP must not be replaced');
 genuine.elements.get('start').click();assert.equal(testCore.calls.at(-1).rank,0);genuine.elements.get('pause-levels').click();
 console.log('PASS: malformed storage, free stage selection, blocked-storage fallback, reload, schema-1 migration and intermediate zero-XP repair.');
+
+const oldSave=JSON.stringify({schema:2,commanderXP:250,cleared:[true,true,false],best:[11,22,0],lastLevel:1});
+const newSave=JSON.stringify({schema:2,commanderXP:475,cleared:[true,true,true],best:[101,102,103],lastLevel:2});
+const isolated=await harness(oldSave,false,newSave);isolated.elements.get('start').click();
+assert.equal(testCore.calls.at(-1).rank,3,'Existing Reforged progress takes precedence over the prior edition');
+assert.equal(testCore.calls.at(-1).level,2);isolated.win();assert.equal(isolated.legacy(),oldSave,'New rewards must not change the original edition save');
+assert(isolated.saved().commanderXP>475);isolated.elements.get('pause-levels').click();
+console.log('PASS: prior edition progress imports read-only; separate Reforged saves take precedence and never overwrite the original.');
 
 await build({entryPoints:[path.join(here,'audio.ts')],bundle:true,format:'esm',platform:'node',outfile:path.join(root,'builds/audio-check.mjs')});
 const {BattleAudio}=await import(pathToFileURL(path.join(root,'builds/audio-check.mjs')).href),audio=new BattleAudio();await audio.unlock();

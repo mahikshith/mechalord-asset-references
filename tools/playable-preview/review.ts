@@ -8,6 +8,7 @@ const core=new AssaultCore(),world=new Battlefield(canvas);
 let state:Snapshot,paused=false,previous=performance.now(),speed=1;
 let seekPower:PickupPower|undefined,missCore=false;
 const status=document.querySelector('output')!;
+document.querySelector('#toggle-tools')!.addEventListener('click',()=>{const collapsed=document.querySelector('aside')!.classList.toggle('collapsed');document.querySelector('#toggle-tools')!.textContent=collapsed?'Show controls':'Hide controls';});
 function aim(s:Snapshot){
  if(s.phase==='boss'){
   if(missCore&&s.bossState==='exposed')return s.bossX>=0?-3:3;
@@ -77,5 +78,7 @@ function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=n
  if(!paused){for(let i=0;i<speed;i++)tick(dt,true,i===speed-1);}else world.update(state,0,'paused');
  status.textContent=`${state.phase} · ${state.time.toFixed(1)}s · army ${state.army} (${state.formation.length} visible) · Marshal ${state.commanderHp.toFixed(0)}HP · kills ${state.kills} · weapon ${state.weapon} · ${state.weaponPower} ${state.weaponPermanent?'full run':state.powerTime.toFixed(1)+'s'} · ${state.timePower} ${state.timePowerTime.toFixed(1)}s · ${state.bossState} ${state.bossCoreTime.toFixed(1)}s · armor ${state.bossArmor.toFixed(0)} · core ${state.bossCoreHp.toFixed(0)} · broken mask ${state.bossPartsMask} · next ${state.bossPart} · beams ${state.lasers.length} · heal ${state.canHeal} · revive ${state.reviveAvailable} · revives ${state.bossRevives} · phase ${state.bossPhase} ${state.bossPattern}`;
  status.textContent+=` · relic active ${state.ability.toFixed(1)}s · energy ${state.energy.toFixed(0)}`;
+ const info=world.renderer.info;
+ status.textContent+=` · render ${info.render.calls} calls / ${Math.round(info.render.triangles/1000)}k triangles · ${info.memory.geometries} geometries / ${info.memory.textures} textures`;
  canvas.dataset.phase=state.phase;requestAnimationFrame(frame);
 }requestAnimationFrame(frame);

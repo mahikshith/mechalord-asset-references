@@ -1,0 +1,152 @@
+{
+  "edition": "Mechalord Reforged",
+  "assetSource": "Native Reforged geometry",
+  "runtime": "Browser WebGL + existing C++ WASM combat",
+  "files": [
+    {
+      "file": "game.js",
+      "bytes": 687240,
+      "sha256": "9d8179d1b3a46b127a57c86da447e13279d810e24bc0534ece95716b21fdc889"
+    },
+    {
+      "file": "style.css",
+      "bytes": 26049,
+      "sha256": "ee4c1689f45840bc0c837ad2d2a51691148c4d819665efd11cdaf09dcbec0c7d"
+    },
+    {
+      "file": "assault.wasm",
+      "bytes": 1294983,
+      "sha256": "d7497deba9125c7344d99d7e23f5521752ed870f4548f20a51c1b638b682888d"
+    },
+    {
+      "file": "assets/AegisVanguard.glb",
+      "bytes": 1838356,
+      "sha256": "9c5ef3b3873b5a2298dabb3c16dd01790265c1093742cbf261f011fd59b66ff0"
+    },
+    {
+      "file": "assets/ArcWarden.glb",
+      "bytes": 668764,
+      "sha256": "de6af3f6a8b803aa539de6955fbea64abc9f4c4b25971e681abcc86c56ed3ca5"
+    },
+    {
+      "file": "assets/ArticulatedServiceArm.glb",
+      "bytes": 177776,
+      "sha256": "37046d56e7849d4a63146db071b3f6cb746c4752b87b05f04288f833256122c4"
+    },
+    {
+      "file": "assets/CableDrum.glb",
+      "bytes": 30708,
+      "sha256": "6ac8e2191b8d48dcd79e4b051be436390fd9e563fb4fcda49488858f7a3a8bc0"
+    },
+    {
+      "file": "assets/CitadelBowl.glb",
+      "bytes": 247404,
+      "sha256": "54ffa40c23678e62a9b97851d3db7ed6990868768d1228f1e8ac8c039ec7b745"
+    },
+    {
+      "file": "assets/CitadelSpire.glb",
+      "bytes": 18112,
+      "sha256": "0c9049047c0f30b4df6c7049ca44c4e977804842576984a94b37ec62cc518019"
+    },
+    {
+      "file": "assets/CoolingStack.glb",
+      "bytes": 108380,
+      "sha256": "ddb52830dca176b25a9588f9a7b221980720fa43f417bd708144462b2fa53ba4"
+    },
+    {
+      "file": "assets/DistantFoundryWorks.glb",
+      "bytes": 206492,
+      "sha256": "fe9a992735341a5a569ef485aaaf8529d508ae1ad1f696cc9a5b632ba748f388"
+    },
+    {
+      "file": "assets/DistantTransferGallery.glb",
+      "bytes": 87444,
+      "sha256": "13c0e8556d26498ecaa258d06243a331f07773e2365689b965e8ecbfeb169387"
+    },
+    {
+      "file": "assets/ForgeColossus.glb",
+      "bytes": 2616172,
+      "sha256": "305172fc3fd5da6c4c4ed7f068bfb5315ceb331a079e76d45f9f32ca2ce071df"
+    },
+    {
+      "file": "assets/GearlingSentinel.glb",
+      "bytes": 735596,
+      "sha256": "99196c197041dc8e22e4921049cf00e128edd97c29b9d7683a53789ad5155bbb"
+    },
+    {
+      "file": "assets/manifest.json",
+      "bytes": 109388,
+      "sha256": "d6e2fd1ed15872495007b08314cabe6d2dd9f399deeb75edbd8c51eb1a2f7299"
+    },
+    {
+      "file": "assets/motion-data.json",
+      "bytes": 901439,
+      "sha256": "23af3a73f35316eda8741c1c455c1ef203ceb169f22f4e2e4c6b2fffbfe453c2"
+    },
+    {
+      "file": "assets/PressureVessel.glb",
+      "bytes": 244968,
+      "sha256": "3bb44a85e7724a55e228e7558e29250f5524a6b8c0b011e53da1f6880c1080cb"
+    },
+    {
+      "file": "assets/ReactorBank.glb",
+      "bytes": 100884,
+      "sha256": "4cc8b87c9c24329739f8c3a271bb3710fc348ddbe96957d50e6fcbe225f5d1a7"
+    },
+    {
+      "file": "assets/ReactorBulkhead.glb",
+      "bytes": 89448,
+      "sha256": "f36b4a105c05c7cfaf10588baddb75499225bc877413f4c51ed81c531adc834c"
+    },
+    {
+      "file": "assets/RelicGate.glb",
+      "bytes": 112412,
+      "sha256": "3b102f772a67e5da3b9a015b6da76da6efd7130b3a95267b103cd1050fab57de"
+    },
+    {
+      "file": "assets/RelicLauncher.glb",
+      "bytes": 399276,
+      "sha256": "728554ae18fc79f945a190aea31e95d85f2800f05f7ed5d2f909f8b8eb838430"
+    },
+    {
+      "file": "assets/RelicMarshal.glb",
+      "bytes": 2340984,
+      "sha256": "ee8c1a81cd14248d01fe66dbe4ac5549c615c2a83430a1d72dc9f0db363fba66"
+    },
+    {
+      "file": "assets/RustCrawler.glb",
+      "bytes": 561124,
+      "sha256": "e6e030f74e5d90e481e42b2458a183a38101a181f7ce38fcf72e57ca96f994f6"
+    },
+    {
+      "file": "assets/source-specs.json",
+      "bytes": 200737,
+      "sha256": "35f541c308da55e163e281576fe7fb67f6832ec0351b07c3276507d5cc7006e8"
+    },
+    {
+      "file": "assets/SpineConnector.glb",
+      "bytes": 159000,
+      "sha256": "348d666f7da1bf5da009cb2fb6fe5caee489430c25008fc1f4e5f17c7ff3a87e"
+    },
+    {
+      "file": "assets/SunkenRoute.glb",
+      "bytes": 223740,
+      "sha256": "c7d1f773c93c744e6676a9947a4763610acb10330486c042ebb0049695e25122"
+    },
+    {
+      "file": "assets/SuspendedIsland.glb",
+      "bytes": 213808,
+      "sha256": "8814a3fbb6f0075da10c3b9ba2f939b86bb9a88d29bee939e7c49daca2a69ac2"
+    },
+    {
+      "file": "assets/TaperedButtress.glb",
+      "bytes": 93124,
+      "sha256": "99719c937afbd663de32377d42edd5f650c1649827fe8b1c760970aa5fbda363"
+    },
+    {
+      "file": "assets/world-layouts.json",
+      "bytes": 83491,
+      "sha256": "21e9fc47a39e3441fd9775a645a2517eb3fb82c6234f0abfa3c825fa49ee7346"
+    }
+  ]
+}

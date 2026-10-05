@@ -27,8 +27,8 @@ const names = ['SHIELD', 'EMP', 'OVERDRIVE'], symbols = ['◈', 'ϟ', '»'];
 const descriptions = ['Shield protects your entire legion while active.', 'EMP damages nearby enemies and slows incoming attacks.', "Overdrive boosts your legion's damage and fire rate."];
 const abilityEffects = ['LEGION GUARD', 'PULSE + SLOW', 'ATTACK BOOST'];
 const tierNames = ['PULSE', 'TWIN', 'ARC', 'SIEGE'];
-const levelNames = ['Relic Causeway', 'Roller Foundry', 'Citadel Breach'];
-const challenges = ['Read. Recruit. Overcome. Pick gates and grow your legion.', 'Roll. Dodge. Adapt. Moving dangers test your timing.', 'Aim. Upgrade. Breach. Break through heavier defenses.'];
+const levelNames = ['Skyforge Viaduct', 'Reactor Trench', 'Core Citadel'];
+const challenges = ['Cross the skyforge. Choose gates, recruit sentinels and break the blockade.', 'Descend into the reactor works. Dodge rollers and strike between volleys.', 'Breach the core citadel. Break the Colossus piece by piece.'];
 const levelTags = ['GATES & GROWTH', 'MOVING DANGERS', 'HEAVY DEFENSES'];
 interface Progress { cleared: boolean[]; best: number[]; gateHint: boolean; lastLevel: number; commanderXP: number; }
 const progress: Progress = { cleared: [false, false, false], best: [0, 0, 0], gateHint: false, lastLevel: 0, commanderXP: 0 };
@@ -37,8 +37,11 @@ const rankThresholds = [0, 100, 250, 450];
 const headStarts = ['STANDARD DEPLOYMENT', 'HAND CANNONS · FULL RUN', 'GUIDED MISSILES · FULL RUN', 'RAIL BURST · FULL RUN'];
 function commanderRank(): number { let rank = 0; for (let i = 1; i < rankThresholds.length; i++) if (progress.commanderXP >= rankThresholds[i]) rank = i; return rank; }
 try {
-  const saved = JSON.parse(localStorage.getItem('mechalord-iron-front-progress-v1') || 'null');
+  const currentSave = localStorage.getItem('mechalord-reforged-progress-v1');
+  const saved = JSON.parse(currentSave || localStorage.getItem('mechalord-iron-front-progress-v1') || 'null');
   if (saved?.schema === 1 || saved?.schema === 2) {
+    // Import existing accomplishments once without overwriting the old edition's save.
+    migratedProgress = !currentSave;
     for (let i = 0; i < 3; ++i) {
       progress.cleared[i] = saved.cleared?.[i] === true;
       const score = saved.best?.[i]; progress.best[i] = Number.isFinite(score) ? Math.max(0, Math.min(1000000, Math.round(score))) : 0;
@@ -57,7 +60,7 @@ if (migratedProgress) saveProgress();
 let selectedLevel = progress.lastLevel;
 const seenEffects = new Set<number>(), effectOrder: number[] = [];
 function saveProgress(): void {
-  try { localStorage.setItem('mechalord-iron-front-progress-v1', JSON.stringify({ schema: 2, ...progress })); } catch { /* Session state is retained. */ }
+  try { localStorage.setItem('mechalord-reforged-progress-v1', JSON.stringify({ schema: 2, ...progress })); } catch { /* Session state is retained. */ }
 }
 function refreshLevels(): void {
   document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => {
@@ -147,7 +150,7 @@ function finish(s: Snapshot): void {
   $('result-unlock').textContent = promoted ? `${headStarts[rank]} UNLOCKED` : rank >= 3 ? 'ARSENAL MASTERED · REPLAY ANY FRONT' : `${progress.commanderXP}/${rankThresholds[rank + 1]} XP · ${headStarts[rank + 1]} NEXT`;
   const hasNext = won && level < 2;
   $('next-level').hidden = !hasNext; $('result').classList.toggle('has-next', hasNext);
-  $('result-eyebrow').textContent = `${s.levelName || levelNames[level]} ${won ? 'CLEARED' : 'ASSAULT'}`;
+  $('result-eyebrow').textContent = `${levelNames[level]} ${won ? 'CLEARED' : 'ASSAULT'}`;
   $('result-title').textContent = won ? 'VICTORY!' : 'REGROUP';
   $('result-copy').textContent = won ? `${promoted ? '“New arsenal. Next front.” ' : '“The front is ours. Forward.” '}Best score ${progress.best[level]}.` : 'Shoot gates to improve your choice. Break crates for weapon XP.';
   $('result-kills').textContent = String(s.kills); $('result-score').textContent = String(s.score);
@@ -171,9 +174,9 @@ function effects(s: Snapshot): void {
     else if (event.kind === 'block') shieldBlockUntil = s.time + .8;
     else if (event.kind === 'bossDeath') bossDied = true;
     else if (event.kind === 'pickup') pickedUp = event.value;
-    else if (event.kind === 'coreExpose') toast(s.bossRevives ? 'CORE OPEN · FINISH THE TYRANT' : 'CORE OPEN · DESTROY IT BEFORE REBUILD', 1800);
-    else if (event.kind === 'bossRevive') { secondPhaseAnnounced = true; dialogue('boss-revive', 'FORGE TYRANT', 'My core still burns. Face the furnace.', true); }
-    else if (event.kind === 'bossPartBreak') toast(event.value <= 2 ? 'CANNON LOST · BARRAGE WEAKENED' : event.value <= 4 ? 'BOOSTER LOST · TYRANT GROUNDED' : 'LEG BROKEN · REACTOR VULNERABLE', 1600);
+    else if (event.kind === 'coreExpose') toast(s.bossRevives ? 'CORE OPEN · FINISH THE COLOSSUS' : 'CORE OPEN · DESTROY IT BEFORE REBUILD', 1800);
+    else if (event.kind === 'bossRevive') { secondPhaseAnnounced = true; dialogue('boss-revive', 'FORGE COLOSSUS', 'My core still burns. Face the furnace.', true); }
+    else if (event.kind === 'bossPartBreak') toast(event.value <= 2 ? 'CANNON LOST · BARRAGE WEAKENED' : event.value <= 4 ? 'BOOSTER LOST · COLOSSUS GROUNDED' : 'LEG BROKEN · REACTOR VULNERABLE', 1600);
     else if (event.kind === 'heal' || event.kind === 'revive') { pulse($('commander-health'), 'health-restored'); toast(event.kind === 'revive' ? 'LEGION TRANSFER · BACK IN THE FIGHT' : `LEGION TRANSFER · +${event.value} HP`, 1500); }
   }
   if (sacrifices.length) world.sacrifice(sacrifices);
@@ -187,8 +190,8 @@ function effects(s: Snapshot): void {
   } else if (recruited > 0) flash(`+${recruited} TROOPS`);
   else if (gateCleared) flash('GATE CLEARED!');
   if (playing && !paused && s.phase === 'boss') {
-    if (!bossIntroduced) { bossIntroduced = true; dialogue('boss-intro', 'FORGE TYRANT', ['Your legion ends here.', 'My foundry will crush you.', 'This citadel is mine.'][s.level] ?? 'Your legion ends here.', true); }
-    else if (s.bossPhase === 2 && !secondPhaseAnnounced) { secondPhaseAnnounced = true; dialogue('boss-phase-two', 'FORGE TYRANT', 'Now face my full arsenal.', true); }
+    if (!bossIntroduced) { bossIntroduced = true; dialogue('boss-intro', 'FORGE COLOSSUS', ['Your legion ends here.', 'My foundry will crush you.', 'This citadel is mine.'][s.level] ?? 'Your legion ends here.', true); }
+    else if (s.bossPhase === 2 && !secondPhaseAnnounced) { secondPhaseAnnounced = true; dialogue('boss-phase-two', 'FORGE COLOSSUS', 'Now face my full arsenal.', true); }
   }
   if (!progress.gateHint && playing && !paused && s.targets.filter(target => target.kind === 'gate' && target.z > 0 && target.z < 26).length >= 2) {
     toast('Blue = gain. Red = danger. Shoot to improve gates.', 2700);
@@ -203,8 +206,8 @@ function hud(s: Snapshot): void {
   const percent = healthMax > 0 ? Math.max(0, Math.min(100, Math.round(100 * health / healthMax))) : 0;
   const incoming = s.phase === 'run' && distanceRemaining <= 18 && distanceRemaining > 0;
   const projectiles = boss && s.enemyShots.some(shot => shot.z > -.5 && shot.z < 10), windup = boss && s.bossAction === 'windup';
-  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? exposed ? 'TYRANT · CORE' : s.bossRevives ? 'TYRANT · REFORGED' : 'TYRANT · ARMOR' : s.levelName.toUpperCase();
-  $('objective').textContent = s.phase === 'lastStand' ? 'COMMANDER DOWN' : destroying ? '' : boss ? (rebuilding ? 'REBUILDING' : exposed ? s.bossCoreTime > 0 ? `${percent}% · ${s.bossCoreTime.toFixed(1)}s` : `${percent}% · FINISH IT` : windup ? s.bossPattern === 'laser' ? 'LASER CHARGE' : s.bossPattern === 'rockets' ? 'MISSILE LOCK' : 'CHARGING' : s.lasers.length ? 'LASER LIVE' : projectiles ? 'INCOMING' : `${percent}% ARMOR`) : s.engagement ? 'KEEP MOVING' : incoming ? 'TYRANT AHEAD' : `${Math.floor(route * 100)}% ADVANCE`;
+  $('phase-label').textContent = destroying ? 'COLOSSUS DESTROYED' : boss ? exposed ? 'COLOSSUS · CORE' : s.bossRevives ? 'COLOSSUS · REFORGED' : 'COLOSSUS · ARMOR' : levelNames[s.level].toUpperCase();
+  $('objective').textContent = s.phase === 'lastStand' ? 'COMMANDER DOWN' : destroying ? '' : boss ? (rebuilding ? 'REBUILDING' : exposed ? s.bossCoreTime > 0 ? `${percent}% · ${s.bossCoreTime.toFixed(1)}s` : `${percent}% · FINISH IT` : windup ? s.bossPattern === 'laser' ? 'LASER CHARGE' : s.bossPattern === 'rockets' ? 'MISSILE LOCK' : 'CHARGING' : s.lasers.length ? 'LASER LIVE' : projectiles ? 'INCOMING' : `${percent}% ARMOR`) : s.engagement ? 'KEEP MOVING' : incoming ? 'COLOSSUS AHEAD' : `${Math.floor(route * 100)}% ADVANCE`;
   $('route-fill').style.width = `${boss ? percent : destroying ? 0 : route * 100}%`;
   $('route-fill').classList.toggle('core-exposed', exposed); $('route-fill').classList.toggle('rebuilding', rebuilding);
   document.body.classList.toggle('destroying', destroying); $('abilities').hidden = destroying || s.phase === 'lastStand';
@@ -234,7 +237,7 @@ function hud(s: Snapshot): void {
   $('energy-fill').style.width = `${Math.max(0, Math.min(100, s.energy))}%`;
   $('ability-caption').textContent = s.ability > 0 ? `${s.relic === 0 && s.time < shieldBlockUntil ? 'HIT BLOCKED' : 'ACTIVE'} · ${s.ability.toFixed(1)}s` : s.energy >= 100 ? 'READY · TAP / SPACE' : `${Math.floor(s.energy)}% CHARGED`;
   button.setAttribute('aria-label', `${names[selected]}: ${descriptions[selected]} ${$('ability-caption').textContent}`);
-  $('combat-hint').textContent = exposed ? 'AIM AT THE REACTOR · FINISH IT' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : boss && s.bossPattern === 'laser' ? windup ? 'LASER CHARGING · PREPARE TO DODGE' : 'DODGE THE BEAM · FIRE BACK' : boss && s.bossPattern === 'rockets' ? 'BAIT THE MISSILES · THEN CHANGE LANE' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'BREAK PARTS · WEAKEN THE TYRANT' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'BREAK CRATES · EARN WEAPON XP';
+  $('combat-hint').textContent = exposed ? 'AIM AT THE REACTOR · FINISH IT' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : boss && s.bossPattern === 'laser' ? windup ? 'LASER CHARGING · PREPARE TO DODGE' : 'DODGE THE BEAM · FIRE BACK' : boss && s.bossPattern === 'rockets' ? 'BAIT THE MISSILES · THEN CHANGE LANE' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'BREAK PARTS · WEAKEN THE COLOSSUS' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'BREAK CRATES · EARN WEAPON XP';
 }
 document.querySelectorAll<HTMLButtonElement>('[data-relic]').forEach(button => button.addEventListener('click', () => {
   selected = Number(button.dataset.relic) as Relic;
