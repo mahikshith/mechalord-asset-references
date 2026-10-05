@@ -2,56 +2,58 @@
   "schema": 4,
   "scope": "Actual continuous-travel Assault browser adapter/current WASM. Automated normal controls; no Unreal, physical-device or first-time-player validation.",
   "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
-  "bytes": 1356756,
-  "sha256": "3f6378def7a483a231ace762b07aae73dc6ba00f5cedb357edd5e10ec5439d55",
-  "memoryBytes": 1179648,
-  "testedAt": "2026-10-05T20:15:43.900Z",
+  "bytes": 1563556,
+  "sha256": "0dc2c034b08289ec35b79183c166d3e541a52dab0bec934dda4d3c969babfabd",
+  "memoryBytes": 1310720,
+  "testedAt": "2026-10-05T20:44:55.094Z",
   "winningRuns": [
     {
       "level": 0,
       "relic": 0,
-      "time": 140,
+      "time": 110.1500015258789,
       "army": 1,
-      "weapon": 3,
-      "kills": 43,
-      "commanderHp": 30,
+      "weapon": 4,
+      "kills": 44,
+      "commanderHp": 31,
       "bossArmorRebuilds": 1,
       "commanderReviveUsed": false,
       "powers": [
+        2,
         1
       ],
-      "contactAttacks": 8
+      "contactAttacks": 4
     },
     {
       "level": 0,
       "relic": 1,
-      "time": 90.30000305175781,
+      "time": 90.28333282470703,
       "army": 1,
       "weapon": 4,
       "kills": 56,
-      "commanderHp": 84,
+      "commanderHp": 85,
       "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
         2,
         1
       ],
-      "contactAttacks": 5
+      "contactAttacks": 4
     },
     {
       "level": 0,
       "relic": 2,
-      "time": 135.43333435058594,
+      "time": 96.44999694824219,
       "army": 1,
-      "weapon": 3,
-      "kills": 44,
-      "commanderHp": 57,
-      "bossArmorRebuilds": 1,
+      "weapon": 4,
+      "kills": 45,
+      "commanderHp": 47,
+      "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
+        2,
         1
       ],
-      "contactAttacks": 7
+      "contactAttacks": 4
     },
     {
       "level": 1,
@@ -162,6 +164,38 @@
       "contactAttacks": 1
     }
   ],
+  "safetyRuns": [
+    {
+      "rank": 0,
+      "firstDangerousVolley": 13.333333015441895,
+      "maxRunnerShotGap": 18.333332061767578,
+      "runnerShots": 21,
+      "bossShots": 29,
+      "actualDamageEvents": 27,
+      "time": 110.1500015258789,
+      "admitted": 17,
+      "deferred": 57,
+      "unsupported": 2,
+      "existingUnsafe": 54,
+      "capacity": 0,
+      "exclusiveRocketVolleys": 1
+    },
+    {
+      "rank": 2,
+      "firstDangerousVolley": 13.333333015441895,
+      "maxRunnerShotGap": 21.333332061767578,
+      "runnerShots": 12,
+      "bossShots": 34,
+      "actualDamageEvents": 20,
+      "time": 131.43333435058594,
+      "admitted": 18,
+      "deferred": 7,
+      "unsupported": 4,
+      "existingUnsafe": 3,
+      "capacity": 0,
+      "exclusiveRocketVolleys": 1
+    }
+  ],
   "geometry": {
     "frames": 12127,
     "bodySamples": 198328,
@@ -169,8 +203,8 @@
     "formationPairs": 2762563,
     "silentOverlapCount": 0
   },
-  "tests": 67,
-  "passed": 67,
+  "tests": 69,
+  "passed": 69,
   "failed": 0,
   "results": [
     {
@@ -431,6 +465,14 @@
     },
     {
       "name": "measured enemy and roller envelopes never silently pass through the live formation",
+      "status": "pass"
+    },
+    {
+      "name": "integrated safety admits real dangerous attacks and plants all locked burst origins",
+      "status": "pass"
+    },
+    {
+      "name": "safety counters and live pending warnings reset, pause and agree at all frame rates",
       "status": "pass"
     },
     {

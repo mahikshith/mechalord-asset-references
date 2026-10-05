@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include "FormationSafety.h"
 
 // Portable browser playtest. The legacy Unreal adapter still uses BattleSimulation.
 namespace mech::assault
@@ -67,6 +68,8 @@ public:
     int level=0,army=8,weapon=1,weaponXP=0,weaponNeed=40,kills=0,score=0,effectCount=0;
     int rank=0,rankReward=0,bossPhase=1;
     bool paused=false,engagement=false;
+    int safetyAdmitted=0,safetyDeferred=0,safetyUnsupported=0,safetyExistingUnsafe=0,safetyCapacity=0,safetyAuthoredRockets=0;
+    double safetyHorizon=0;
     std::array<Target,MaxTargets> targets{};
     std::array<Shot,MaxShots> shots{};
     std::array<EnemyShot,MaxEnemyShots> enemyShots{};
@@ -102,6 +105,11 @@ private:
     double visualStrength=7,commanderChip=0,armorBudget=0,rebuildClock=0,coreGuardClock=0;
     uint64_t spawned=0;
     bool bossLaneLocked=false,bossArrived=false;
+    double committedAttackBoost=1;
+    formation_safety::Workspace safetyWorkspace{};
+    bool AdmitAttack(const formation_safety::Hazard* Proposed,int Count,int Source=0);
+    bool AdmitRanged(const Target& Enemy);
+    bool AdmitBoss(double Windup,double Aim);
     void Step(double Dt);
     void SpawnTimeline();
     void SiegeTimeline();

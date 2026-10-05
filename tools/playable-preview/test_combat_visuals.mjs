@@ -136,6 +136,18 @@ test('hostile energy orbs have bounded solid red shells and orange cores',()=>{
   missiles.update([],Array.from({length:120},(_,id)=>({id,x:0,z:9,dx:0,dz:-4,radius:.2,kind:'orb'})),missileOptions);assert.equal(missiles.orbs.count,96);assert.equal(missiles.orbCores.count,96);
   assert(missiles.orbs.material.color.r>missiles.orbs.material.color.b);assert(missiles.orbCores.material.color.r>missiles.orbCores.material.color.b);missiles.reset();assert.equal(missiles.orbCores.count,0);
 });
+test('spatial rounds preserve authoritative height and velocity instead of inventing a reactor path',()=>{
+  const shot={id:701,x:1.1,y:3.2,z:8,dx:0,dy:4.5,dz:32,kind:'cannon',owner:'commander',heavy:false};
+  const options={depthScale:1.3,bossPhase:true,bossY:9,bossZ:12,overdrive:true,weapon:4};
+  const pose=friendlyProjectilePose(shot,options);
+  assert.deepEqual(pose.position.toArray(),[1.1,3.2,-10.4]);
+  assert(pose.direction.distanceTo(new T.Vector3(0,4.5,-41.6).normalize())<1e-12);
+  const moved=friendlyProjectilePose(shot,{...options,bossY:-2,bossZ:7});
+  assert.deepEqual(moved.position.toArray(),pose.position.toArray());
+});
+test('spatial impact positions retain exact Y and Z, including a ground-level hit',()=>{
+  for(const y of [0,2.7,6.1])assert.deepEqual(combatImpactPoint({x:-1.4,y,z:9,variant:3,entityId:0},{depthScale:1,bossPhase:true,bossY:30,overdrive:false,weapon:1}).toArray(),[-1.4,y,-9]);
+});
 test('friendly powers launch from their actual rig heights and approach target height',()=>{
   for(const [kind,height] of [['missile',2.08],['cannon',1.42],['rail',1.8],['pulse',1.35]]){
     const shot={x:0,z:0,heavy:true,dx:0,dz:32,kind};missiles.update([shot],[],{...missileOptions,overdrive:false});const mesh=kind==='missile'?missiles.bodies:missiles.bullets,matrix=new T.Matrix4();mesh.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-height)<1e-6);

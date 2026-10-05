@@ -58,7 +58,7 @@ function tick(dt:number,render=true,draw=true){
  if(render){for(const event of state.effects)world.trigger(event,state);world.update(state,dt,'play',draw);if(soak)observeGeometry();}
 }
 function start(){autoRelic=true;seekPower=undefined;missCore=false;core.start(Number((document.querySelector('#relic') as HTMLSelectElement).value) as 0|1|2,Number((document.querySelector('#level') as HTMLSelectElement).value),Number((document.querySelector('#rank') as HTMLSelectElement).value));state=core.snapshot();world.reset();paused=false;}
-document.querySelector('#start')!.addEventListener('click',()=>{soak=undefined;autoRelic=true;start();});
+document.querySelector('#start')!.addEventListener('click',()=>{soak=undefined;clearGeometryHistory();autoRelic=true;start();});
 document.querySelector('#pause')!.addEventListener('click',()=>{paused=!paused;});
 document.querySelector('#step')!.addEventListener('click',()=>{paused=true;tick(1/30);});
 document.querySelector('#advance')!.addEventListener('click',()=>{paused=true;for(let i=0;i<150;i++)tick(1/30,true,i===149);});
@@ -121,10 +121,11 @@ function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=n
  status.textContent+=` · relic active ${state.ability.toFixed(1)}s · energy ${state.energy.toFixed(0)}`;
  status.textContent+=` · EMP stun ${(state.empStunTime??0).toFixed(1)}s · escort ${state.escortShield??0}/${state.escortMax??30} · carrier ${state.targets.filter(t=>t.role==='carrier').map(t=>t.ventOpen?'OPEN':'armored').join(',')||'absent'}`;
  status.textContent+=` · airborne ${state.bossY.toFixed(2)}m · enemy rounds ${state.enemyShots.length} · ${[...new Set(state.enemyShots.map(shot=>shot.emitter??'legacy'))].join(', ')}`;
+ status.textContent+=` · attack admission ${state.safetyAdmitted??0} / deferred ${state.safetyDeferred??0} / unsupported ${state.safetyUnsupported??0} / capacity ${state.safetyCapacity??0}`;
  const info=world.renderer.info;status.textContent+=` · draw calls ${info.render.calls} · triangles ${info.render.triangles} · geometries ${info.memory.geometries} · textures ${info.memory.textures}`;
  if(soak){soak.frames++;if(dt>.034)soak.longFrames++;soak.peakCalls=Math.max(soak.peakCalls,info.render.calls);soak.peakTriangles=Math.max(soak.peakTriangles,info.render.triangles);soak.peakGeometries=Math.max(soak.peakGeometries,info.memory.geometries);soak.peakTextures=Math.max(soak.peakTextures,info.memory.textures);
   if(['won','lost','lastStand'].includes(state.phase)){
-   soak.results.push({result:state.phase,seconds:state.time,rank:Number((document.querySelector('#rank') as HTMLSelectElement).value),relic:state.relic,geometries:info.memory.geometries,textures:info.memory.textures,orphanGeometry:observeGeometry()});soak.remaining--;
+   soak.results.push({result:state.phase,seconds:state.time,rank:Number((document.querySelector('#rank') as HTMLSelectElement).value),relic:state.relic,geometries:info.memory.geometries,textures:info.memory.textures,attackAdmission:{admitted:state.safetyAdmitted,deferred:state.safetyDeferred,unsupported:state.safetyUnsupported,existingUnsafe:state.safetyExistingUnsafe,capacity:state.safetyCapacity,authoredRockets:state.safetyAuthoredRockets,horizon:state.safetyHorizon},orphanGeometry:observeGeometry()});soak.remaining--;
    soakReport.textContent=JSON.stringify({scope:'Desktop real WebGL replay, 4x simulation speed. Not mobile FPS.',completed:soak.results.length,remaining:soak.remaining,wallSeconds:(performance.now()-soak.started)/1000,frames:soak.frames,framesAbove34ms:soak.longFrames,peakCalls:soak.peakCalls,peakTriangles:soak.peakTriangles,peakGeometries:soak.peakGeometries,peakTextures:soak.peakTextures,runs:soak.results},null,2);
    if(soak.remaining){(document.querySelector('#relic') as HTMLSelectElement).value=String(soak.results.length%3);start();}else{paused=true;soak=undefined;clearGeometryHistory();}
   }

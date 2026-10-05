@@ -346,10 +346,11 @@ export class EnemyWeaponCues {
 
 export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;emitters?:Partial<Record<string,T.Vector3>>;bossCharging?:boolean;bossCharge?:number;hostileRate?:number;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
 type FriendlyPath={shot:Shot;originZ:number;launch:number;targetZ:number;targetHeight:number;targetId?:number;boss:boolean};
-/** The core owns X/Z collision. These anchors lift that same plane onto visible geometry. */
+/** Legacy 2.5D layouts use surface anchors; spatial shots bypass them entirely. */
 function targetHeight(kind:Target['kind'],variant=0){return kind==='enemy'?(variant>0?1.65:.78):kind==='crate'?.68:kind==='orb'?1.1:kind==='hazard'?.7:1.1;}
 function targetSurface(target:Target){return target.z-Math.min(.85,Math.max(0,target.depth??0)*.8);}
-export function combatImpactPoint(effect:Pick<Effect,'x'|'z'|'variant'|'entityId'>,options:MissileOptions){
+export function combatImpactPoint(effect:Pick<Effect,'x'|'z'|'variant'|'entityId'>&{y?:number},options:MissileOptions){
+  if(Number.isFinite(effect.y))return new T.Vector3(effect.x,effect.y!,-effect.z*options.depthScale);
   const boss=effect.variant===3||effect.variant===4;
   const target=options.targets?.find(t=>t.id===effect.entityId);
   const kind=target?.kind??(effect.variant===-1?'crate':effect.variant===-3?'orb':'enemy');
@@ -368,6 +369,8 @@ function acquirePath(shot:Shot,options:MissileOptions,delta:number):FriendlyPath
   return path;
 }
 function presentPath(shot:Shot,path:FriendlyPath,options:MissileOptions){
+  const spatial=shot as Shot&{y?:number;dy?:number};
+  if(Number.isFinite(spatial.y)&&Number.isFinite(spatial.dy))return {position:new T.Vector3(shot.x,spatial.y!,-shot.z*options.depthScale),direction:new T.Vector3(shot.dx,spatial.dy!,-shot.dz*options.depthScale).normalize()};
   const range=Math.max(.1,path.targetZ-path.originZ),fraction=T.MathUtils.clamp((shot.z-path.originZ)/range,0,1);
   const height=T.MathUtils.lerp(path.launch,path.targetHeight,fraction);
   const dy=fraction>0&&fraction<1?(path.targetHeight-path.launch)/range*shot.dz:0;
@@ -451,6 +454,8 @@ export class CombatMissiles {
     for(const p of friendly.slice(0,this.capacity)){
       let path:FriendlyPath|undefined,best=.3;
       for(const old of this.friendlyPaths){if(used.has(old)||old.shot.kind!==p.kind||old.shot.owner!==p.owner)continue;
+        const id=(p as Shot&{id?:number}).id,previousId=(old.shot as Shot&{id?:number}).id;
+        if(id!==undefined){if(id===previousId){path=old;break;}continue;}
         const error=Math.hypot(old.shot.x+p.dx*delta-p.x,old.shot.z+p.dz*delta-p.z);if(error<best){best=error;path=old;}}
       if(path){used.add(path);if(path.boss&&options.bossPhase){path.targetZ=(options.bossZ??12)-(options.bossSurfaceOffset??.85);path.targetHeight=(options.bossY??0)+(options.bossImpactHeight??4.31);}
         else if(path.targetId!==undefined){const target=options.targets?.find(t=>t.id===path!.targetId);if(target){path.targetZ=targetSurface(target);path.targetHeight=targetHeight(target.kind,target.variant);}}

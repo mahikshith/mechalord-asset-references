@@ -198,5 +198,10 @@
     "height": 933
   },
   "consoleLogs": [],
-  "interpretation": "Geometry warm-up settles by run 3 and remains at 161; textures 13 throughout. The single retained Sprite BufferGeometry is the reusable Three.js module-global geometry. No increasing orphan count observed. Desktop replay only, not Android performance."
+  "interpretation": "Geometry warm-up settles by run 3 and remains at 161; textures 13 throughout. The single retained Sprite BufferGeometry is the reusable Three.js module-global geometry. No increasing orphan count observed. Desktop replay only, not Android performance.",
+  "observedCssCanvas": {
+    "height": 798,
+    "width": 359
+  },
+  "viewportNote": "viewport stores the requested browser override; observed CSS canvas reflects Codex browser scaling."
 }

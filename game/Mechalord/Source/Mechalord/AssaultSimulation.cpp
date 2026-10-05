@@ -127,8 +127,9 @@ void Battle::BreakBossParts()
     // Losing the emitter interrupts a committed charge rather than preserving
     // a misleading rocket/cannon cue for a replacement source.
     const bool LostCannon=(Previous&3)!=3 && (bossPartsMask&3)==3 && bossPattern==BossPattern::Heavy;
+    const bool LostSweep=(Previous&3)!=3 && (bossPartsMask&3)==3 && bossPattern==BossPattern::Sweep;
     const bool LostJets=(Previous&12)!=12 && (bossPartsMask&12)==12 && bossPattern==BossPattern::Rockets;
-    if(LostCannon || LostJets) { bossPattern=LostJets?BossPattern::Sweep:BossPattern::Laser; bossLaneLocked=false; bossClock=-.3; bossAttack=0; firePose=0; sweepIndex=-1; }
+    if(LostCannon || LostJets || LostSweep) { bossPattern=LostJets?BossPattern::Sweep:BossPattern::Laser; bossLaneLocked=false; bossClock=-.3; bossAttack=0; firePose=0; sweepIndex=-1; }
     if((bossPartsMask&48)==48) bossY=-2.55; else if((bossPartsMask&12)==12) bossY=.02;
 }
 int Battle::TargetCount() const { int N=0; for(const auto& T:targets) if(T.active) ++N; return N; }
@@ -246,6 +247,142 @@ void Battle::SiegeTimeline()
     if(At(15,47.)) SpawnCarrier(1.8,85,1);
     if(At(16,48.5)) Wave(2,9,2,0);
 }
+namespace
+{
+formation_safety::Hazard PlannedRound(double X,double Z,double Aim,double Speed,double Radius,double Start)
+{
+    formation_safety::Hazard H;
+    const double L=std::hypot(Aim-X,Z);
+    H.x=X; H.z=Z; H.vx=(Aim-X)/L*Speed; H.vz=-Z/L*Speed;
+    // Fixed-step birth quantization can shift a nominal burst by <=2 ticks.
+    // Inflate only the query envelope, never projectile damage/collision size.
+    H.radiusX=Radius+std::abs(H.vx)*.04; H.radiusZ=Radius+std::abs(H.vz)*.04; H.start=Start;
+    // Include every possible rear slot and its complete combined-radius exit.
+    H.end=Start+(Z+3.15+.36+H.radiusZ+.02)/std::max(.001,-H.vz);
+    return H;
+}
+}
+bool Battle::AdmitAttack(const formation_safety::Hazard* Proposed,int Count,int Source)
+{
+    using namespace formation_safety;
+    double Horizon=0; for(int I=0;I<Count;++I) Horizon=std::max(Horizon,Proposed[I].end);
+    safetyHorizon=Horizon;
+    auto Unsupported=[&](){++safetyDeferred; ++safetyUnsupported; return false;};
+    if(Horizon>6 || Horizon<=0 || timePower!=TimePower::None || empStunTime>0) return Unsupported();
+    bool Growth=false;
+    for(const auto& T:targets) if(T.active && T.kind==Kind::Gate && T.z>0 && T.z/3.7<=Horizon) Growth=true;
+    std::array<Body,25> Bodies{}; int NB=0; Bodies[NB++]={0,0,.4,-3,3};
+    const int Columns=std::min(4,formationSpan); const double Limit=std::max(.3,3.9-(Columns-1)*.365);
+    if(Growth)
+    {
+        // A crossing can restore slots or change a partial row's centering.
+        // Six rectangular row envelopes contain every possible recruited slot.
+        // Their inflated Z extent is deliberately conservative, never narrower
+        // than the actual live formation. Current stage starts with >=4 slots.
+        if(Columns!=4)return Unsupported();
+        for(int Row=0;Row<6;++Row) Bodies[NB++]={0,-(.75+Row*.48),1.095+.36,-Limit,Limit};
+    }
+    else for(int I=0;I<formationSpan;++I) if(formationAlive[I])
+    {
+        const int Row=I/std::max(1,Columns),Width=std::min(Columns,formationSpan-Row*Columns);
+        Bodies[NB++]={(I%std::max(1,Columns)-(Width-1)*.5)*.73,-(.75+Row*.48),.36,-Limit,Limit};
+    }
+    std::array<Hazard,MaxExisting> Existing{}; int NE=0;
+    auto Add=[&](const Hazard& H){if(NE==MaxExisting)return false; Existing[NE++]=H; return true;};
+    for(const auto& S:enemyShots) if(S.active)
+    {
+        if(S.homing>0) return Unsupported();
+        Hazard H; H.x=S.x; H.z=S.z; H.vx=S.dx; H.vz=S.dz; H.radiusX=H.radiusZ=S.radius;
+        H.end=std::max(0.,(S.z+3.15+.36+S.radius+.02)/std::max(.001,-S.dz));
+        if(!Add(H)){++safetyCapacity;++safetyDeferred;return false;}
+    }
+    for(const auto& L:lasers) if(L.active)
+    { Hazard H; H.trajectory=Trajectory::Beam; H.x=L.x;H.z=L.z;H.endX=L.endX;H.endZ=L.endZ;H.radiusX=L.width*.5;H.end=L.time; if(!Add(H))return Unsupported(); }
+    for(const auto& T:targets) if(T.active)
+    {
+        if(T.kind==Kind::Hazard)
+        {
+            Hazard H; H.trajectory=Trajectory::Roller; H.x=T.originX;H.z=T.z;H.vz=-3.7;H.radiusX=T.size*1.048;H.radiusZ=.80;
+            H.amplitude=T.motion;H.phase=T.motionPhase+T.id*.37;H.frequency=T.motionRate;
+            H.end=std::max(0.,(T.z+3.15+.36+.80+.02)/3.7);
+            if(!Add(H))return Unsupported();
+        }
+        // Actual approach may queue or freeze, so a single velocity would lie.
+        // Bound its entire possible forward occupancy over this horizon instead.
+        // This swept rectangle is stationary in the query and conservatively
+        // includes all queue delays. Actual death/sideways retirement only removes
+        // a front obstacle; retired bodies stay >=1.8, ahead of all troop rows.
+        if(T.kind==Kind::Enemy && T.op==0 && T.id!=Source)
+        {
+            double Hold=0;
+            if(T.role==1 || T.role==2)
+            {
+                if(T.fireState==FireState::Locked)Hold=std::max(0.,.95-T.fireClock)+.36;
+                else if(T.fireState==FireState::Fire)Hold=std::max(0.,.18-T.fireClock)+std::max(0,2-T.burst)*.18;
+            }
+            const double Distance=3.95*std::max(0.,Horizon-Hold);
+            if(T.z-Distance-T.depth<=.4)
+            {
+                Hazard H;H.x=T.x;H.z=T.z-Distance*.5;H.radiusX=T.size;H.radiusZ=T.depth+Distance*.5;H.end=Horizon;
+                if(!Add(H))return Unsupported();
+            }
+        }
+        if(T.id!=Source && T.active && T.op==0 && (T.role==1 || T.role==2) && (T.fireState==FireState::Locked || T.fireState==FireState::Fire))
+        {
+            const int Begin=T.fireState==FireState::Fire?T.burst:0;
+            const double First=T.fireState==FireState::Locked?std::max(0.,.95-T.fireClock):std::max(0.,.18-T.fireClock);
+            for(int I=Begin;I<3;++I) if(!Add(PlannedRound(T.x,T.z-.35,T.aimX+(I-1)*.22,7.5,.20,First+(I-Begin)*.18)))return Unsupported();
+        }
+    }
+    Query Q;Q.commanderX=x;Q.maxSpeed=5;Q.reactionTime=.25;Q.horizon=Horizon;Q.bodies=Bodies.data();Q.bodyCount=NB;
+    Q.existing=Existing.data();Q.existingCount=NE;Q.proposed=Proposed;Q.proposedCount=Count;
+    // No shifted-source approximation: a failed proposal is re-predicted later.
+    const auto R=formation_safety::AdmitAttack(Q,safetyWorkspace);
+    if(R.decision==Decision::Admit){++safetyAdmitted;return true;}
+    ++safetyDeferred;
+    if(R.decision==Decision::ExistingUnsafe)++safetyExistingUnsafe;
+    else if(R.decision==Decision::CapacityExceeded)++safetyCapacity;
+    else if(R.decision==Decision::Unsupported || R.decision==Decision::InvalidInput)++safetyUnsupported;
+    return false;
+}
+bool Battle::AdmitRanged(const Target& T)
+{
+    std::array<formation_safety::Hazard,3> H{};
+    for(int I=0;I<3;++I)H[I]=PlannedRound(T.x,T.z-.35,T.aimX+(I-1)*.22,7.5,.20,.95+I*.18);
+    return AdmitAttack(H.data(),3,T.id);
+}
+bool Battle::AdmitBoss(double Windup,double Aim)
+{
+    using namespace formation_safety;
+    // Homing is deliberately not substituted with a locked ray. Rockets retain
+    // an exclusive authored window, and never overlap a live ballistic threat.
+    if(bossPattern==BossPattern::Rockets)
+    {
+        bool Busy=false;for(const auto& S:enemyShots)Busy|=S.active;for(const auto& L:lasers)Busy|=L.active;
+        if(Busy){++safetyDeferred;++safetyUnsupported;return false;}
+        ++safetyAuthoredRockets;return true;
+    }
+    std::array<Hazard,5> H{};int N=0;
+    if(bossPattern==BossPattern::Laser)
+    {
+        H[0].trajectory=Trajectory::Beam;H[0].x=bossX;H[0].z=bossZ-.85;H[0].endZ=-5;
+        H[0].endX=bossX+(Aim-bossX)*(H[0].z+5)/H[0].z;H[0].radiusX=.18;H[0].start=Windup;H[0].end=Windup+.52;N=1;
+    }
+    else
+    {
+        const double Boost=bossPhase==2?1.20:1;
+        const int Count=bossPattern==BossPattern::Heavy?1:5;
+        for(int I=0;I<Count;++I)
+        {
+            WeaponEmitter E=Count==1?((bossVolleys+1)%2?WeaponEmitter::ArmL:WeaponEmitter::ArmR):(I%2?WeaponEmitter::ArmR:WeaponEmitter::ArmL);
+            if(E==WeaponEmitter::ArmL && (bossPartsMask&1)) E=(bossPartsMask&2)?WeaponEmitter::Core:WeaponEmitter::ArmR;
+            if(E==WeaponEmitter::ArmR && (bossPartsMask&2)) E=(bossPartsMask&1)?WeaponEmitter::Core:WeaponEmitter::ArmL;
+            const double X=E==WeaponEmitter::Core?0:E==WeaponEmitter::ArmL?1.72480:-1.72480,Z=E==WeaponEmitter::Core?-.847:-2.09960;
+            H[N++]=PlannedRound(bossX+X,bossZ+Z,Count==1?Aim:std::clamp(Aim-.9+I*.45,-3.6,3.6),(Count==1?8.:7.)*Boost,Count==1?.58:.20,Windup+I*.14);
+        }
+    }
+    return AdmitAttack(H.data(),N);
+}
 void Battle::RangedStep(Target& T,double Dt)
 {
     if(T.op!=0 || T.z>28 || T.z<3) return;
@@ -257,7 +394,7 @@ void Battle::RangedStep(Target& T,double Dt)
     if(T.fireState==FireState::Tracking)
     {
         T.aimX=x; T.charge=std::min(.45,T.fireClock/.85*.45);
-        if(T.fireClock>=.85) { T.fireState=FireState::Locked; T.fireClock=0; }
+        if(T.fireClock>=.85) { if(AdmitRanged(T)) { T.fireState=FireState::Locked; T.fireClock=0; } else T.fireClock=.55; }
     }
     else if(T.fireState==FireState::Locked)
     {
@@ -576,7 +713,7 @@ void Battle::MoveTargets(double Dt,double TravelDelta)
             double Near=-10;
             for(int J=0;J<I;++J) if(Ordered[J]->active && Ordered[J]->kind==Kind::Enemy && std::abs(Ordered[J]->x-T.x)<Ordered[J]->size+T.size+.05)
                 Near=std::max(Near,Ordered[J]->z+Ordered[J]->depth+T.depth+.10);
-            const double Approach=(T.stunTime>0 || (timePower==TimePower::Freeze && T.z<18))?0:1*(level==0 && T.role>0 && T.role<3 && T.z<28?.55:1);
+            const double Approach=(T.stunTime>0 || (timePower==TimePower::Freeze && T.z<18) || (level==0 && (T.role==1 || T.role==2) && (T.fireState==FireState::Locked || T.fireState==FireState::Fire)))?0:1*(level==0 && T.role>0 && T.role<3 && T.z<28?.55:1);
             T.z=std::max(Near,T.z-TravelDelta*Approach-Dt*.25*Approach);
             int Slot=-1; double HitX=0,HitZ=0;
             if(T.op==0 && FormationHit(T.x,BeforeZ,T.x,T.z,T.size,true,Slot,HitX,HitZ,T.depth))
@@ -665,7 +802,7 @@ void Battle::BossProjectile(WeaponEmitter Emitter,double AimX,double Speed,doubl
 void Battle::BossVolley()
 {
     ++bossVolleys;
-    const double Boost=bossPhase==2?(level==0?1.20:1.12):1;
+    const double Boost=level==0?committedAttackBoost:bossPhase==2?1.12:1;
     if(bossPattern==BossPattern::Heavy)
         BossProjectile(bossVolleys%2?WeaponEmitter::ArmL:WeaponEmitter::ArmR,bossLane,(level==0?8.:7.5)*Boost,.58,level==0?24:bossPhase==2?34:27,ProjectileKind::Shell);
     else if(bossPattern==BossPattern::Sweep)
@@ -792,13 +929,13 @@ void Battle::BossStep(double Dt)
         while(sweepClock>=.14 && sweepIndex<=(level==0?4:(bossPartsMask&3)==3?3:6))
         {
             sweepClock-=.14;
-            if(level==0) BossProjectile(sweepIndex%2?WeaponEmitter::ArmR:WeaponEmitter::ArmL,std::clamp(bossLane-.9+sweepIndex*.45,-3.6,3.6),7*(bossPhase==2?1.20:1),.2,10,ProjectileKind::Orb);
+            if(level==0) BossProjectile(sweepIndex%2?WeaponEmitter::ArmR:WeaponEmitter::ArmL,std::clamp(bossLane-.9+sweepIndex*.45,-3.6,3.6),7*committedAttackBoost,.2,10,ProjectileKind::Orb);
             else BossProjectile(sweepIndex%2?WeaponEmitter::ArmR:WeaponEmitter::ArmL,-3+sweepIndex,6*(bossPhase==2?1.12:1),.2,(bossPartsMask&3)==3?6:8,ProjectileKind::Orb);
             if(++sweepIndex>(level==0?4:(bossPartsMask&3)==3?3:6)) sweepIndex=-1;
         }
     }
     const double Windup=bossPattern==BossPattern::Laser?1.4:bossPattern==BossPattern::Heavy?(bossPhase==2?1.15:1.35):.95;
-    if(bossClock>=1.8 && !bossLaneLocked) { bossLane=std::clamp(x,-3.,3.); bossLaneLocked=true; }
+    if(bossClock>=1.8 && !bossLaneLocked) { const double Aim=std::clamp(x,-3.,3.); if(level!=0 || AdmitBoss(Windup,Aim)) { bossLane=Aim;bossLaneLocked=true;committedAttackBoost=bossPhase==2?1.20:1; } else bossClock=1.5; }
     bossAttack=bossLaneLocked?std::clamp((bossClock-1.8)/Windup,0.,1.):0;
     if(bossLaneLocked) { bossAction=BossAction::Windup; bossY=(bossPartsMask&48)==48?-2.55:(bossPartsMask&12)==12?.02:std::max(.75,bossY-1.0*bossAttack); }
     if(bossClock>=1.8+Windup)

@@ -13,7 +13,7 @@ User authorization, 6 October 2026: continue autonomously, use parallel agents, 
 - [ ] Stronger encounters: dangerous but committed attacks, explicit recovery, fresh and upgraded route checks.
 - [x] Salvage carriers: visible armor vent cycles and actual vulnerability.
 - [x] Second fixed reward choice: guided rockets or finite defensive escort.
-- [ ] Formation-safe scheduling: account for the whole army rather than a point-sized hero.
+- [x] Formation-safe scheduling: account for the whole army rather than a point-sized hero, within the documented modeled trajectories and horizon.
 - [ ] Boss part targeting: assess and implement only with authoritative hit recipients; do not claim existing scalar break thresholds are independent weak points.
 - [ ] Regression harness: power semantics, collisions, gate conservation, pause, retry, saves, delayed controllers, rendering resources and browser errors.
 - [ ] Portrait render review: laser, hostile fire, each relic, rewards, carrier, boss and victory/defeat.
@@ -47,4 +47,16 @@ Actual portrait WebGL captures are stored in `delivery/electrical-combat-proof/`
 
 Next: integrate whole-formation attack admission, verify readable stronger encounters, then implement independently targeted boss systems with authoritative animated hit volumes. Screenshots and CPU checks alone do not establish that the game is addictive or worth paying for.
 
-**Post-checkpoint render audit:** twelve complete real-WebGL runs on checkpoint `5609ac4` finished successfully at a 420 × 933 viewport. The 20,574 rendered frames took 351 seconds at 4× simulation speed. After all three relics warmed their pools, geometry count stayed at 161 for runs 3–12; textures stayed at 13 for every run. The only unparented geometry was Three.js's intentionally shared module-global Sprite geometry, with no increasing orphan count. No warning/error logs were captured. The full receipt is `builds/render-soak-stage1.json`. This closes the repeated-render resource check for checkpoint one, not physical-phone performance acceptance.
+**Post-checkpoint render audit:** twelve complete real-WebGL runs on checkpoint `5609ac4` finished successfully with a requested 420 × 933 portrait override (the app reported a 359 × 798 CSS canvas). The 20,574 rendered frames took 351 seconds at 4× simulation speed. After all three relics warmed their pools, geometry count stayed at 161 for runs 3–12; textures stayed at 13 for every run. The only unparented geometry was Three.js's intentionally shared module-global Sprite geometry, with no increasing orphan count. No warning/error logs were captured. The full receipt is `builds/render-soak-stage1.json`. This closes the repeated-render resource check for checkpoint one, not physical-phone performance acceptance.
+
+## Checkpoint 2 — formation-aware attacks
+
+Portable simulation SHA-256: `0dc2c034b08289ec35b79183c166d3e541a52dab0bec934dda4d3c969babfabd`.
+
+Linear volleys and locked beams are checked against a reachable path for the commander and full trailing formation before commitment. The fixed-work helper covers up to six seconds, existing shots, rollers and conservative body/recruitment envelopes. It uses a 250 ms reaction allowance and 5 m/s steering budget. Only new attacks are delayed; existing bullets are not moved or erased. Ranged machines plant during their locked burst. Boss attack speed is fixed at aim commitment, so a phase transition cannot accelerate already-promised shot timing. Destroying a sweep emitter cancels the pending sweep instead of silently firing it from another source.
+
+Homing rockets remain exclusive authored attacks, explicitly outside the linear-path certificate. Unmodeled speed changes fail closed. A certificate proves an available path for the supplied envelopes, not that a person will find it; stronger saved equipment and future human testing still matter.
+
+A first overly conservative candidate reduced enemy fire and was rejected. The accepted candidate restores 15–31 approach shots on delayed fresh routes and 4–8 on saved rank-2 routes. Passive fresh/rank-2 controls lose at approximately 33/71 seconds. All twelve delayed routes, three immediate fresh routes and six legacy routes win. Fresh delayed runs span about 84–159 seconds; rank-2 runs 84–96. The long fresh tail still needs human pacing feedback. There is no forced stop waiting for all enemies to die.
+
+Verification: 69/69 actual-WASM regressions, 12/12 independent audit checks and 23/23 isolated admission checks. The measured fresh/rank-2 feasibility routes record 17/18 admitted volleys, 57/7 deferrals, and no workload-cap exhaustion. First dangerous volleys occur at 13.33 seconds. Gaps between ranged shots are not encounter-idle gaps: melee waves, gates, carriers and the roller remain in the approach. The review exposes admission counters for continued inspection. Spatial projectile rendering has an optional, tested authoritative-height path ready for checkpoint three; current shots still use the old contract until the actual 3D collision data is integrated.

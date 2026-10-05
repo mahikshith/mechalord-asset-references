@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-10-05T20:25:49.309Z",
+  "scope": "Standalone C++ admission helper; not yet integrated into Battle",
+  "exitCode": 0,
+  "tests": [
+    "PASS empty arena reachable interval\r",
+    "PASS trailing row is protected, not only commander\r",
+    "PASS broad and narrow armies differ\r",
+    "PASS actual troop clamp at edge\r",
+    "PASS warning travel budget and reaction delay\r",
+    "PASS existing rollers close escape corridors\r",
+    "PASS existing unsafe is separate from new suppression\r",
+    "PASS committed linear shot future crossing\r",
+    "PASS lateral committed shot cannot tunnel\r",
+    "PASS diagonal beam uses actual body-depth slice\r",
+    "PASS horizontal beam covers real finite segment\r",
+    "PASS roller intermediate sine extrema\r",
+    "PASS late rear-row exposure tested through six seconds\r",
+    "PASS partial horizon is explicit\r",
+    "PASS only uncommitted proposal is delayed\r",
+    "PASS delay cannot hide impacts outside horizon\r",
+    "PASS unbounded homing is unsupported\r",
+    "PASS proven acceleration envelope is conservative\r",
+    "PASS finite validation and bounded capacities\r",
+    "PASS maximum fixed-array query\r",
+    "PASS saturated work fails closed at finite cap\r",
+    "PASS repeat results are deterministic\r",
+    "PASS independent swept physical oracle\r"
+  ],
+  "metrics": [
+    "METRIC workspace_bytes=81928 maximum_query_ms=5.462 bins=720\r",
+    "METRIC saturated_query_ms=2.656 pair_checks=65536\r",
+    "METRIC independently_checked_stationary_certificates=42\r"
+  ],
+  "summary": "RESULT 23/23 passed"
+}
