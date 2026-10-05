@@ -1,0 +1,202 @@
+{
+  "scope": "Desktop real WebGL replay, 4x simulation speed. Not mobile FPS.",
+  "completed": 12,
+  "remaining": 0,
+  "wallSeconds": 351.02220000000113,
+  "frames": 20574,
+  "framesAbove34ms": 50,
+  "peakCalls": 151,
+  "peakTriangles": 224331,
+  "peakGeometries": 220,
+  "peakTextures": 25,
+  "runs": [
+    {
+      "result": "won",
+      "seconds": 116.56666564941406,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 148,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 152,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.56666564941406,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.56666564941406,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.56666564941406,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 161,
+      "textures": 13,
+      "orphanGeometry": [
+        {
+          "id": 1426,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    }
+  ],
+  "binarySha256": "3f6378def7a483a231ace762b07aae73dc6ba00f5cedb357edd5e10ec5439d55",
+  "commit": "5609ac4",
+  "viewport": {
+    "width": 420,
+    "height": 933
+  },
+  "consoleLogs": [],
+  "interpretation": "Geometry warm-up settles by run 3 and remains at 161; textures 13 throughout. The single retained Sprite BufferGeometry is the reusable Three.js module-global geometry. No increasing orphan count observed. Desktop replay only, not Android performance."
+}
