@@ -19,6 +19,7 @@ views=[('SkyforgeViaduct','SkyforgePortrait','skyforge.png',720,1280),
        ('CoreCitadel','CitadelPortrait','core-citadel.png',720,1280),
        ('ReforgedAtelier','Inspect_RelicMarshal','relic-marshal.png',800,1000),
        ('ReforgedAtelier','Inspect_GearlingSentinel','gearling.png',800,1000),
+       ('ReforgedAtelier','Inspect_AegisVanguard','aegis-vanguard.png',800,1000),
        ('ReforgedAtelier','Inspect_ForgeColossus','forge-colossus.png',800,1000)]
 for map_name,camera,name,width,height in views:
     request={'map':map_name,'camera':camera,'capture':name,'width':width,'height':height}

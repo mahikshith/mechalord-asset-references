@@ -10,13 +10,13 @@ from math import cos, sin, pi
 
 ART_DIRECTION = {
     "palette": "Dark blue slate floors, warm bronze structure, teal machinery; ivory confined to small armour plates.",
-    "floor": "Single continuous sculpted deck surfaces; no checkerboard, striped tile grid, or repeated fence corridor.",
+    "floor": "Continuous dark deck, thin raised maintenance hatches and noncoplanar engineered seams; no checkerboard tile grid.",
     "silhouette": "Octagonal suspended islands, offset tapered supports, vertical reactor banks and a broad citadel bowl.",
     "rhythm": "Asymmetrical large landmarks with quiet gaps; tiny random clutter is deliberately excluded.",
     "play_space": "Route centre remains open. Structural machinery sits outside the central +/-350cm travel strip.",
     "articulation": "Robot arm shoulder/forearm/claw, pressure-vessel turbine and launcher turret/barrels retain explicit pivots.",
     "camera": "Portrait overview places the commander near the lower quarter; separate oblique inspection views show real depth.",
-    "scope": "Original manually constructed geometry and authored layouts; no reused imported models and no procedural random flicker.",
+    "scope": "Detailed native master meshes with rounded equipment, fasteners and hydraulic/conduit assemblies; mobile reduction follows visual acceptance.",
 }
 
 
@@ -48,8 +48,236 @@ def part(name, shapes, pivot=(0, 0, 0), parent=None):
     return dict(id=name, parent=parent, pivot=list(pivot), shapes=shapes)
 
 
+def distant_works_assets():
+    """Architectural silhouettes, deliberately separated from the battle deck.
+
+    These are single merged static assemblies. Tiered roofs, projecting service
+    decks and broad volumes make an industrial skyline rather than a pole fence.
+    """
+    building = [
+        # A continuous load-bearing core descends beyond the visible/fog layer.
+        # The narrower section leaves a credible base overhang, without an
+        # exposed floating building bottom. It remains in this merged master.
+        loft("dark", (0, 0, 0), [(-5800, 225, 212, 0, 0),
+             (-1550, 243, 220, 0, 0), (45, 267, 232, 0, 0)], 8),
+        bevel("steel", (-258, 40, -2770), (54, 375, 5580), 12),
+        bevel("steel", (258, 40, -2770), (54, 375, 5580), 12),
+        bevel("bronze", (0, 0, -1120), (600, 516, 56), 10),
+        bevel("bronze", (0, 0, -3240), (548, 484, 48), 9),
+        bevel("dark", (0, 0, 155), (740, 640, 310), 32),
+        loft("teal", (0, 0, 0), [(270, 325, 275, 0, 0),
+             (1000, 300, 248, -28, 12), (1140, 242, 218, -52, 20)], 8),
+        bevel("bronze", (-35, 12, 1080), (628, 550, 40), 12),
+        bevel("dark", (-105, 65, 1400), (385, 365, 580), 27),
+        loft("steel", (-105, 65, 0), [(1640, 198, 190, 0, 0),
+             (1750, 150, 152, -28, 10), (1770, 148, 150, -28, 10)], 8),
+        bevel("bronze", (0, 318, 675), (820, 240, 43), 12),
+        bevel("dark", (185, -238, 1190), (360, 250, 165), 14),
+        bevel("steel", (360, 20, 645), (92, 420, 590), 16),
+        cone("teal", (266, 80, 1340), 95, 80, 1060, segments=24),
+        tube("bronze", (266, 80, 1830), 116, 70, 38, segments=24),
+        cone("dark", (266, 80, 1880), 74, 65, 63, segments=24),
+    ]
+    # Architectural glazing is small and non-emissive; machinery remains the focus.
+    for z in (470, 840):
+        for x in (-200, -62, 76):
+            building += [bevel("dark", (x, 273, z), (100, 19, 120), 5),
+                         bevel("cyan", (x, 285, z), (77, 10, 88), 3)]
+    for x in (-325, 325):
+        building += [bevel("bronze", (x, 270, 650), (32, 48, 730), 5),
+                     tube("steel", (x, 270, 696), 13, 8, 900, segments=24)]
+    for z in (334, 1000, 1530):
+        building += [bevel("steel", (-100, 260 if z < 1200 else 254, z),
+                           (420 if z < 1200 else 220, 22, 23), 4)]
+    # The forward service deck has a real perimeter, with openings near its centre.
+    for x in (-345, -160, 170, 350):
+        building.append(tube("bronze", (x, 402, 741), 10, 6, 115, segments=16))
+    for x in (-255, 260):
+        building.append(tube("steel", (x, 402, 798), 9, 5, 194,
+                             r=(0, 90, 90), segments=16))
+    # Rear heat-exchanger slats silhouette from the oblique inspection view.
+    for z in range(410, 890, 80):
+        building.append(bevel("steel", (-325, -8, z), (35, 310, 18), 3))
+
+    gallery = [bevel("dark", (0, 0, 0), (2200, 270, 95), 17),
+               bevel("steel", (0, 0, 235), (2200, 270, 63), 12),
+               bevel("teal", (0, 0, 130), (2140, 214, 170), 14)]
+    # Two offset chambers and strong end trusses, not evenly repeated pillars.
+    for x, y, z, width in ((-745, -25, 215, 425), (650, 30, 300, 520)):
+        gallery += [bevel("dark", (x, y, z), (width, 345, 330), 23),
+                    bevel("bronze", (x, y, z + 181), (width + 70, 400, 32), 7)]
+    for x in (-1020, 1020):
+        gallery += [bevel("bronze", (x, 0, -275), (112, 210, 460), 15),
+                    bevel("steel", (x * .86, 0, -160), (390, 125, 45), 5,
+                          r=(35 if x > 0 else -35, 0, 0)),
+                    # Integral end piers meet the gallery's existing trusses
+                    # and continue below the fog, instead of hanging in space.
+                    loft("dark", (x, 0, 0), [(-7000, 93, 130, 0, 0),
+                         (-1900, 79, 119, 0, 0), (-380, 79, 106, 0, 0)], 8),
+                    bevel("bronze", (x, 0, -1640), (200, 294, 42), 8),
+                    bevel("steel", (x, 0, -3600), (193, 282, 36), 7)]
+    for x in (-400, -170, 80, 320):
+        gallery.append(bevel("cyan", (x, 116, 126), (145, 12, 67), 4))
+    for x in (-1090, 1090):
+        gallery.append(tube("steel", (x, -7, 160), 28, 18, 480, segments=24))
+    return [asset("DistantFoundryWorks", "Tiered foundry and service-stack skyline", 7712,
+                  [part("architecture", building)]),
+            asset("DistantTransferGallery", "Elevated industrial transfer gallery", 7497,
+                  [part("architecture", gallery)])]
+
+
 def asset(name, label, height, parts, category="environment"):
     return dict(name=name, label=label, category=category, height_cm=height, parts=parts)
+
+
+def fastener(p, radius=4, r=(0, 0, 0), mat="steel"):
+    return cone(mat, p, radius, radius, 3.5, r=r, segments=6)
+
+
+def hatch(x, y, width, depth, top=.8):
+    # A shallow frame and inset sit at different heights above the original deck.
+    # No second full-size floor cap or coplanar broad surface is introduced.
+    items = [bevel("steel", (x, y, top - .35), (width, depth, .7), 3),
+             bevel("dark", (x, y, top + .18), (width - 13, depth - 13, .65), 2),
+             bevel("bronze", (x + width * .31, y, top + .7), (7, 34, 1.4), 2)]
+    for dx in (-width * .43, width * .43):
+        for dy in (-depth * .43, depth * .43):
+            items.append(fastener((x + dx, y + dy, top + 1.8), 3.2))
+    return items
+
+
+def rail_run(x, y, length, z=0):
+    # Real round-section posts, sockets and two separated bars. Short modules
+    # leave deliberate inspection gaps instead of an uninterrupted fence.
+    items = []
+    for dy in (-length * .43, length * .43):
+        items += [bevel("bronze", (x, y + dy, z + 4), (35, 38, 8), 4),
+                  cone("steel", (x, y + dy, z + 53), 5.5, 5.5, 98, segments=16),
+                  tube("bronze", (x, y + dy, z + 88), 9, 5.5, 12, segments=16)]
+        for dx in (-10, 10):
+            items.append(fastener((x + dx, y + dy, z + 10), 3))
+    for height, radius in ((101, 5.5), (55, 3.5)):
+        items.append(tube("steel", (x, y, z + height), radius, max(1, radius - 1.6), length,
+                          r=(0, 0, 90), segments=20))
+    return items
+
+
+def enrich_assets(assets):
+    """Engineered detail on the same part graph, preserving layouts and cameras."""
+    by_name = {a["name"]: a for a in assets}
+    deck = by_name["SuspendedIsland"]["parts"][0]["shapes"]
+    deck += hatch(-232, 78, 182, 226) + hatch(227, -95, 154, 190)
+    # Inboard of the octagonal edge and entirely outside the central +/-350cm.
+    deck += rail_run(-479, 10, 188) + rail_run(474, -44, 144)
+    for x, y, length in ((-355, -115, 190), (354, 80, 150)):
+        deck.append(bevel("steel", (x, y, .28), (3.5, length, .56), 1))
+    for side in (-1, 1):
+        for y in (-180, 140):
+            deck.append(bevel("steel", (side * 430, y, -44), (150, 42, 45), 5))
+            for dz in (-60, -36):
+                deck.append(fastener((side * 510, y + 22, dz), 6, r=(0, 0, 90)))
+    by_name["SuspendedIsland"]["height_cm"] = 223
+    joint = by_name["SpineConnector"]["parts"][0]["shapes"]
+    joint += hatch(-210, 25, 135, 152, top=-.2)
+    # Outboard brackets support rails without narrowing the original route.
+    for side in (-1, 1):
+        joint.append(bevel("steel", (side * 365, 0, -17), (72, 220, 24), 4))
+        joint += rail_run(side * 365, -23 if side < 0 else 30, 228 if side < 0 else 156, z=-1)
+    by_name["SpineConnector"]["height_cm"] = 151
+    support = by_name["TaperedButtress"]["parts"][0]["shapes"]
+    for side in (-1, 1):
+        support += [tube("bronze", (42, side * 82, -182), 22, 13, 220, segments=24),
+                    cone("steel", (57, side * 82, -356), 10, 10, 264, segments=24),
+                    tube("steel", (42, side * 82, -91), 27, 21, 14, segments=24),
+                    tube("steel", (42, side * 82, -275), 27, 21, 14, segments=24),
+                    bevel("dark", (45, side * 82, -423), (72, 45, 58), 6)]
+        for x in (-22, 22):
+            support.append(fastener((45 + x, side * 106, -423), 5, r=(0, 0, 90)))
+    trench = by_name["SunkenRoute"]["parts"][0]["shapes"]
+    trench += hatch(-251, 112, 192, 306) + hatch(260, -210, 155, 236)
+    for side in (-1, 1):
+        trench += rail_run(side * 495, -295 if side < 0 else 270, 205)
+        trench += [tube("bronze", (side * 510, 0, 55), 11, 6, 980, r=(0, 0, 90), segments=24)]
+        for y in (-410, -190, 150, 410):
+            trench += [bevel("steel", (side * 503, y, 54), (42, 17, 40), 3),
+                       fastener((side * 503, y - 12, 61), 4, r=(0, 0, 90))]
+    bank = by_name["ReactorBank"]["parts"][0]["shapes"]
+    bank += [bevel("dark", (-147, -105, 227), (28, 280, 250), 8),
+             bevel("steel", (-156, -255, 226), (19, 18, 254), 3),
+             bevel("steel", (-156, 45, 226), (19, 18, 254), 3)]
+    for z in range(126, 340, 27):
+        bank.append(bevel("steel", (-165, -105, z), (18, 274, 8), 2))
+    for y in (-255, 45):
+        for z in (122, 226, 336):
+            bank.append(fastener((-172, y, z), 5, r=(90, 0, 0)))
+    bank += [tube("bronze", (19, -450, 332), 17, 10, 430, segments=24),
+             tube("steel", (19, -450, 127), 22, 17, 13, segments=24),
+             tube("steel", (19, -450, 532), 22, 17, 13, segments=24)]
+    tank = by_name["PressureVessel"]["parts"][0]["shapes"]
+    tank += [tube("bronze", (141, 12, 258), 14, 8, 314, segments=32),
+             tube("steel", (141, 12, 112), 23, 14, 18, segments=24),
+             tube("steel", (141, 12, 404), 23, 14, 18, segments=24),
+             tube("bronze", (-40, -104, 402), 31, 20, 20, r=(0, 0, 90), segments=32),
+             egg("dark", (-40, -120, 402), (39, 9, 39), segments=24, rings=12)]
+    for i in range(8):
+        a = i * pi / 4
+        tank.append(fastener((cos(a) * 61, -151, 240 + sin(a) * 61), 4.5, r=(0, 0, 90)))
+    stack = by_name["CoolingStack"]["parts"][0]["shapes"]
+    for z in (105, 150, 195, 240):
+        stack += [bevel("dark", (0, -103, z), (102, 16, 27), 3),
+                  bevel("steel", (0, -114, z), (96, 8, 7), 2)]
+    stack += [tube("bronze", (145, 0, 228), 16, 9, 318, segments=24),
+              bevel("steel", (144, 0, 70), (62, 61, 21), 4),
+              bevel("steel", (144, 0, 384), (62, 61, 21), 4)]
+    arm = by_name["ArticulatedServiceArm"]
+    arm["parts"][0]["shapes"] += [tube("steel", (0, 0, 83), 82, 70, 13, segments=24)]
+    for i in range(8):
+        a = i * pi / 4
+        arm["parts"][0]["shapes"].append(fastener((cos(a) * 79, sin(a) * 79, 53), 5))
+    arm["parts"][1]["shapes"] += [tube("dark", (37, -124, 241), 8, 4, 180, r=(0, 0, 90), segments=20)]
+    arm["parts"][2]["shapes"] += [tube("bronze", (24, -309, 278), 11, 6, 110, r=(0, 0, 45), segments=24),
+                                   cone("steel", (24, -355, 324), 6, 6, 81, r=(0, 0, 45), segments=24)]
+    gate = by_name["RelicGate"]["parts"][0]["shapes"]
+    for side in (-1, 1):
+        for z in (128, 237, 336):
+            gate.append(bevel("steel", (side * 411, 0, z), (102, 144, 18), 5))
+        for z in (183, 290):
+            gate += [bevel("bronze", (side * 405, -70, z), (68, 17, 56), 5),
+                     bevel("dark", (side * 405, -81, z), (46, 9, 34), 3)]
+            for x in (-22, 22):
+                gate.append(fastener((side * 405 + x, -90, z), 4, r=(0, 0, 90)))
+    for x in (-335, -230, -110, 110, 230, 335):
+        gate.append(fastener((x, -62, 423), 6, r=(0, 0, 90)))
+    arena = by_name["CitadelBowl"]["parts"][0]["shapes"]
+    arena += hatch(-510, 255, 255, 335) + hatch(510, -450, 228, 310)
+    for x, y, length in ((-865, 25, 220), (858, -80, 190), (-848, -460, 150)):
+        arena += rail_run(x, y, length)
+    for x in (-740, 740):
+        arena.append(bevel("steel", (x, -150, .3), (4, 340, .6), 1))
+    door = by_name["ReactorBulkhead"]["parts"][0]["shapes"]
+    for side in (-1, 1):
+        for z in (160, 300, 720, 850):
+            door += [bevel("steel", (side * 200, -175, z), (62, 18, 64), 6),
+                     fastener((side * 200, -188, z), 8, r=(0, 0, 90))]
+    launcher = by_name["RelicLauncher"]
+    launcher["parts"][0]["shapes"] += [bevel("dark", (0, 88, 82), (83, 15, 28), 3)]
+    for x in (-31, -16, 0, 16, 31):
+        launcher["parts"][0]["shapes"].append(bevel("steel", (x, 98, 82), (5, 9, 26), 1))
+    for x in (-55, 55):
+        for y in (-78, -28):
+            launcher["parts"][0]["shapes"].append(fastener((x, y, 100), 4))
+    # Keep architecture octagonal, but render round machinery as round machinery.
+    for a in assets:
+        for p in a["parts"]:
+            for s in p["shapes"]:
+                if s["type"] in ("tube", "cone") and s.get("segments", 0) > 6:
+                    s["segments"] = max(24, s["segments"])
+                elif s["type"] == "ellipsoid":
+                    s["segments"] = max(24, s["segments"])
+                    s["rings"] = max(12, s["rings"])
+                elif s["type"] == "loft" and a["name"] in ("PressureVessel", "CoolingStack"):
+                    s["segments"] = 32
+    return assets
 
 
 def get_assets():
@@ -195,7 +423,8 @@ def get_assets():
         [part("chassis", chassis), part("turret", turret, (0, 0, 106), "chassis"),
          part("yoke", yoke, (0, -44, 176), "turret"),
          part("barrels", barrels, (0, -45, 176), "yoke")], "weapon"))
-    return assets
+    assets += distant_works_assets()
+    return enrich_assets(assets)
 
 
 def place(asset_name, label, p, r=(0, 0, 0), scale=(1, 1, 1)):
@@ -295,4 +524,20 @@ def get_levels():
                 x,y,z=equipment["p"]
                 level["placements"].append(place("TaperedButtress",equipment["label"]+"_Foundation",
                     (x,y,z+72),scale=(1.3,1.3,3)))
+    # Background silhouettes occupy a separate far-depth layer. The lower roofs
+    # and centre gap stay behind the terminal enemies, never inside their route.
+    skylines = (
+        [("DistantFoundryWorks", "SkyWorksWest", (-1070, -4850, -520), (0, -9, 0), (1.1, 1, 1.28)),
+         ("DistantFoundryWorks", "SkyWorksEast", (1000, -5540, -630), (0, 15, 0), (.82, 1.12, 1.03)),
+         ("DistantTransferGallery", "SkyTransferHorizon", (0, -5790, 1160), (0, -6, 0), (1.05, 1, 1))],
+        [("DistantFoundryWorks", "TrenchFarCooling", (-1100, -4410, -850), (0, -24, 0), (1.26, 1.14, 1.45)),
+         ("DistantFoundryWorks", "TrenchFarProcessing", (1030, -5050, -400), (0, 28, 0), (.92, 1.1, 1.03)),
+         ("DistantTransferGallery", "TrenchTransferHorizon", (100, -5500, 1380), (0, 9, 0), (1.3, 1, 1))],
+        [("DistantFoundryWorks", "CitadelWestIndustry", (-1360, -4990, -800), (0, -13, 0), (1.3, 1.12, 1.58)),
+         ("DistantFoundryWorks", "CitadelEastIndustry", (1290, -5690, -600), (0, 21, 0), (1.18, 1.23, 1.21)),
+         ("DistantTransferGallery", "CitadelTransferHorizon", (-100, -6210, 1740), (0, -5, 0), (1.45, 1.2, 1.12))],
+    )
+    for level, skyline in zip(levels, skylines):
+        for name, label, position, rotation, scaling in skyline:
+            level["placements"].append(place(name, label, position, rotation, scaling))
     return levels

@@ -38,7 +38,7 @@ export class ArsenalVisuals {
   readonly heroRig=new T.Group();readonly bossRig=new T.Group();
   private cannons=new T.Group();private guided=new T.Group();private rail=new T.Group();
   private hands:HandRig[]=[];private wings:BossWing[]=[];private powerGlow:T.Mesh[]=[];
-  private clock=0;private bossClock=0;private bossSpin=0;private spin=0;private unfolded=0;private previousFire=0;private recoil=0;
+  private clock=0;private bossClock=0;private bossSpin=0;private spin=0;private unfolded=0;private previousFire=0;private recoil=0;private lastNearShotZ?:number;
   private railFlash:T.Mesh;
   private bossCharge:T.Mesh;private laserCharges:T.Mesh[]=[];private faceRig=new T.Group();private faceHead?:T.Object3D;
   constructor(private hero:T.Group,private boss:T.Group){
@@ -118,13 +118,17 @@ export class ArsenalVisuals {
     const live=s.phase==='run'||s.phase==='boss',powered=live&&((state.powerTime??0)>0||state.weaponPermanent===true);
     this.cannons.visible=powered&&state.weaponPower==='cannons';this.guided.visible=powered&&state.weaponPower==='guided';this.rail.visible=powered&&state.weaponPower==='railburst';
     this.heroRig.visible=live;
-    const firing=live&&s.shots.some(p=>p.owner!=='troop'&&p.z<1.6);this.spin+=delta*(firing?34:3);
+    const nearShot=s.shots.filter(p=>p.owner!=='troop'&&p.z<2.2).sort((a,b)=>a.z-b.z)[0];
+    const firing=live&&!!nearShot;this.spin+=delta*(firing?34:3);
     this.recoil=Math.max(0,this.recoil-delta*10);
-    if(firing&&this.clock-this.previousFire>.065){this.previousFire=this.clock;this.recoil=1;}
-    const nearShot=s.shots.find(p=>p.owner!=='troop'&&p.z<1.6);
+    if(firing&&(this.lastNearShotZ===undefined||nearShot!.z<this.lastNearShotZ-.08)){this.previousFire=this.clock;this.recoil=1;}
+    this.lastNearShotZ=nearShot?.z;
     const aim=nearShot?Math.atan2(nearShot.dx,-nearShot.dz):Math.PI;
     const aimOffset=Math.atan2(Math.sin(aim-Math.PI),Math.cos(aim-Math.PI));
-    for(const hand of this.hands){hand.rotor.rotation.z=this.spin;hand.group.position.z=-.22+this.recoil*.12;hand.group.rotation.y=Math.PI+T.MathUtils.clamp(aimOffset,-.3,.3);hand.group.rotation.x=this.recoil*.055;hand.flash.visible=firing&&this.recoil>.3;hand.flash.scale.set(1+this.recoil*.4,1+this.recoil*.4,1.8+this.recoil);}
+    const bossAim=s.phase==='boss'?Math.atan2(s.bossY+4.31-1.42,Math.max(1,s.bossZ-.85-.4)):0;
+    for(const hand of this.hands){hand.rotor.rotation.z=this.spin;hand.group.position.z=-.22+this.recoil*.17;hand.group.rotation.y=Math.PI+T.MathUtils.clamp(aimOffset,-.3,.3);hand.group.rotation.x=-bossAim+this.recoil*.065;hand.flash.visible=firing&&this.recoil>.3;hand.flash.scale.set(1+this.recoil*.4,1+this.recoil*.4,1.8+this.recoil);}
+    this.rail.position.z=-.40+this.recoil*.20;this.rail.rotation.x=s.phase==='boss'?-Math.atan2(s.bossY+4.31-1.8,Math.max(1,s.bossZ-.85-.4)):0;
+    for(const rack of this.guided.children)rack.rotation.x=s.phase==='boss'?-Math.atan2(s.bossY+4.31-2.08,Math.max(1,s.bossZ-.85-.4)):0;
     this.railFlash.visible=firing&&this.recoil>.4;this.powerGlow.forEach((g,i)=>g.scale.setScalar(1+Math.sin(this.clock*12+i)*.15));
     const inBoss=s.phase==='boss',down=(s.phase as string)==='lastStand';
     const battleizer=inBoss&&((state.bossPhase??1)>=2||(state.bossRevives??0)>0||state.bossPattern==='heavy'&&(s.bossAction==='windup'||s.bossAction==='fire'));
@@ -142,7 +146,7 @@ export class ArsenalVisuals {
       wing.flash.visible=inBoss&&s.bossAction==='fire'&&state.bossPattern==='heavy';wing.flash.scale.setScalar(1.2+.25*Math.sin(this.bossClock*40));
       wing.jet.visible=(inBoss||(s.phase==='lost'||down)&&s.bossHp>0)&&(state.bossY??0)>.08;wing.jet.scale.set(1,1+.25*Math.sin(this.bossClock*30),1);}
   }
-  reset(){this.faceRig.visible=false;this.clock=0;this.bossClock=0;this.bossSpin=0;this.spin=0;this.unfolded=0;this.previousFire=0;this.recoil=0;this.heroRig.visible=false;this.bossRig.visible=false;this.bossCharge.visible=false;this.laserCharges.forEach(c=>c.visible=false);for(const hand of this.hands){hand.rotor.rotation.z=0;hand.flash.visible=false;}for(const wing of this.wings){wing.hinge.rotation.set(0,0,0);wing.flash.visible=false;wing.jet.visible=false;}}
+  reset(){this.faceRig.visible=false;this.clock=0;this.bossClock=0;this.bossSpin=0;this.spin=0;this.unfolded=0;this.previousFire=0;this.recoil=0;this.lastNearShotZ=undefined;this.heroRig.visible=false;this.bossRig.visible=false;this.bossCharge.visible=false;this.laserCharges.forEach(c=>c.visible=false);for(const hand of this.hands){hand.rotor.rotation.z=0;hand.group.rotation.x=0;hand.group.position.z=-.22;hand.flash.visible=false;}this.railFlash.visible=false;this.rail.position.z=-.40;this.rail.rotation.x=0;for(const rack of this.guided.children)rack.rotation.x=0;for(const wing of this.wings){wing.hinge.rotation.set(0,0,0);wing.flash.visible=false;wing.jet.visible=false;}}
   dispose(){disposeTree(this.heroRig);disposeTree(this.bossRig);disposeTree(this.faceRig);this.faceRig.removeFromParent();this.faceHead=undefined;this.hero.remove(this.heroRig);this.boss.remove(this.bossRig);}
 }
 

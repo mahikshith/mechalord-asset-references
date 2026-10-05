@@ -12,12 +12,17 @@ const bundle=await esbuild.build({entryPoints:[path.join(here,'combat-visuals.ts
   platform:'node',format:'cjs',nodePaths:[path.join(dependencyRoot,'node_modules')],write:false});
 const module=new Module('combat-visuals-cpu-check');
 module._compile(bundle.outputFiles[0].text,path.join(dependencyRoot,'combat-check-inline.cjs'));
-const {CombatVisuals,CombatMissiles,RobotFormation,ArmyAbilityVisuals}=module.exports;
+const {CombatVisuals,CombatMissiles,RobotFormation,ArmyAbilityVisuals,friendlyProjectilePose,combatImpactPoint}=module.exports;
 const arsenalBundle=await esbuild.build({entryPoints:[path.join(here,'arsenal-visuals.ts')],bundle:true,
   platform:'node',format:'cjs',nodePaths:[path.join(dependencyRoot,'node_modules')],write:false});
 const arsenalModule=new Module('arsenal-visuals-cpu-check');
 arsenalModule._compile(arsenalBundle.outputFiles[0].text,path.join(dependencyRoot,'arsenal-check-inline.cjs'));
 const {ArsenalVisuals,createPickup,updatePickup,disposePickup,syncBossParts}=arsenalModule.exports;
+const worldBundle=await esbuild.build({entryPoints:[path.join(here,'world.ts')],bundle:true,
+  platform:'node',format:'cjs',nodePaths:[path.join(dependencyRoot,'node_modules')],write:false});
+const worldModule=new Module('world-visual-integration-check');
+worldModule._compile(worldBundle.outputFiles[0].text,path.join(dependencyRoot,'world-check-inline.cjs'));
+const {Battlefield}=worldModule.exports;
 let failures=0,passed=0;
 function test(name,run){try{run();passed++;console.log('PASS '+name);}catch(error){failures++;console.error('FAIL '+name+'\n'+error.stack);}}
 function allEffectsExpire(fx){for(let i=0;i<45;i++)fx.update(.15);}
@@ -115,7 +120,7 @@ test('1,000 missiles stay inside the 768 slot pool',()=>{
 });
 test('missile orientation follows real dx/dz and boss launch height follows bossZ',()=>{
   missiles.update([{x:1,z:2,heavy:true,dx:2,dz:3,kind:'rail'}],[{id:3,x:2,z:9,dx:0,dz:-4,radius:.2,kind:'rocket'}],missileOptions);
-  const matrix=new T.Matrix4();missiles.bullets.getMatrixAt(0,matrix);const forward=new T.Vector3(0,0,1).transformDirection(matrix),expected=new T.Vector3(2,0,-3).normalize();assert(forward.distanceTo(expected)<1e-6);
+  const matrix=new T.Matrix4();missiles.bullets.getMatrixAt(0,matrix);const forward=new T.Vector3(0,0,1).transformDirection(matrix),expected=new T.Vector3(2,(4.31-1.8)/(9-.85-.4)*3,-3).normalize();assert(forward.distanceTo(expected)<1e-6);
   missiles.bodies.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-3)<1e-6);
 });
 test('only guided missiles use fins/exhaust, standard fire uses solid bullets',()=>{
@@ -134,8 +139,49 @@ test('hostile energy orbs have bounded solid red shells and orange cores',()=>{
 test('friendly powers launch from their actual rig heights and approach target height',()=>{
   for(const [kind,height] of [['missile',2.08],['cannon',1.42],['rail',1.8],['pulse',1.35]]){
     const shot={x:0,z:0,heavy:true,dx:0,dz:32,kind};missiles.update([shot],[],{...missileOptions,overdrive:false});const mesh=kind==='missile'?missiles.bodies:missiles.bullets,matrix=new T.Matrix4();mesh.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-height)<1e-6);
-    shot.z=10;missiles.update([shot],[],{...missileOptions,overdrive:false});mesh.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-1.25)<1e-6);
+    shot.z=9-.85;missiles.update([shot],[],{...missileOptions,overdrive:false});mesh.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-4.31)<1e-6);
   }
+});
+test('every friendly weapon and Overdrive reaches the actual moving reactor without horizontal aim assist',()=>{
+  for(const kind of ['pulse','arc','cannon','rail','missile'])for(const overdrive of [false,true])for(const bossY of [-2.55,.7,2.3]){
+    missiles.reset();const shot={x:-2.4,z:11.15,dx:kind==='missile'?3:0,dz:32,heavy:kind!=='pulse',kind,owner:'troop'};
+    const options={...missileOptions,bossZ:12,bossX:1.8,bossY,bossImpactHeight:4.31,overdrive};
+    const pose=friendlyProjectilePose(shot,options);assert.equal(pose.position.x,shot.x);assert.equal(pose.position.z,-shot.z);assert(Math.abs(pose.position.y-bossY-4.31)<1e-8);
+    missiles.update([shot],[],options);const matrix=new T.Matrix4();(kind==='missile'?missiles.bodies:missiles.bullets).getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-pose.position.y)<1e-6);
+    if(overdrive&&kind!=='missile'){missiles.wakes.getMatrixAt(0,matrix);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-pose.position.y)<1e-6);}
+  }
+});
+test('nearby troop fire starts at the real follower muzzle and rises to the boss rather than sinking',()=>{
+  const options={...missileOptions,bossZ:12,bossY:1,dt:0,formation:[{index:12,x:-.365,z:-2.19}]};
+  const shot={x:-.365,z:-2.19,dx:0,dz:32,kind:'pulse',owner:'troop',heavy:false};
+  const launch=friendlyProjectilePose(shot,options);assert.equal(launch.position.x,shot.x);assert.equal(launch.position.z,2.19);assert.equal(launch.position.y,.9);
+  shot.z=4;const rising=friendlyProjectilePose(shot,options);assert(rising.position.y>1.5);assert.equal(rising.direction.x,0);assert(rising.direction.y>0);assert(rising.direction.z<0);
+});
+test('ordinary bullets select only targets on their actual lane and effects share the same surface anchor',()=>{
+  const target={id:12,kind:'enemy',x:0,z:8,hp:50,variant:1,size:1.1,depth:1,op:0};
+  const shot={x:0,z:7.2,dx:0,dz:32,kind:'pulse',owner:'commander',heavy:false},options={...missileOptions,bossPhase:false,targets:[{...target,id:2,x:3,z:3},target]};
+  const pose=friendlyProjectilePose(shot,options),hit=combatImpactPoint({x:0,z:8,variant:1,entityId:12},options);
+  assert(Math.abs(pose.position.y-1.65)<1e-8);assert(pose.position.distanceTo(hit)<1e-8);assert.equal(pose.position.x,0);
+  const bossHit=combatImpactPoint({x:.4,z:12,variant:4,entityId:0},{...options,bossPhase:true,bossY:.7});assert.equal(bossHit.x,.4);assert(Math.abs(bossHit.y-5.01)<1e-8);assert.equal(bossHit.z,-11.15);
+});
+test('surviving rail shots retain their height path when the struck target disappears',()=>{
+  missiles.reset();const options={...missileOptions,bossPhase:false,dt:1/32,targets:[{id:5,kind:'enemy',x:0,z:8,hp:10,size:1.1,depth:1,variant:1,op:0}]};
+  const shot={x:0,z:2,dx:0,dz:32,kind:'rail',owner:'commander',heavy:true};missiles.update([shot],[],options);
+  shot.z=3;missiles.update([shot],[],{...options,targets:[]});const matrix=new T.Matrix4();missiles.bullets.getMatrixAt(0,matrix);
+  const expected=1.8+(1.65-1.8)*(3-.4)/(7.2-.4);assert(Math.abs(new T.Vector3().setFromMatrixPosition(matrix).y-expected)<1e-6);assert.equal(missiles.friendlyPaths.length,1);
+  missiles.reset();assert.equal(missiles.friendlyPaths.length,0);
+});
+test('projectile presentation freezes at zero simulation time and retries release every cached path',()=>{
+  missiles.reset();const options={...missileOptions,bossY:1.2,simulationTime:30,formation:[{index:1,x:0,z:-1.23}]};
+  const shot={x:0,z:3,dx:0,dz:32,kind:'pulse',owner:'troop',heavy:false};missiles.update([shot],[],options);
+  const before=new T.Matrix4();missiles.bullets.getMatrixAt(0,before);for(let i=0;i<10;i++)missiles.update([shot],[],options);const after=new T.Matrix4();missiles.bullets.getMatrixAt(0,after);assert.deepEqual(after.elements,before.elements);
+  for(let i=0;i<150;i++){missiles.reset();missiles.update([shot],[],options);assert.equal(missiles.friendlyPaths.length,1);}missiles.update([],[],options);assert.equal(missiles.friendlyPaths.length,0);missiles.reset();assert.equal(missiles.previousTime,undefined);
+});
+test('world hit effects use the current hovering or grounded reactor and retained dead-target metadata',()=>{
+  const impacts=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{impact:(...v)=>impacts.push(v)},bossHitKick:0});
+  const hit={id:1,kind:'hit',x:.2,z:12,value:8,entityId:0,variant:4,size:.9};
+  for(const bossY of [1.7,-2.55]){actor.trigger(hit,{bossY,targets:[]});const p=impacts.at(-1);assert(Math.abs(p[1]-bossY-4.31)<1e-8);assert.equal(p[2],-11.15);assert(actor.bossHitKick>0);}
+  actor.presentation={targets:[{id:7,kind:'orb',depth:.2,z:8}]};actor.trigger({...hit,value:0,entityId:7,variant:-3,z:7.9},{bossY:0,targets:[]});assert.equal(impacts.at(-1)[1],1.1);assert(Math.abs(impacts.at(-1)[2]+7.74)<1e-8);
 });
 test('already-launched projectile height does not jump when boss moves',()=>{
   missiles.reset();const projectile={id:7,x:0,z:10,dx:0,dz:-4,radius:.2,kind:'rocket'};
@@ -209,6 +255,19 @@ test('troop shots cannot falsely trigger commander cannon recoil',()=>{
 test('arsenal pause freezes transforms and angled aim wraps correctly',()=>{
   const s={...arsenalState,weaponPower:'cannons',powerTime:2,shots:[{z:.8,dx:-.1,dz:32}]};arsenal.update(s,.1);assert(Math.abs(arsenal.hands[0].group.rotation.y-Math.PI)<.02);
   const clock=arsenal.clock,spin=arsenal.hands[0].rotor.rotation.z,position=arsenal.hands[0].group.position.clone();arsenal.update(s,0);assert.equal(arsenal.clock,clock);assert.equal(arsenal.hands[0].rotor.rotation.z,spin);assert(position.equals(arsenal.hands[0].group.position));
+});
+test('cannon recoil is caused by a fresh commander volley rather than retriggering an old flying bullet',()=>{
+  arsenal.reset();const s={...arsenalState,phase:'boss',bossZ:12,bossY:.7,weaponPower:'cannons',powerTime:3,shots:[{owner:'commander',kind:'cannon',z:.5,dx:0,dz:32}]};
+  arsenal.update(s,.01);assert.equal(arsenal.recoil,1);assert(arsenal.hands[0].group.rotation.x<0);assert(arsenal.hands[0].flash.visible);
+  arsenal.update({...s,shots:[{...s.shots[0],z:1.3}]},.05);assert(Math.abs(arsenal.recoil-.5)<1e-8);
+  arsenal.update({...s,shots:[{...s.shots[0],z:1.7}]},.04);assert(arsenal.recoil<.2);
+  arsenal.update(s,.01);assert.equal(arsenal.recoil,1);const before=arsenal.hands[0].group.rotation.clone();arsenal.update(s,0);assert.deepEqual(arsenal.hands[0].group.rotation.toArray(),before.toArray());
+});
+test('rail and guided rigs pitch toward a hovering reactor and restore level poses on reset',()=>{
+  const base={...arsenalState,phase:'boss',bossZ:12,bossY:1,weaponPermanent:true,powerTime:0,shots:[{owner:'commander',kind:'rail',z:.5,dx:0,dz:32}]};
+  arsenal.reset();arsenal.update({...base,weaponPower:'railburst'},.01);assert(arsenal.rail.rotation.x<-.2);assert(arsenal.rail.position.z>-.4);assert(arsenal.railFlash.visible);
+  arsenal.update({...base,weaponPower:'guided'},.01);assert(arsenal.guided.children.every(r=>r.rotation.x<-.2));
+  arsenal.reset();assert.equal(arsenal.rail.rotation.x,0);assert.equal(arsenal.rail.position.z,-.4);assert(arsenal.guided.children.every(r=>r.rotation.x===0));assert.equal(arsenal.lastNearShotZ,undefined);
 });
 test('boss phase unfolds cannons and authoritative hover enables jets',()=>{
   const s={...arsenalState,phase:'boss',bossPhase:2,bossPattern:'heavy',bossAction:'windup',bossY:.6,bossAttack:.5};for(let i=0;i<10;i++)arsenal.update(s,.1);

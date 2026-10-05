@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import type {Snapshot, Shot, EnemyShot} from './contract';
+import type {Snapshot, Shot, EnemyShot, Target, Effect, FormationUnit} from './contract';
 
 /** These classes render combat already decided by the simulation. They never deal damage. */
 function standard(color:number){return new T.MeshStandardMaterial({color,roughness:.67,metalness:.36});}
@@ -262,9 +262,9 @@ export class RobotFormation {
   }
   begin(){this.count=0;}
   add(x:number,worldZ:number,scale=1,yaw=0,hit=false,phase=0){if(this.count>=this.capacity)return;
-    const sized=scale*(hit?1.035:1);
+    const sized=scale;
     const bounce=Math.abs(Math.sin(phase*9))*.055,lean=Math.sin(phase*9)*.035;
-    this.dummy.position.set(x,.025+bounce,worldZ);this.dummy.rotation.set(lean,yaw,Math.sin(phase*9)*.045);this.dummy.scale.set(sized*.82,sized*1.1,sized);this.dummy.updateMatrix();
+    this.dummy.position.set(x,.025+bounce,worldZ);this.dummy.rotation.set(lean-(hit?.11:0),yaw,Math.sin(phase*9)*.045);this.dummy.scale.set(sized*.82,sized*1.1,sized);this.dummy.updateMatrix();
     this.body.setMatrixAt(this.count,this.dummy.matrix);this.eyes.setMatrixAt(this.count,this.dummy.matrix);
     for(const side of [-1,1]){const travel=((phase*2.4+(side>0?.5:0))%1+1)%1,z=(travel-.5)*.5;
       this.dummy.position.set(x+Math.cos(yaw)*side*.32*sized*.82+Math.sin(yaw)*z*sized,.32*sized+Math.sin(travel*Math.PI)*.035,worldZ-Math.sin(yaw)*side*.32*sized*.82+Math.cos(yaw)*z*sized);
@@ -276,12 +276,43 @@ export class RobotFormation {
   dispose(){for(const mesh of [this.body,this.eyes,this.treadMark]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 
-export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossY?:number;bossLaunchHeight?:number;overdrive:boolean;weapon:number;visible?:boolean;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
+export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
+type FriendlyPath={shot:Shot;originZ:number;launch:number;targetZ:number;targetHeight:number;targetId?:number;boss:boolean};
+/** The core owns X/Z collision. These anchors lift that same plane onto visible geometry. */
+function targetHeight(kind:Target['kind'],variant=0){return kind==='enemy'?(variant>0?1.65:.78):kind==='crate'?.68:kind==='orb'?1.1:kind==='hazard'?.7:1.1;}
+function targetSurface(target:Target){return target.z-Math.min(.85,Math.max(0,target.depth??0)*.8);}
+export function combatImpactPoint(effect:Pick<Effect,'x'|'z'|'variant'|'entityId'>,options:MissileOptions){
+  const boss=effect.variant===3||effect.variant===4;
+  const target=options.targets?.find(t=>t.id===effect.entityId);
+  const kind=target?.kind??(effect.variant===-1?'crate':effect.variant===-3?'orb':'enemy');
+  return new T.Vector3(effect.x,boss?(options.bossY??0)+(options.bossImpactHeight??4.31):targetHeight(kind,effect.variant),
+    -(boss?effect.z-(options.bossSurfaceOffset??.85):effect.z-(target?Math.min(.85,Math.max(0,target.depth??0)*.8):0))*options.depthScale);
+}
+function acquirePath(shot:Shot,options:MissileOptions,delta:number):FriendlyPath{
+  const troop=shot.owner==='troop',launch=troop?.9:shot.kind==='missile'?2.08:shot.kind==='cannon'?1.42:shot.kind==='rail'?1.8:1.35;
+  const source=troop?options.formation?.filter(p=>Math.abs(p.x-shot.x)<.18).sort((a,b)=>Math.abs(a.z-(shot.z-shot.dz*delta))-Math.abs(b.z-(shot.z-shot.dz*delta)))[0]:undefined;
+  const originZ=source?.z??(troop?Math.min(-.75,shot.z-shot.dz*delta):.4);
+  const path:FriendlyPath={shot:{...shot},originZ,launch,targetZ:10,targetHeight:1.25,boss:false};
+  // Predict only the already-authoritative horizontal ray; ordinary fire never steers.
+  const target=options.targets?.filter(t=>t.hp>0&&t.kind!=='hazard'&&t.op!==2&&t.z>shot.z-.2&&Math.abs(t.x-(shot.x+shot.dx*(t.z-shot.z)/Math.max(1,shot.dz)))<t.size+.08).sort((a,b)=>a.z-b.z)[0];
+  if(target){path.targetId=target.id;path.targetZ=targetSurface(target);path.targetHeight=targetHeight(target.kind,target.variant);}
+  else if(options.bossPhase){path.boss=true;path.targetZ=(options.bossZ??12)-(options.bossSurfaceOffset??.85);path.targetHeight=(options.bossY??0)+(options.bossImpactHeight??4.31);}
+  return path;
+}
+function presentPath(shot:Shot,path:FriendlyPath,options:MissileOptions){
+  const range=Math.max(.1,path.targetZ-path.originZ),fraction=T.MathUtils.clamp((shot.z-path.originZ)/range,0,1);
+  const height=T.MathUtils.lerp(path.launch,path.targetHeight,fraction);
+  const dy=fraction>0&&fraction<1?(path.targetHeight-path.launch)/range*shot.dz:0;
+  return {position:new T.Vector3(shot.x,height,-shot.z*options.depthScale),direction:new T.Vector3(shot.dx,dy,-shot.dz*options.depthScale).normalize()};
+}
+/** Pure projection for tests and other render adapters; preserves every simulated X/Z. */
+export function friendlyProjectilePose(shot:Shot,options:MissileOptions){return presentPath(shot,acquirePath(shot,options,options.dt??1/60),options);}
 export class CombatMissiles {
   private bodies:T.InstancedMesh;private exhaust:T.InstancedMesh;private orbs:T.InstancedMesh;private orbCores:T.InstancedMesh;
   private bullets:T.InstancedMesh;private tips:T.InstancedMesh;private wakes:T.InstancedMesh;private dummy=new T.Object3D();
   private color=new T.Color();readonly capacity=768;
   private beamShells:T.InstancedMesh;private beamCores:T.InstancedMesh;private hostileLaunchZ=new Map<number,{z:number;height:number}>();
+  private friendlyPaths:FriendlyPath[]=[];private previousTime?:number;
   constructor(private scene:T.Scene){
     const parts=[painted(new T.CylinderGeometry(.09,.09,.47,8),0xbfc6c8,0,0,0,Math.PI/2),
       painted(new T.ConeGeometry(.095,.21,8),0xc17536,0,0,.34,Math.PI/2),
@@ -300,8 +331,8 @@ export class CombatMissiles {
   }
   update(friendly:Shot[],hostile:EnemyShot[],options:MissileOptions){
     let count=0,bulletCount=0,wakeCount=0,orbCount=0;if(options.visible===false){this.reset();return;}
-    const write=(x:number,y:number,z:number,yaw:number,scale:number,enemy=false,kind:string='pulse',owner:'commander'|'troop'='commander')=>{
-      if(count+bulletCount>=this.capacity)return;this.dummy.position.set(x,y,z);this.dummy.rotation.set(0,yaw,0);this.dummy.scale.setScalar(scale);
+    const write=(position:T.Vector3,direction:T.Vector3,scale:number,enemy=false,kind:string='pulse',owner:'commander'|'troop'='commander')=>{
+      if(count+bulletCount>=this.capacity)return;this.dummy.position.copy(position);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction);this.dummy.scale.setScalar(scale);
       const rocket=kind==='missile'||kind==='rocket';
       if(!rocket){this.dummy.scale.z*=kind==='rail'?1.65:kind==='cannon'?1.2:1;this.dummy.updateMatrix();this.bullets.setMatrixAt(bulletCount,this.dummy.matrix);this.tips.setMatrixAt(bulletCount,this.dummy.matrix);
         this.bullets.setColorAt(bulletCount,this.color.set(enemy?0xd86d39:owner==='troop'?0x2c93cd:0xd3a54e));
@@ -311,19 +342,26 @@ export class CombatMissiles {
       this.dummy.updateMatrix();this.bodies.setMatrixAt(count,this.dummy.matrix);this.bodies.setColorAt(count,this.color.set(enemy?0xff9262:owner==='troop'?0x69baff:0xffd18a));
       this.dummy.scale.set(scale,scale,scale*(options.overdrive&&!enemy?2:1));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(enemy?0xff6024:owner==='troop'?0x59bcff:0xffc064));count++;
     };
-    for(const p of friendly){
-      const velocity=p as Shot & {dx?:number;dz?:number;owner?:'troop'|'commander';y?:number};
-      const launch=p.kind==='missile'?2.08:p.kind==='cannon'?1.42:p.kind==='rail'?1.8:1.35;
-      const height=T.MathUtils.lerp(launch,1.25,T.MathUtils.clamp(p.z/10,0,1));
-      write(p.x,velocity.y??height,-p.z*options.depthScale,Math.atan2(velocity.dx??0,-(velocity.dz??1)*options.depthScale),p.kind==='missile'?1.25:p.heavy?1.05:.85,false,p.kind??'pulse',velocity.owner??'commander');
-    }
+    const delta=Math.max(0,Math.min(.25,options.simulationTime!==undefined&&this.previousTime!==undefined?options.simulationTime-this.previousTime:options.dt??0));
+    this.previousTime=options.simulationTime;const used=new Set<FriendlyPath>(),paths:FriendlyPath[]=[];
+    for(const p of friendly.slice(0,this.capacity)){
+      let path:FriendlyPath|undefined,best=.3;
+      for(const old of this.friendlyPaths){if(used.has(old)||old.shot.kind!==p.kind||old.shot.owner!==p.owner)continue;
+        const error=Math.hypot(old.shot.x+p.dx*delta-p.x,old.shot.z+p.dz*delta-p.z);if(error<best){best=error;path=old;}}
+      if(path){used.add(path);if(path.boss&&options.bossPhase){path.targetZ=(options.bossZ??12)-(options.bossSurfaceOffset??.85);path.targetHeight=(options.bossY??0)+(options.bossImpactHeight??4.31);}
+        else if(path.targetId!==undefined){const target=options.targets?.find(t=>t.id===path!.targetId);if(target){path.targetZ=targetSurface(target);path.targetHeight=targetHeight(target.kind,target.variant);}}
+      }else path=acquirePath(p,options,delta||1/60);
+      // Retain the prior aim plane if a target dies; surviving rail rounds never jump to another height.
+      path.shot={...p};paths.push(path);const pose=presentPath(p,path,options);
+      write(pose.position,pose.direction,p.kind==='missile'?1.25:p.heavy?1.05:.85,false,p.kind??'pulse',p.owner??'commander');
+    }this.friendlyPaths=paths;
     const live=new Set<number>();
     for(const p of hostile){if(live.size>=96)break;live.add(p.id);
       if(!this.hostileLaunchZ.has(p.id))this.hostileLaunchZ.set(p.id,{z:Math.max(1,options.bossZ??p.z),height:options.bossPhase?(options.bossY??0)+(options.bossLaunchHeight??3):.85});
       const launch=this.hostileLaunchZ.get(p.id)!;
       const height=.85+(launch.height-.85)*Math.max(0,Math.min(1,p.z/launch.z));
       if(p.kind==='orb'){if(orbCount>=96)continue;this.dummy.position.set(p.x,height,-p.z*options.depthScale);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(Math.max(.8,p.radius/.18));this.dummy.updateMatrix();this.orbs.setMatrixAt(orbCount,this.dummy.matrix);this.dummy.position.z+=.13*this.dummy.scale.z;this.dummy.updateMatrix();this.orbCores.setMatrixAt(orbCount++,this.dummy.matrix);}
-      else write(p.x,height,-p.z*options.depthScale,Math.atan2(p.dx,-p.dz*options.depthScale),p.kind==='rocket'?1.45:1.8,true,p.kind);
+      else write(new T.Vector3(p.x,height,-p.z*options.depthScale),new T.Vector3(p.dx,(launch.height-.85)/launch.z*p.dz,-p.dz*options.depthScale).normalize(),p.kind==='rocket'?1.45:1.8,true,p.kind);
     }
     for(const id of this.hostileLaunchZ.keys())if(!live.has(id))this.hostileLaunchZ.delete(id);
     changed(this.bodies,count);changed(this.exhaust,count);changed(this.orbs,orbCount);changed(this.orbCores,orbCount);changed(this.bullets,bulletCount);changed(this.tips,bulletCount);changed(this.wakes,wakeCount);
@@ -335,7 +373,7 @@ export class CombatMissiles {
       this.dummy.position.copy(from).add(to).multiplyScalar(.5);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction.normalize());this.dummy.scale.set(Math.max(.05,beam.width),Math.max(.05,beam.width),length);this.dummy.updateMatrix();this.beamShells.setMatrixAt(count,this.dummy.matrix);this.beamCores.setMatrixAt(count,this.dummy.matrix);count++;
     }changed(this.beamShells,count);changed(this.beamCores,count);
   }
-  reset(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores])changed(mesh,0);this.hostileLaunchZ.clear();}
+  reset(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores])changed(mesh,0);this.hostileLaunchZ.clear();this.friendlyPaths=[];this.previousTime=undefined;}
   dispose(){for(const mesh of [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 

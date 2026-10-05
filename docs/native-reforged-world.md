@@ -1,5 +1,10 @@
 # Mechalord Reforged — native art and level branch
 
+This records the **first native build** at `9b1eaa2`. For the current models,
+lighting, animations and browser aiming fix, see
+[the detail-pass report](reforged-detail-pass-2026-10-05.md) and
+`assets/manifests/reforged-native-v2.json`.
+
 Created October 5, 2026 in Unreal 5.8.3 (`5.8.3-58210709+++UE5+Release-5.8`).
 
 The active branch is `feature/native-reforged-world`. The previous playable

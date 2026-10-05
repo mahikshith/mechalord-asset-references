@@ -161,7 +161,7 @@ function effects(s: Snapshot): void {
     if (seenEffects.has(event.id)) continue;
     seenEffects.add(event.id); effectOrder.push(event.id);
     if (effectOrder.length > 512) seenEffects.delete(effectOrder.shift()!);
-    world.trigger(event);
+    world.trigger(event, s);
     audio.event(event);
     if (event.kind === 'troopSacrifice') sacrifices.push({x:event.x,z:-event.z});
     if (event.kind === 'recruit' && event.value > 0) recruited += event.value;

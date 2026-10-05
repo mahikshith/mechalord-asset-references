@@ -107,10 +107,10 @@ def materials():
         require(lib.connect_material_property(node,'',prop),'Material output failed')
     lib.recompile_material(parent)
     save(parent)
-    palette={'ivory':(0xDED9BF,.42,.15,.16),'teal':(0x186E78,.38,.28,.16),
-             'bronze':(0xA97E45,.34,.62,.18),'dark':(0x202D38,.56,.3,.2),
-             'steel':(0x627D86,.4,.46,.14),'red':(0xA32E34,.4,.3,.18),
-             'rust':(0x8A4536,.53,.28,.18),'rubber':(0x131B22,.78,.02,.12),
+    palette={'ivory':(0xE2DDD0,.34,.18,.045),'teal':(0x237F8C,.31,.3,.045),
+             'bronze':(0xB69360,.29,.64,.045),'dark':(0x34444F,.52,.3,.065),
+             'steel':(0x8CABB4,.31,.65,.035),'red':(0xAC3C41,.36,.3,.04),
+             'rust':(0xAB4D38,.4,.32,.045),'rubber':(0x18242C,.75,.02,.035),
              'cyan':(0x40DDEE,.32,.12,2.3),'amber':(0xFFAD32,.36,.1,2.1),
              'redglow':(0xFF4630,.3,.1,2.1)}
     result={}
@@ -225,20 +225,31 @@ def exposure(component):
 
 
 def lighting():
-    for label,angles,color,intensity,priority in [('Key',(-50,50,0),(.84,.93,1,1),3.8,2),
-            ('WarmRim',(-28,-130,0),(1,.67,.42,1),1.5,1),('SoftFill',(-30,-55,0),(.5,.76,1,1),1.2,0)]:
+    for label,angles,color,intensity,priority in [('Key',(-48,-42,0),(1,.94,.83,1),4.2,2),
+            ('WarmRim',(-30,140,0),(1,.87,.7,1),1.7,1),('SoftFill',(-26,52,0),(.73,.87,1,1),1.8,0)]:
         light=tag(ACT.spawn_actor_from_class(u.DirectionalLight,v((0,0,1200)),rot(angles)),label,'Lighting')
         light.light_component.set_intensity(intensity)
         light.light_component.set_light_color(u.LinearColor(*color))
         light.light_component.set_editor_property('forward_shading_priority',priority)
         light.light_component.set_mobility(u.ComponentMobility.MOVABLE)
         light.light_component.set_cast_shadows(priority==2)
+    # A reflected ambient field prevents the unlit backs of armor from going
+    # black. This is a native engine cubemap, not an external downloaded asset.
+    sky=tag(ACT.spawn_actor_from_class(u.SkyLight,v((0,0,1000))),'OpenSkyFill','Lighting')
+    sc=sky.get_component_by_class(u.SkyLightComponent)
+    sc.set_mobility(u.ComponentMobility.MOVABLE)
+    sc.set_editor_property('source_type',u.SkyLightSourceType.SLS_SPECIFIED_CUBEMAP)
+    cube=u.load_asset('/Engine/EngineResources/DefaultTextureCube.DefaultTextureCube')
+    require(cube is not None,'Native ambient cubemap unavailable')
+    sc.set_cubemap(cube)
+    sc.set_intensity(1.1)
+    sc.set_editor_property('lower_hemisphere_is_black',False)
     fog=tag(ACT.spawn_actor_from_class(u.ExponentialHeightFog,v((0,0,-450))),'DepthAtmosphere','Lighting')
     f=fog.get_component_by_class(u.ExponentialHeightFogComponent)
-    f.set_fog_density(.035)
+    f.set_fog_density(.02)
     f.set_fog_height_falloff(.08)
-    f.set_fog_inscattering_color(u.LinearColor(.022,.042,.065,1))
-    f.set_start_distance(1800)
+    f.set_fog_inscattering_color(u.LinearColor(.22,.34,.43,1))
+    f.set_start_distance(3800)
     f.set_fog_max_opacity(1)
     f.set_volumetric_fog(False)
     volume=tag(ACT.spawn_actor_from_class(u.PostProcessVolume,v((0,0,0))),'ReforgedExposure','Lighting')
@@ -334,8 +345,8 @@ def build_level(spec):
 
 
 def gallery():
-    assets=['RelicMarshal','GearlingSentinel','RustCrawler','ArcWarden','ForgeColossus','RelicLauncher']
-    positions=[(-2000,0,0),(-1050,0,0),(0,0,0),(1100,0,0),(2300,200,0),(0,1000,0)]
+    assets=['RelicMarshal','GearlingSentinel','RustCrawler','ArcWarden','ForgeColossus','RelicLauncher','AegisVanguard']
+    positions=[(-2000,0,0),(-1050,0,0),(0,0,0),(1100,0,0),(2300,200,0),(0,1000,0),(-3100,0,0)]
     placements=[{'asset':name,'label':name,'p':p,'r':[0,0,0]} for name,p in zip(assets,positions) if name in SPECS]
     cameras=[{'name':'NewRoster','p':[1350,-4500,1450],'target':[200,30,180],'fov':57,'aspect':16/9}]
     for entry in placements:

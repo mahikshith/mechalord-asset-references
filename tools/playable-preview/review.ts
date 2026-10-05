@@ -29,7 +29,7 @@ function tick(dt:number,render=true,draw=true){
  if(state.phase==='lastStand')return;
  if(state.energy>=100&&state.ability<=0)core.activate();
  core.step(dt,aim(state));state=core.snapshot();
- if(render){for(const event of state.effects)world.trigger(event);world.update(state,dt,'play',draw);}
+ if(render){for(const event of state.effects)world.trigger(event,state);world.update(state,dt,'play',draw);}
 }
 function start(){seekPower=undefined;missCore=false;core.start(Number((document.querySelector('#relic') as HTMLSelectElement).value) as 0|1|2,Number((document.querySelector('#level') as HTMLSelectElement).value),Number((document.querySelector('#rank') as HTMLSelectElement).value));state=core.snapshot();world.reset();paused=false;}
 document.querySelector('#start')!.addEventListener('click',start);
@@ -44,30 +44,31 @@ document.querySelector('#boss')!.addEventListener('click',()=>{
 document.querySelector('#death')!.addEventListener('click',()=>{
  start();let preceding=state;
  for(let i=0;i<30000&&['run','boss'].includes(state.phase);i++){preceding=state;tick(1/60,false);}
- world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event);world.update(state,0,'play');paused=true;
+ world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event,state);world.update(state,0,'play');paused=true;
 });
 document.querySelector('#defeat')!.addEventListener('click',()=>{
  start();let preceding=state;
  for(let i=0;i<30000&&['run','boss'].includes(state.phase);i++){preceding=state;core.step(1/60,0);state=core.snapshot();}
- world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event);world.update(state,0,'play');paused=true;
+ world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event,state);world.update(state,0,'play');paused=true;
 });
 
 function replayUntil(predicate:(s:Snapshot)=>boolean){
  let preceding=state;
  for(let i=0;i<18000&&['run','boss'].includes(state.phase)&&!predicate(state);i++){preceding=state;tick(1/60,false);}
- world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event);world.update(state,.12,'play');paused=true;
+ world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event,state);world.update(state,.12,'play');paused=true;
 }
 document.querySelector('#core')!.addEventListener('click',()=>{start();replayUntil(s=>s.bossState==='exposed');});
 document.querySelector('#revive')!.addEventListener('click',()=>{start();missCore=true;replayUntil(s=>s.bossState==='rebuilding');missCore=false;});
 document.querySelector('#collect')!.addEventListener('click',()=>{start();seekPower=(document.querySelector('#pickup') as HTMLSelectElement).value as PickupPower;replayUntil(s=>s.effects.some(e=>e.kind==='pickup'&&powerKind(e.value)===seekPower));seekPower=undefined;});
 document.querySelector('#part')!.addEventListener('click',()=>{start();replayUntil(s=>s.effects.some(e=>e.kind==='bossPartBreak'));});
 document.querySelector('#laser')!.addEventListener('click',()=>{start();replayUntil(s=>s.lasers.length>0);});
+document.querySelector('#powered')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.bossZ<22&&s.ability>0&&s.shots.length>0);});
 document.querySelector('#stand')!.addEventListener('click',()=>{
  start();for(let i=0;i<18000&&state.phase==='run';i++)tick(1/60,false);let preceding=state;
  for(let i=0;i<18000&&state.phase==='boss';i++){preceding=state;core.step(1/60,0);state=core.snapshot();}
- world.reset();world.update(preceding,0,'play');for(const e of state.effects)world.trigger(e);world.update(state,0,'play');paused=true;
+ world.reset();world.update(preceding,0,'play');for(const e of state.effects)world.trigger(e,state);world.update(state,0,'play');paused=true;
 });
-function act(action:()=>unknown){action();state=core.snapshot();const sacrifices=[];for(const e of state.effects){world.trigger(e);if(e.kind==='troopSacrifice')sacrifices.push({x:e.x,z:-e.z});}if(sacrifices.length)world.sacrifice(sacrifices);world.update(state,.15,'play');paused=true;}
+function act(action:()=>unknown){action();state=core.snapshot();const sacrifices=[];for(const e of state.effects){world.trigger(e,state);if(e.kind==='troopSacrifice')sacrifices.push({x:e.x,z:-e.z});}if(sacrifices.length)world.sacrifice(sacrifices);world.update(state,.15,'play');paused=true;}
 document.querySelector('#transfer')!.addEventListener('click',()=>act(()=>core.heal()));
 document.querySelector('#save')!.addEventListener('click',()=>act(()=>core.revive()));
 document.querySelector('#decline')!.addEventListener('click',()=>act(()=>core.declineRevive()));
@@ -75,5 +76,6 @@ await Promise.all([core.load(),world.load()]);start();
 function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=now;
  if(!paused){for(let i=0;i<speed;i++)tick(dt,true,i===speed-1);}else world.update(state,0,'paused');
  status.textContent=`${state.phase} · ${state.time.toFixed(1)}s · army ${state.army} (${state.formation.length} visible) · Marshal ${state.commanderHp.toFixed(0)}HP · kills ${state.kills} · weapon ${state.weapon} · ${state.weaponPower} ${state.weaponPermanent?'full run':state.powerTime.toFixed(1)+'s'} · ${state.timePower} ${state.timePowerTime.toFixed(1)}s · ${state.bossState} ${state.bossCoreTime.toFixed(1)}s · armor ${state.bossArmor.toFixed(0)} · core ${state.bossCoreHp.toFixed(0)} · broken mask ${state.bossPartsMask} · next ${state.bossPart} · beams ${state.lasers.length} · heal ${state.canHeal} · revive ${state.reviveAvailable} · revives ${state.bossRevives} · phase ${state.bossPhase} ${state.bossPattern}`;
+ status.textContent+=` · relic active ${state.ability.toFixed(1)}s · energy ${state.energy.toFixed(0)}`;
  canvas.dataset.phase=state.phase;requestAnimationFrame(frame);
 }requestAnimationFrame(frame);
