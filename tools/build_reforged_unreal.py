@@ -97,7 +97,7 @@ def materials():
     rough=expr(u.MaterialExpressionScalarParameter,-500,300,parameter_name='Roughness',default_value=.48)
     metal=expr(u.MaterialExpressionScalarParameter,-500,450,parameter_name='Metallic',default_value=.25)
     glow=expr(u.MaterialExpressionScalarParameter,-500,600,parameter_name='Emission',default_value=.16)
-    noise=expr(u.MaterialExpressionNoise,-700,180,scale=.11,levels=2,output_min=.84,output_max=1.0)
+    noise=expr(u.MaterialExpressionNoise,-700,180,scale=.025,levels=2,output_min=.94,output_max=1.0)
     paint=expr(u.MaterialExpressionMultiply,-270,0)
     emission=expr(u.MaterialExpressionMultiply,-50,160)
     lib=u.MaterialEditingLibrary
@@ -135,9 +135,13 @@ def build_part(asset,part,paints):
         coords=[u.MathLibrary.transform_location(t,v(point))-v(part['pivot']) for point in vertices]
         buffers=u.GeometryScriptSimpleMeshBuffers()
         buffers.set_editor_property('vertices',coords)
-        buffers.set_editor_property('triangles',[u.IntVector(*f) for f in faces])
+        # GeometryCore uses (V2-V0) cross (V1-V0), the inverse of the pure
+        # geometry module's right-handed outward winding. Convert exactly once.
+        buffers.set_editor_property('triangles',[u.IntVector(f[0],f[2],f[1]) for f in faces])
         buffers.set_editor_property('uv0',[u.Vector2D(point[0]/100,point[1]/100) for point in vertices])
         u.GeometryScript_MeshEdits.append_buffers_to_mesh(dynamic,buffers,material_id=palette.index(shape['mat']))
+    # Use six-direction UV projection so vertical walls do not collapse in UVs.
+    u.GeometryScript_UVs.set_mesh_u_vs_from_box_projection(dynamic,0,tf(scale=(100,100,100)),u.GeometryScriptMeshSelection(),min_island_tri_count=1)
     split=u.GeometryScriptSplitNormalsOptions()
     split.set_editor_property('split_by_opening_angle',True)
     split.set_editor_property('opening_angle_deg',42)
@@ -146,9 +150,13 @@ def build_part(asset,part,paints):
     folder=BASE+'/Meshes/'+asset['name']
     EA.make_directory(folder)
     path=folder+'/SM_'+asset['name']+'_'+part['id']
+    copy_options=u.GeometryScriptCopyMeshToAssetOptions()
+    copy_options.set_editor_property('replace_materials',True)
+    copy_options.set_editor_property('new_materials',[paints[name] for name in palette])
+    copy_options.set_editor_property('new_material_slot_names',[u.Name(name) for name in palette])
     if EA.does_asset_exist(path):
         mesh=u.load_asset(path)
-        result=u.GeometryScript_AssetUtils.copy_mesh_to_static_mesh(dynamic,mesh,u.GeometryScriptCopyMeshToAssetOptions(),u.GeometryScriptMeshWriteLOD())
+        result=u.GeometryScript_AssetUtils.copy_mesh_to_static_mesh(dynamic,mesh,copy_options,u.GeometryScriptMeshWriteLOD(),use_section_materials=False)
         require(not isinstance(result,tuple) or result[-1]==u.GeometryScriptOutcomePins.SUCCESS,'Mesh update failed: '+path)
         SME.remove_collisions(mesh)
     else:
@@ -158,6 +166,9 @@ def build_part(asset,part,paints):
         options.set_editor_property('enable_recompute_normals',False)
         result=u.GeometryScript_NewAssetUtils.create_new_static_mesh_asset_from_mesh(dynamic,path,options)
         mesh=result[0] if isinstance(result,tuple) else result
+        if isinstance(mesh,u.StaticMesh):
+            result=u.GeometryScript_AssetUtils.copy_mesh_to_static_mesh(dynamic,mesh,copy_options,u.GeometryScriptMeshWriteLOD(),use_section_materials=False)
+            require(not isinstance(result,tuple) or result[-1]==u.GeometryScriptOutcomePins.SUCCESS,'Material mapping failed: '+path)
     require(isinstance(mesh,u.StaticMesh),'Native mesh creation failed: '+path)
     mesh.set_editor_property('static_materials',[u.StaticMaterial(material_interface=paints[name],material_slot_name=name) for name in palette])
     SME.add_simple_collisions(mesh,u.ScriptCollisionShapeType.BOX)
@@ -214,12 +225,22 @@ def exposure(component):
 
 
 def lighting():
-    for label,angles,color,intensity,priority in [('Key',(-55,-55,0),(.8,.9,1,1),3.4,1),('WarmRim',(-24,130,0),(1,.60,.3,1),1.4,0)]:
+    for label,angles,color,intensity,priority in [('Key',(-50,50,0),(.84,.93,1,1),3.8,2),
+            ('WarmRim',(-28,-130,0),(1,.67,.42,1),1.5,1),('SoftFill',(-30,-55,0),(.5,.76,1,1),1.2,0)]:
         light=tag(ACT.spawn_actor_from_class(u.DirectionalLight,v((0,0,1200)),rot(angles)),label,'Lighting')
         light.light_component.set_intensity(intensity)
         light.light_component.set_light_color(u.LinearColor(*color))
         light.light_component.set_editor_property('forward_shading_priority',priority)
         light.light_component.set_mobility(u.ComponentMobility.MOVABLE)
+        light.light_component.set_cast_shadows(priority==2)
+    fog=tag(ACT.spawn_actor_from_class(u.ExponentialHeightFog,v((0,0,-450))),'DepthAtmosphere','Lighting')
+    f=fog.get_component_by_class(u.ExponentialHeightFogComponent)
+    f.set_fog_density(.035)
+    f.set_fog_height_falloff(.08)
+    f.set_fog_inscattering_color(u.LinearColor(.022,.042,.065,1))
+    f.set_start_distance(1800)
+    f.set_fog_max_opacity(1)
+    f.set_volumetric_fog(False)
     volume=tag(ACT.spawn_actor_from_class(u.PostProcessVolume,v((0,0,0))),'ReforgedExposure','Lighting')
     volume.set_editor_property('unbound',True)
     settings=volume.get_editor_property('settings')
@@ -304,6 +325,7 @@ def build_level(spec):
     require(LEVEL.save_current_level(),'Map save failed: '+path)
     if cameras:
         LEVEL.pilot_level_actor(cameras[0])
+    LEVEL.editor_set_game_view(True)
     report={'path':path,'label':spec['label'],'description':spec['description'],
             'placementCount':len(spec['placements']),'actorCount':len(ACT.get_all_level_actors()),
             'cameras':spec['cameras'],'animation':animation}
@@ -313,12 +335,12 @@ def build_level(spec):
 
 def gallery():
     assets=['RelicMarshal','GearlingSentinel','RustCrawler','ArcWarden','ForgeColossus','RelicLauncher']
-    positions=[(-750,0,0),(-350,0,0),(0,0,0),(400,0,0),(950,200,0),(0,600,0)]
+    positions=[(-2000,0,0),(-1050,0,0),(0,0,0),(1100,0,0),(2300,200,0),(0,1000,0)]
     placements=[{'asset':name,'label':name,'p':p,'r':[0,0,0]} for name,p in zip(assets,positions) if name in SPECS]
-    cameras=[{'name':'NewRoster','p':[1300,-2400,1100],'target':[160,30,200],'fov':48,'aspect':16/9}]
+    cameras=[{'name':'NewRoster','p':[1350,-4500,1450],'target':[200,30,180],'fov':57,'aspect':16/9}]
     for entry in placements:
         name=entry['asset']; x,y,z=entry['p']; h=SPECS[name]['height_cm']
-        cameras.append({'name':'Inspect_'+name,'p':[x+h*.85,y-h*2.55,z+h*.90],
+        cameras.append({'name':'Inspect_'+name,'p':[x+h*.48,y-h*1.72,z+h*.82],
                         'target':[x,y,z+h*.5],'fov':35,'aspect':.8})
     for index,(name,p) in enumerate(zip(assets,positions)):
         radius=1.6 if name=='ForgeColossus' else .8
@@ -329,6 +351,8 @@ def gallery():
 
 
 def run():
+    require(u.get_editor_subsystem(u.UnrealEditorSubsystem).get_game_world() is None,
+            'Stop Play-in-Editor before rebuilding assets')
     current=LEVEL.get_current_level()
     if current and str(current.get_outer().get_path_name()).startswith('/Game/'):
         require(LEVEL.save_current_level(),'Existing work could not be saved')
@@ -359,11 +383,12 @@ def run():
     REPORT_PATH.write_text(json.dumps(REPORT,indent=2),encoding='utf-8')
 
 
-try:
-    run()
-except Exception:
-    REPORT['status']='failed'
-    REPORT['error']=traceback.format_exc()
-    REPORT_PATH.write_text(json.dumps(REPORT,indent=2),encoding='utf-8')
-    u.log_error(REPORT['error'])
-    raise
+if __name__=='__main__':
+    try:
+        run()
+    except Exception:
+        REPORT['status']='failed'
+        REPORT['error']=traceback.format_exc()
+        REPORT_PATH.write_text(json.dumps(REPORT,indent=2),encoding='utf-8')
+        u.log_error(REPORT['error'])
+        raise

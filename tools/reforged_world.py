@@ -55,17 +55,15 @@ def asset(name, label, height, parts, category="environment"):
 def get_assets():
     assets = []
     # Wide quiet top, faceted underside and readable bronze rim: a floating island.
-    deck = [loft("dark", (0, 0, 0), [(-112, 400, 490, 0, 0), (-84, 540, 625, 0, 0),
-            (-24, 570, 650, 0, 0), (-8, 550, 630, 0, 0), (0, 550, 630, 0, 0)]),
-            loft("bronze", (0, 0, 0), [(-29, 574, 654, 0, 0), (-18, 574, 654, 0, 0)]),
-            loft("dark", (0, 0, 0), [(-7, 547, 627, 0, 0), (0, 547, 627, 0, 0)])]
+    deck = [loft("dark", (0, 0, 0), [(-112, 400, 392, 0, 0), (-84, 540, 500, 0, 0),
+            (-24, 570, 520, 0, 0), (-8, 550, 504, 0, 0), (0, 550, 504, 0, 0)]),
+            loft("bronze", (0, 0, 0), [(-29, 574, 523.2, 0, 0), (-18, 574, 523.2, 0, 0)])]
     for side in (-1, 1):
         for y in (-230, 190):
             deck += [bevel("teal", (side * 515, y, 7), (22, 155, 14), 3),
                      bevel("bronze", (side * 525, y, -54), (38, 170, 54), 5)]
     assets.append(asset("SuspendedIsland", "Suspended octagonal deck island", 126, [part("island", deck)]))
-    connector = [bevel("dark", (0, 0, -24), (700, 480, 48), 16),
-                 bevel("dark", (0, 0, -3), (650, 440, 6), 3)]
+    connector = [bevel("dark", (0, 0, -25), (700, 480, 48), 16)]
     for x in (-342, 342):
         connector += [bevel("bronze", (x, 0, -8), (18, 465, 38), 4),
                       bevel("teal", (x, 0, 16), (12, 250, 12), 3)]
@@ -76,8 +74,7 @@ def get_assets():
                 bevel("dark", (56, 0, -382), (135, 145, 28), 8),
                 loft("teal", (0, 0, 0), [(-350, 18, 20, 48, -54), (-90, 18, 20, 8, -82)], segments=6)]
     assets.append(asset("TaperedButtress", "Offset tapered suspension buttress", 520, [part("support", buttress)]))
-    trench = [bevel("dark", (0, 0, -36), (1040, 1100, 72), 18),
-              bevel("dark", (0, 0, -4), (880, 1080, 8), 3)]
+    trench = [bevel("dark", (0, 0, -36), (1040, 1100, 72), 18)]
     for x in (-485, 485):
         trench += [bevel("rust", (x, 0, 38), (58, 1070, 76), 7),
                    bevel("cyan", (x - (14 if x > 0 else -14), 0, 79), (9, 620, 7), 2)]
@@ -101,7 +98,7 @@ def get_assets():
     rotor = [cone("bronze", (0, -144, 240), 19, 15, 24, r=(0, 0, 90))]
     for i in range(6):
         a = i * pi / 3
-        rotor.append(egg("steel", (cos(a) * 38, -143, 240 + sin(a) * 38), (48, 10, 17), r=(0, 0, i * 60)))
+        rotor.append(egg("steel", (cos(a) * 38, -143, 240 + sin(a) * 38), (48, 10, 17), r=(-i * 60, 0, 0)))
     assets.append(asset("PressureVessel", "Offset pressure vessel with exposed fan", 545,
         [part("vessel", tank), part("fan", rotor, (0, -144, 240), "vessel")]))
     cooling = [loft("steel", (0, 0, 0), [(0, 125, 100, 0, 0), (320, 104, 90, 0, 0),
@@ -153,8 +150,7 @@ def get_assets():
     assets.append(asset("ReactorBulkhead", "Massive sealed reactor bulkhead", 1080, [part("bulkhead", door)]))
     citadel = [loft("dark", (0, 0, 0), [(-190, 900, 1120, 0, 0), (-115, 1090, 1320, 0, 0),
                (-18, 1070, 1300, 0, 0), (0, 1040, 1270, 0, 0)], segments=12),
-               loft("bronze", (0, 0, 0), [(-100, 1096, 1326, 0, 0), (-75, 1096, 1326, 0, 0)], segments=12),
-               loft("dark", (0, 0, 0), [(-6, 1037, 1267, 0, 0), (0, 1037, 1267, 0, 0)], segments=12)]
+               loft("bronze", (0, 0, 0), [(-100, 1096, 1326, 0, 0), (-75, 1096, 1326, 0, 0)], segments=12)]
     for x in (-880, 880):
         for y in (-550, 270):
             citadel += [bevel("bronze", (x, y, -8), (95, 225, 40), 10),
@@ -287,9 +283,16 @@ def get_levels():
     for level, ground in zip(levels, (140, -180, 170)):
         for placement in level["placements"]:
             placement["p"][2] -= ground
-            if placement["asset"] in ("RustCrawler", "ArcWarden", "ForgeColossus"):
+            if placement["asset"] in ("RustCrawler", "ArcWarden", "ForgeColossus", "ReactorBulkhead"):
                 placement["r"][1] = (placement["r"][1] + 180) % 360
         for view in level["cameras"]:
             view["p"][2] -= ground
             view["target"][2] -= ground
+        # Machinery is founded on independent towers descending into the fog,
+        # rather than floating unsupported beside the battle route.
+        for equipment in list(level["placements"]):
+            if equipment["asset"] in ("PressureVessel","CoolingStack","CableDrum","ArticulatedServiceArm","RelicLauncher"):
+                x,y,z=equipment["p"]
+                level["placements"].append(place("TaperedButtress",equipment["label"]+"_Foundation",
+                    (x,y,z+72),scale=(1.3,1.3,3)))
     return levels

@@ -3,9 +3,9 @@
 No editor calls. get_motion returns additive offsets to the modeled rest pose.
 240 frames / 30 fps = eight seconds. Location channels are centimetres;
 Rotation.X/Y/Z are Unreal roll/pitch/yaw in degrees, respectively. Every track
-starts and ends at rest except wheels, whose full revolutions close geometrically.
+starts and ends at rest except rotating axles, whose revolutions close geometrically.
 These are asset-workshop demonstration loops, not authoritative gameplay attacks.
-Use linear interpolation for wheel rotation and recoil keys (no angle wrapping).
+Use linear interpolation for wheel/fan/barrel rotation and recoil (no angle wrapping).
 """
 
 
@@ -109,4 +109,36 @@ def get_motion(asset_name, part_id):
                     "Rotation.Y":wave(1.1 if part_id.endswith("L") else -1.1)}
         if part_id.startswith("Cannon_"):
             return {"Location.Y":recoil(7,1.8),"Rotation.X":wave(.5,2)}
+    elif asset_name == "ArticulatedServiceArm":
+        if part_id == "base":
+            return {"Rotation.Z":wave(3)}
+        if part_id == "shoulder":
+            # The 252cm boom lies along -Y; roll raises it around the shoulder X axle.
+            return {"Rotation.X":[(0,0),(30,0),(66,-5),(96,-5),(126,0),
+                                  (156,3),(186,3),(216,0),(240,0)]}
+        if part_id == "forearm":
+            # Small counter-flex avoids the impression of a single rigid crane.
+            return {"Rotation.X":[(0,0),(30,0),(66,8),(96,8),(126,0),
+                                  (156,-4),(186,-4),(216,0),(240,0)]}
+        if part_id == "claw":
+            # There is one modeled claw assembly, not independently modeled jaws;
+            # rotate the tool wrist instead of inventing nonexistent gripper joints.
+            return {"Rotation.X":[(0,0),(54,0),(78,-6),(96,-6),(120,0),
+                                  (162,0),(180,5),(198,5),(222,0),(240,0)],
+                    "Rotation.Z":wave(3)}
+    elif asset_name == "RelicLauncher":
+        if part_id == "turret":
+            return {"Rotation.Z":[(0,0),(30,-5),(54,-5),(90,0),
+                                  (150,5),(174,5),(210,0),(240,0)]}
+        if part_id == "yoke":
+            return {"Rotation.Z":wave(1.2),
+                    "Rotation.X":[(0,0),(36,-2),(54,-2),(84,0),
+                                  (156,-2),(174,-2),(204,0),(240,0)]}
+        if part_id == "barrels":
+            # Axis is local Y because geometry was rolled 90deg from native Z.
+            return {"Rotation.Y":[(f,720*f/240) for f in range(0,241,30)],
+                    "Location.Y":recoil(5,1)}
+    elif asset_name == "PressureVessel" and part_id == "fan":
+        # Exposed fan lies in XZ, axle faces -Y: pitch/Y rotation, never roll/X.
+        return {"Rotation.Y":[(f,1440*f/240) for f in range(0,241,30)]}
     return {}

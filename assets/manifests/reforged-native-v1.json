@@ -1,0 +1,2538 @@
+{
+  "status": "authored",
+  "engine": "5.8.3-58210709+++UE5+Release-5.8",
+  "namespace": "/Game/MechalordReforged",
+  "importedMeshCount": 0,
+  "legacyAssetsUsed": [],
+  "nativeGameplayConnected": false,
+  "androidValidated": false,
+  "assets": [
+    {
+      "name": "RelicMarshal",
+      "label": "Relic Marshal \u2014 newly forged",
+      "parts": [
+        {
+          "part": "Torso",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            149
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_Torso",
+          "triangles": 1380,
+          "materialSlots": [
+            "dark",
+            "teal",
+            "ivory",
+            "bronze",
+            "cyan",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -41.0,
+            -41.87763977050781,
+            -55.0
+          ],
+          "localBoundsMax": [
+            41.0,
+            34.0,
+            72.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Head",
+          "parent": "Torso",
+          "pivotCm": [
+            0,
+            0,
+            219
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_Head",
+          "triangles": 620,
+          "materialSlots": [
+            "ivory",
+            "bronze",
+            "dark",
+            "cyan",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -21.0,
+            -24.700000762939453,
+            1.0
+          ],
+          "localBoundsMax": [
+            21.0,
+            20.0,
+            63.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "UpperArmL",
+          "parent": "Torso",
+          "pivotCm": [
+            48,
+            0,
+            205
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_UpperArmL",
+          "triangles": 660,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -26.0,
+            -28.0,
+            -45.0
+          ],
+          "localBoundsMax": [
+            26.0,
+            27.0,
+            24.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "ForearmL",
+          "parent": "UpperArmL",
+          "pivotCm": [
+            58,
+            0,
+            159
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ForearmL",
+          "triangles": 408,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -16.0,
+            -20.0,
+            -40.5
+          ],
+          "localBoundsMax": [
+            22.0,
+            16.0,
+            11.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "HandL",
+          "parent": "ForearmL",
+          "pivotCm": [
+            62,
+            0,
+            118
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_HandL",
+          "triangles": 468,
+          "materialSlots": [
+            "steel",
+            "dark",
+            "bronze"
+          ],
+          "localBoundsMin": [
+            -9.0,
+            -12.0,
+            -20.07666015625
+          ],
+          "localBoundsMax": [
+            13.5,
+            5.5,
+            2.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "ThighL",
+          "parent": "Torso",
+          "pivotCm": [
+            23,
+            0,
+            130
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ThighL",
+          "triangles": 260,
+          "materialSlots": [
+            "dark",
+            "ivory",
+            "bronze",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -19.0,
+            -21.0,
+            -49.0
+          ],
+          "localBoundsMax": [
+            26.0,
+            21.0,
+            5.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "ShinL",
+          "parent": "ThighL",
+          "pivotCm": [
+            26,
+            0,
+            77
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ShinL",
+          "triangles": 512,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -19.0,
+            -24.85317039489746,
+            -58.0
+          ],
+          "localBoundsMax": [
+            19.0,
+            18.0,
+            15.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "FootL",
+          "parent": "ShinL",
+          "pivotCm": [
+            26,
+            0,
+            20
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_FootL",
+          "triangles": 300,
+          "materialSlots": [
+            "rubber",
+            "bronze",
+            "ivory"
+          ],
+          "localBoundsMin": [
+            -20.0,
+            -34.0,
+            -20.0
+          ],
+          "localBoundsMax": [
+            20.0,
+            16.0,
+            9.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "UpperArmR",
+          "parent": "Torso",
+          "pivotCm": [
+            -48,
+            0,
+            205
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_UpperArmR",
+          "triangles": 660,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -26.0,
+            -28.0,
+            -45.0
+          ],
+          "localBoundsMax": [
+            26.0,
+            27.0,
+            24.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "ForearmR",
+          "parent": "UpperArmR",
+          "pivotCm": [
+            -58,
+            0,
+            159
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ForearmR",
+          "triangles": 408,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -22.0,
+            -20.0,
+            -40.5
+          ],
+          "localBoundsMax": [
+            16.0,
+            16.0,
+            11.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "HandR",
+          "parent": "ForearmR",
+          "pivotCm": [
+            -62,
+            0,
+            118
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_HandR",
+          "triangles": 468,
+          "materialSlots": [
+            "steel",
+            "dark",
+            "bronze"
+          ],
+          "localBoundsMin": [
+            -13.5,
+            -12.0,
+            -20.07666015625
+          ],
+          "localBoundsMax": [
+            9.0,
+            5.5,
+            2.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "ThighR",
+          "parent": "Torso",
+          "pivotCm": [
+            -23,
+            0,
+            130
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ThighR",
+          "triangles": 260,
+          "materialSlots": [
+            "dark",
+            "ivory",
+            "bronze",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -26.0,
+            -21.0,
+            -49.0
+          ],
+          "localBoundsMax": [
+            19.0,
+            21.0,
+            5.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "ShinR",
+          "parent": "ThighR",
+          "pivotCm": [
+            -26,
+            0,
+            77
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ShinR",
+          "triangles": 512,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "ivory",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -19.0,
+            -24.85317039489746,
+            -58.0
+          ],
+          "localBoundsMax": [
+            19.0,
+            18.0,
+            15.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "FootR",
+          "parent": "ShinR",
+          "pivotCm": [
+            -26,
+            0,
+            20
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_FootR",
+          "triangles": 300,
+          "materialSlots": [
+            "rubber",
+            "bronze",
+            "ivory"
+          ],
+          "localBoundsMin": [
+            -20.0,
+            -34.0,
+            -20.0
+          ],
+          "localBoundsMax": [
+            20.0,
+            16.0,
+            9.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Weapon",
+          "parent": "ForearmR",
+          "pivotCm": [
+            -64,
+            -18,
+            137
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_Weapon",
+          "triangles": 604,
+          "materialSlots": [
+            "teal",
+            "ivory",
+            "bronze",
+            "dark",
+            "cyan"
+          ],
+          "localBoundsMin": [
+            -29.09111976623535,
+            -32.5,
+            -18.0
+          ],
+          "localBoundsMax": [
+            29.09111976623535,
+            3.5105652809143066,
+            24.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 7820,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "GearlingSentinel",
+      "label": "Gearling Sentinel \u2014 newly forged",
+      "parts": [
+        {
+          "part": "GearlingHull",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            54
+          ],
+          "path": "/Game/MechalordReforged/Meshes/GearlingSentinel/SM_GearlingSentinel_GearlingHull",
+          "triangles": 1368,
+          "materialSlots": [
+            "dark",
+            "ivory",
+            "bronze",
+            "teal",
+            "cyan",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -53.0,
+            -40.25,
+            -33.0
+          ],
+          "localBoundsMax": [
+            53.0,
+            41.0,
+            63.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "WheelL",
+          "parent": "GearlingHull",
+          "pivotCm": [
+            50,
+            0,
+            40
+          ],
+          "path": "/Game/MechalordReforged/Meshes/GearlingSentinel/SM_GearlingSentinel_WheelL",
+          "triangles": 756,
+          "materialSlots": [
+            "rubber",
+            "bronze",
+            "teal",
+            "dark",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -10.0,
+            -40.0,
+            -40.0
+          ],
+          "localBoundsMax": [
+            19.5,
+            40.0,
+            40.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "WheelR",
+          "parent": "GearlingHull",
+          "pivotCm": [
+            -50,
+            0,
+            40
+          ],
+          "path": "/Game/MechalordReforged/Meshes/GearlingSentinel/SM_GearlingSentinel_WheelR",
+          "triangles": 756,
+          "materialSlots": [
+            "rubber",
+            "bronze",
+            "teal",
+            "dark",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -19.5,
+            -40.0,
+            -40.0
+          ],
+          "localBoundsMax": [
+            10.0,
+            40.0,
+            40.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Turret",
+          "parent": "GearlingHull",
+          "pivotCm": [
+            0,
+            0,
+            113
+          ],
+          "path": "/Game/MechalordReforged/Meshes/GearlingSentinel/SM_GearlingSentinel_Turret",
+          "triangles": 710,
+          "materialSlots": [
+            "bronze",
+            "teal",
+            "ivory",
+            "steel",
+            "cyan"
+          ],
+          "localBoundsMin": [
+            -42.56211853027344,
+            -60.0,
+            1.0
+          ],
+          "localBoundsMax": [
+            42.56211853027344,
+            18.0700740814209,
+            35.5
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 3590,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "RustCrawler",
+      "label": "Rust Crawler \u2014 breach scout",
+      "parts": [
+        {
+          "part": "Chassis",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            43
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Chassis",
+          "triangles": 836,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -51.0,
+            -60.31999969482422,
+            -25.5
+          ],
+          "localBoundsMax": [
+            51.0,
+            74.5,
+            46.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Track_L",
+          "parent": "Chassis",
+          "pivotCm": [
+            -66,
+            4,
+            37
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Track_L",
+          "triangles": 1272,
+          "materialSlots": [
+            "rubber",
+            "rust",
+            "bronze",
+            "dark",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -27.5,
+            -73.0,
+            -37.609928131103516
+          ],
+          "localBoundsMax": [
+            17.0,
+            73.0,
+            37.609928131103516
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Track_R",
+          "parent": "Chassis",
+          "pivotCm": [
+            66,
+            4,
+            37
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Track_R",
+          "triangles": 1272,
+          "materialSlots": [
+            "rubber",
+            "rust",
+            "bronze",
+            "dark",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -17.0,
+            -73.0,
+            -37.609928131103516
+          ],
+          "localBoundsMax": [
+            27.5,
+            73.0,
+            37.609928131103516
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Turret",
+          "parent": "Chassis",
+          "pivotCm": [
+            0,
+            8,
+            91
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Turret",
+          "triangles": 520,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -52.05367660522461,
+            -45.5,
+            0.0
+          ],
+          "localBoundsMax": [
+            52.05367660522461,
+            35.1401481628418,
+            62.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Cannon",
+          "parent": "Turret",
+          "pivotCm": [
+            0,
+            -33,
+            110
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Cannon",
+          "triangles": 384,
+          "materialSlots": [
+            "bronze",
+            "steel",
+            "dark"
+          ],
+          "localBoundsMin": [
+            -25.0,
+            -67.5,
+            -25.0
+          ],
+          "localBoundsMax": [
+            25.0,
+            7.0,
+            25.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 4284,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "ArcWarden",
+      "label": "Arc Warden \u2014 shield elite",
+      "parts": [
+        {
+          "part": "Pelvis",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            141
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Pelvis",
+          "triangles": 180,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "rust"
+          ],
+          "localBoundsMin": [
+            -46.0,
+            -42.0,
+            -29.0
+          ],
+          "localBoundsMax": [
+            46.0,
+            30.5,
+            24.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Torso",
+          "parent": "Pelvis",
+          "pivotCm": [
+            0,
+            0,
+            169
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Torso",
+          "triangles": 1032,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "amber",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -56.0,
+            -45.5,
+            -6.0
+          ],
+          "localBoundsMax": [
+            56.0,
+            39.0,
+            81.65833282470703
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Head",
+          "parent": "Torso",
+          "pivotCm": [
+            0,
+            2,
+            244
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Head",
+          "triangles": 532,
+          "materialSlots": [
+            "dark",
+            "ivory",
+            "redglow",
+            "bronze"
+          ],
+          "localBoundsMin": [
+            -27.0,
+            -31.0,
+            -1.5
+          ],
+          "localBoundsMax": [
+            27.0,
+            20.5,
+            61.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Leg_L",
+          "parent": "Pelvis",
+          "pivotCm": [
+            -31,
+            3,
+            138
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Leg_L",
+          "triangles": 820,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -24.5,
+            -48.0,
+            -138.0
+          ],
+          "localBoundsMax": [
+            24.5,
+            21.5,
+            1.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Arm_L",
+          "parent": "Torso",
+          "pivotCm": [
+            -65,
+            0,
+            223
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Arm_L",
+          "triangles": 512,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -33.0,
+            -32.0,
+            -70.0
+          ],
+          "localBoundsMax": [
+            33.0,
+            29.482751846313477,
+            33.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Leg_R",
+          "parent": "Pelvis",
+          "pivotCm": [
+            31,
+            3,
+            138
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Leg_R",
+          "triangles": 820,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -24.5,
+            -48.0,
+            -138.0
+          ],
+          "localBoundsMax": [
+            24.5,
+            21.5,
+            1.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Arm_R",
+          "parent": "Torso",
+          "pivotCm": [
+            65,
+            0,
+            223
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Arm_R",
+          "triangles": 512,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -33.0,
+            -32.0,
+            -70.0
+          ],
+          "localBoundsMax": [
+            33.0,
+            29.482751846313477,
+            33.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Shield_R",
+          "parent": "Arm_R",
+          "pivotCm": [
+            69,
+            -11,
+            165
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Shield_R",
+          "triangles": 460,
+          "materialSlots": [
+            "bronze",
+            "rust",
+            "dark",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -18.0,
+            -38.0,
+            -106.0
+          ],
+          "localBoundsMax": [
+            72.0,
+            -6.205771446228027,
+            84.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Cannon_L",
+          "parent": "Arm_L",
+          "pivotCm": [
+            -65,
+            -7,
+            164
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Cannon_L",
+          "triangles": 576,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "steel",
+            "rust",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -24.5,
+            -73.0,
+            -40.5
+          ],
+          "localBoundsMax": [
+            23.5,
+            26.5,
+            8.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 5444,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "ForgeColossus",
+      "label": "Forge Colossus \u2014 ancient siege knight",
+      "parts": [
+        {
+          "part": "Pelvis",
+          "parent": null,
+          "pivotCm": [
+            0,
+            7,
+            280
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Pelvis",
+          "triangles": 196,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "rust"
+          ],
+          "localBoundsMin": [
+            -81.0,
+            -73.5,
+            -64.0
+          ],
+          "localBoundsMax": [
+            81.0,
+            52.0,
+            45.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Torso",
+          "parent": "Pelvis",
+          "pivotCm": [
+            0,
+            7,
+            321
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Torso",
+          "triangles": 1772,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "cyan",
+            "ivory",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -110.0,
+            -82.5,
+            -4.0
+          ],
+          "localBoundsMax": [
+            110.0,
+            67.0,
+            168.90374755859375
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Head",
+          "parent": "Torso",
+          "pivotCm": [
+            0,
+            6,
+            486
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Head",
+          "triangles": 884,
+          "materialSlots": [
+            "dark",
+            "steel",
+            "redglow",
+            "bronze"
+          ],
+          "localBoundsMin": [
+            -54.0,
+            -52.5,
+            -8.5
+          ],
+          "localBoundsMax": [
+            54.0,
+            37.5,
+            83.02014923095703
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Leg_L",
+          "parent": "Pelvis",
+          "pivotCm": [
+            -62,
+            8,
+            281
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Leg_L",
+          "triangles": 1396,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -45.0,
+            -86.0,
+            -281.0
+          ],
+          "localBoundsMax": [
+            45.0,
+            38.5,
+            20.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "UpperArm_L",
+          "parent": "Torso",
+          "pivotCm": [
+            -105,
+            4,
+            450
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_UpperArm_L",
+          "triangles": 728,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -92.0,
+            -52.5,
+            -142.0
+          ],
+          "localBoundsMax": [
+            36.0,
+            55.0,
+            75.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Forearm_L",
+          "parent": "UpperArm_L",
+          "pivotCm": [
+            -133,
+            1,
+            337
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Forearm_L",
+          "triangles": 280,
+          "materialSlots": [
+            "steel",
+            "rust",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -44.0,
+            -52.5,
+            -54.0
+          ],
+          "localBoundsMax": [
+            44.0,
+            31.0,
+            26.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Cannon_L",
+          "parent": "Forearm_L",
+          "pivotCm": [
+            -133,
+            -8,
+            303
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Cannon_L",
+          "triangles": 1292,
+          "materialSlots": [
+            "bronze",
+            "dark",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -48.0,
+            -118.0,
+            -60.0
+          ],
+          "localBoundsMax": [
+            48.0,
+            39.0,
+            36.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Jet_L",
+          "parent": "Torso",
+          "pivotCm": [
+            -73,
+            62,
+            420
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Jet_L",
+          "triangles": 440,
+          "materialSlots": [
+            "steel",
+            "rust",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -33.0,
+            -11.0,
+            -103.0
+          ],
+          "localBoundsMax": [
+            33.0,
+            57.5,
+            53.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Leg_R",
+          "parent": "Pelvis",
+          "pivotCm": [
+            62,
+            8,
+            281
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Leg_R",
+          "triangles": 1396,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -45.0,
+            -86.0,
+            -281.0
+          ],
+          "localBoundsMax": [
+            45.0,
+            38.5,
+            20.5
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "UpperArm_R",
+          "parent": "Torso",
+          "pivotCm": [
+            105,
+            4,
+            450
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_UpperArm_R",
+          "triangles": 728,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -36.0,
+            -52.5,
+            -142.0
+          ],
+          "localBoundsMax": [
+            92.0,
+            55.0,
+            75.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Forearm_R",
+          "parent": "UpperArm_R",
+          "pivotCm": [
+            133,
+            1,
+            337
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Forearm_R",
+          "triangles": 280,
+          "materialSlots": [
+            "steel",
+            "rust",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -44.0,
+            -52.5,
+            -54.0
+          ],
+          "localBoundsMax": [
+            44.0,
+            31.0,
+            26.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Cannon_R",
+          "parent": "Forearm_R",
+          "pivotCm": [
+            133,
+            -8,
+            303
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Cannon_R",
+          "triangles": 1292,
+          "materialSlots": [
+            "bronze",
+            "dark",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -48.0,
+            -118.0,
+            -60.0
+          ],
+          "localBoundsMax": [
+            48.0,
+            39.0,
+            36.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "Jet_R",
+          "parent": "Torso",
+          "pivotCm": [
+            73,
+            62,
+            420
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Jet_R",
+          "triangles": 440,
+          "materialSlots": [
+            "steel",
+            "rust",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -33.0,
+            -11.0,
+            -103.0
+          ],
+          "localBoundsMax": [
+            33.0,
+            57.5,
+            53.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 11124,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "SuspendedIsland",
+      "label": "Suspended octagonal deck island",
+      "parts": [
+        {
+          "part": "island",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/SuspendedIsland/SM_SuspendedIsland_island",
+          "triangles": 584,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -574.0,
+            -523.2000122070312,
+            -112.0
+          ],
+          "localBoundsMax": [
+            574.0,
+            523.2000122070312,
+            14.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 584,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "SpineConnector",
+      "label": "Sculpted narrow suspension joint",
+      "parts": [
+        {
+          "part": "joint",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/SpineConnector/SM_SpineConnector_joint",
+          "triangles": 300,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -351.0,
+            -240.0,
+            -49.0
+          ],
+          "localBoundsMax": [
+            351.0,
+            240.0,
+            22.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 300,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "TaperedButtress",
+      "label": "Offset tapered suspension buttress",
+      "parts": [
+        {
+          "part": "support",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/TaperedButtress/SM_TaperedButtress_support",
+          "triangles": 184,
+          "materialSlots": [
+            "steel",
+            "bronze",
+            "dark",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -125.0,
+            -102.5,
+            -520.0
+          ],
+          "localBoundsMax": [
+            125.0,
+            102.5,
+            -21.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 184,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "SunkenRoute",
+      "label": "Continuous sunken reactor route",
+      "parts": [
+        {
+          "part": "trench",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/SunkenRoute/SM_SunkenRoute_trench",
+          "triangles": 300,
+          "materialSlots": [
+            "dark",
+            "rust",
+            "cyan"
+          ],
+          "localBoundsMin": [
+            -520.0,
+            -550.0,
+            -72.0
+          ],
+          "localBoundsMax": [
+            520.0,
+            550.0,
+            82.5
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 300,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "ReactorBank",
+      "label": "Faceted vertical reactor retaining bank",
+      "parts": [
+        {
+          "part": "bank",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ReactorBank/SM_ReactorBank_bank",
+          "triangles": 480,
+          "materialSlots": [
+            "dark",
+            "steel",
+            "bronze",
+            "teal",
+            "cyan"
+          ],
+          "localBoundsMin": [
+            -164.5,
+            -470.0,
+            0.0
+          ],
+          "localBoundsMax": [
+            110.0,
+            470.0,
+            620.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 480,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "PressureVessel",
+      "label": "Offset pressure vessel with exposed fan",
+      "parts": [
+        {
+          "part": "vessel",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/PressureVessel/SM_PressureVessel_vessel",
+          "triangles": 584,
+          "materialSlots": [
+            "steel",
+            "teal",
+            "bronze",
+            "dark",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -135.0,
+            -144.0,
+            0.0
+          ],
+          "localBoundsMax": [
+            139.0,
+            135.0,
+            545.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "fan",
+          "parent": "vessel",
+          "pivotCm": [
+            0,
+            -144,
+            240
+          ],
+          "path": "/Game/MechalordReforged/Meshes/PressureVessel/SM_PressureVessel_fan",
+          "triangles": 748,
+          "materialSlots": [
+            "bronze",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -62.0,
+            -12.0,
+            -53.69357681274414
+          ],
+          "localBoundsMax": [
+            62.0,
+            12.0,
+            53.69357681274414
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 1332,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "CoolingStack",
+      "label": "Flared open cooling stack",
+      "parts": [
+        {
+          "part": "stack",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/CoolingStack/SM_CoolingStack_stack",
+          "triangles": 532,
+          "materialSlots": [
+            "steel",
+            "dark",
+            "bronze",
+            "teal",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -138.0,
+            -138.0,
+            0.0
+          ],
+          "localBoundsMax": [
+            138.0,
+            138.0,
+            460.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 532,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "ArticulatedServiceArm",
+      "label": "Four-part articulated maintenance arm",
+      "parts": [
+        {
+          "part": "base",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArticulatedServiceArm/SM_ArticulatedServiceArm_base",
+          "triangles": 276,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -105.0,
+            -104.0,
+            0.0
+          ],
+          "localBoundsMax": [
+            105.0,
+            104.0,
+            250.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "shoulder",
+          "parent": "base",
+          "pivotCm": [
+            0,
+            0,
+            225
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArticulatedServiceArm/SM_ArticulatedServiceArm_shoulder",
+          "triangles": 360,
+          "materialSlots": [
+            "bronze",
+            "steel",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -41.0,
+            -290.0,
+            -41.0
+          ],
+          "localBoundsMax": [
+            41.0,
+            45.0,
+            41.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "forearm",
+          "parent": "shoulder",
+          "pivotCm": [
+            0,
+            -252,
+            225
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArticulatedServiceArm/SM_ArticulatedServiceArm_forearm",
+          "triangles": 240,
+          "materialSlots": [
+            "steel",
+            "bronze",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -31.0,
+            -162.5,
+            -10.539105415344238
+          ],
+          "localBoundsMax": [
+            31.0,
+            7.539105415344238,
+            159.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "claw",
+          "parent": "forearm",
+          "pivotCm": [
+            0,
+            -382,
+            353
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ArticulatedServiceArm/SM_ArticulatedServiceArm_claw",
+          "triangles": 420,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "steel",
+            "cyan"
+          ],
+          "localBoundsMin": [
+            -39.5,
+            -101.0,
+            -41.0
+          ],
+          "localBoundsMax": [
+            39.5,
+            7.0,
+            25.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 1296,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "RelicGate",
+      "label": "Faceted relic arch with clear open passage",
+      "parts": [
+        {
+          "part": "arch",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicGate/SM_RelicGate_arch",
+          "triangles": 588,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "cyan",
+            "steel",
+            "teal",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -484.0,
+            -81.5,
+            0.0
+          ],
+          "localBoundsMax": [
+            484.0,
+            72.5,
+            495.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 588,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "ReactorBulkhead",
+      "label": "Massive sealed reactor bulkhead",
+      "parts": [
+        {
+          "part": "bulkhead",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/ReactorBulkhead/SM_ReactorBulkhead_bulkhead",
+          "triangles": 620,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "teal",
+            "steel",
+            "amber"
+          ],
+          "localBoundsMin": [
+            -700.0,
+            -231.0,
+            0.0
+          ],
+          "localBoundsMax": [
+            700.0,
+            150.0,
+            1080.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 620,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "CitadelBowl",
+      "label": "Broad twelve-sided citadel battle bowl",
+      "parts": [
+        {
+          "part": "arena",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/CitadelBowl/SM_CitadelBowl_arena",
+          "triangles": 616,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -1096.0,
+            -1326.0,
+            -190.0
+          ],
+          "localBoundsMax": [
+            1096.0,
+            1326.0,
+            19.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 616,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "CitadelSpire",
+      "label": "Leaning armored citadel spire",
+      "parts": [
+        {
+          "part": "spire",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/CitadelSpire/SM_CitadelSpire_spire",
+          "triangles": 212,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "redglow",
+            "steel"
+          ],
+          "localBoundsMin": [
+            -105.0,
+            -128.0,
+            0.0
+          ],
+          "localBoundsMax": [
+            113.0,
+            121.2435531616211,
+            940.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 212,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "CableDrum",
+      "label": "Heavy cable drum and asymmetric cradle",
+      "parts": [
+        {
+          "part": "drum",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/CableDrum/SM_CableDrum_drum",
+          "triangles": 376,
+          "materialSlots": [
+            "dark",
+            "bronze",
+            "rubber",
+            "teal"
+          ],
+          "localBoundsMin": [
+            -92.5,
+            -115.0,
+            0.0
+          ],
+          "localBoundsMax": [
+            92.5,
+            115.0,
+            158.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 376,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "RelicLauncher",
+      "label": "Relic-powered four-barrel siege launcher",
+      "parts": [
+        {
+          "part": "chassis",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicLauncher/SM_RelicLauncher_chassis",
+          "triangles": 1124,
+          "materialSlots": [
+            "dark",
+            "ivory",
+            "teal",
+            "rubber",
+            "bronze"
+          ],
+          "localBoundsMin": [
+            -119.68000030517578,
+            -135.0,
+            0.0
+          ],
+          "localBoundsMax": [
+            119.68000030517578,
+            135.0,
+            103.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "turret",
+          "parent": "chassis",
+          "pivotCm": [
+            0,
+            0,
+            106
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicLauncher/SM_RelicLauncher_turret",
+          "triangles": 328,
+          "materialSlots": [
+            "bronze",
+            "dark",
+            "ivory",
+            "cyan"
+          ],
+          "localBoundsMin": [
+            -65.0,
+            -75.0,
+            -15.0
+          ],
+          "localBoundsMax": [
+            65.0,
+            65.0,
+            108.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "yoke",
+          "parent": "turret",
+          "pivotCm": [
+            0,
+            -44,
+            176
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicLauncher/SM_RelicLauncher_yoke",
+          "triangles": 360,
+          "materialSlots": [
+            "steel",
+            "bronze"
+          ],
+          "localBoundsMin": [
+            -72.0,
+            -26.0,
+            -44.5
+          ],
+          "localBoundsMax": [
+            72.0,
+            57.5,
+            26.0
+          ],
+          "simpleCollisionCount": 1
+        },
+        {
+          "part": "barrels",
+          "parent": "yoke",
+          "pivotCm": [
+            0,
+            -45,
+            176
+          ],
+          "path": "/Game/MechalordReforged/Meshes/RelicLauncher/SM_RelicLauncher_barrels",
+          "triangles": 1344,
+          "materialSlots": [
+            "bronze",
+            "steel",
+            "cyan"
+          ],
+          "localBoundsMin": [
+            -46.0,
+            -169.5,
+            -46.0
+          ],
+          "localBoundsMax": [
+            46.0,
+            14.0,
+            46.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 3156,
+      "source": "new procedural surface specification"
+    },
+    {
+      "name": "AtelierPlinth",
+      "label": "Octagonal inspection plinth",
+      "parts": [
+        {
+          "part": "Base",
+          "parent": null,
+          "pivotCm": [
+            0,
+            0,
+            0
+          ],
+          "path": "/Game/MechalordReforged/Meshes/AtelierPlinth/SM_AtelierPlinth_Base",
+          "triangles": 124,
+          "materialSlots": [
+            "dark",
+            "bronze"
+          ],
+          "localBoundsMin": [
+            -182.0,
+            -182.0,
+            -24.0
+          ],
+          "localBoundsMax": [
+            182.0,
+            182.0,
+            0.0
+          ],
+          "simpleCollisionCount": 1
+        }
+      ],
+      "triangles": 124,
+      "source": "new procedural surface specification"
+    }
+  ],
+  "maps": [
+    {
+      "path": "/Game/MechalordReforged/Maps/L_ReforgedAtelier",
+      "label": "Reforged \u2014 original asset atelier",
+      "description": "New meshes, pivoted rigid assemblies and motion previews. No legacy models.",
+      "placementCount": 12,
+      "actorCount": 69,
+      "cameras": [
+        {
+          "name": "NewRoster",
+          "p": [
+            1350,
+            -4500,
+            1450
+          ],
+          "target": [
+            200,
+            30,
+            180
+          ],
+          "fov": 57,
+          "aspect": 1.7777777777777777
+        },
+        {
+          "name": "Inspect_RelicMarshal",
+          "p": [
+            -1864.64,
+            -485.04,
+            231.23999999999998
+          ],
+          "target": [
+            -2000,
+            0,
+            141.0
+          ],
+          "fov": 35,
+          "aspect": 0.8
+        },
+        {
+          "name": "Inspect_GearlingSentinel",
+          "p": [
+            -978.48,
+            -256.28,
+            122.17999999999999
+          ],
+          "target": [
+            -1050,
+            0,
+            74.5
+          ],
+          "fov": 35,
+          "aspect": 0.8
+        },
+        {
+          "name": "Inspect_RustCrawler",
+          "p": [
+            73.92,
+            -264.88,
+            126.27999999999999
+          ],
+          "target": [
+            0,
+            0,
+            77.0
+          ],
+          "fov": 35,
+          "aspect": 0.8
+        },
+        {
+          "name": "Inspect_ArcWarden",
+          "p": [
+            1247.36,
+            -528.04,
+            251.73999999999998
+          ],
+          "target": [
+            1100,
+            0,
+            153.5
+          ],
+          "fov": 35,
+          "aspect": 0.8
+        },
+        {
+          "name": "Inspect_ForgeColossus",
+          "p": [
+            2595.2,
+            -857.8,
+            504.29999999999995
+          ],
+          "target": [
+            2300,
+            200,
+            307.5
+          ],
+          "fov": 35,
+          "aspect": 0.8
+        },
+        {
+          "name": "Inspect_RelicLauncher",
+          "p": [
+            107.52,
+            614.72,
+            183.67999999999998
+          ],
+          "target": [
+            0,
+            1000,
+            112.0
+          ],
+          "fov": 35,
+          "aspect": 0.8
+        }
+      ],
+      "animation": {
+        "path": "/Game/MechalordReforged/Animation/LS_ReforgedAtelier.LS_ReforgedAtelier",
+        "bindings": 45,
+        "previewOnly": true,
+        "frames": 240
+      }
+    },
+    {
+      "path": "/Game/MechalordReforged/Maps/L_SkyforgeViaduct",
+      "label": "Skyforge Viaduct",
+      "description": "Suspended octagonal islands overlap into a narrow spine. Offset buttresses, a lone maintenance arm and distant machinery reveal the height without fencing the battle route.",
+      "placementCount": 35,
+      "actorCount": 92,
+      "cameras": [
+        {
+          "name": "SkyforgePortrait",
+          "p": [
+            75,
+            1690,
+            1640
+          ],
+          "target": [
+            0,
+            -1030,
+            35
+          ],
+          "fov": 34,
+          "aspect": 0.5625
+        },
+        {
+          "name": "SkyforgeOblique",
+          "p": [
+            2150,
+            520,
+            1640
+          ],
+          "target": [
+            -35,
+            -1320,
+            -120
+          ],
+          "fov": 48,
+          "aspect": 0.5625
+        }
+      ],
+      "animation": {
+        "path": "/Game/MechalordReforged/Animation/LS_SkyforgeViaduct.LS_SkyforgeViaduct",
+        "bindings": 52,
+        "previewOnly": true,
+        "frames": 240
+      }
+    },
+    {
+      "path": "/Game/MechalordReforged/Maps/L_ReactorTrench",
+      "label": "Reactor Trench",
+      "description": "A continuous dark route cuts below towering reactor banks. Different bank silhouettes alternate by position, while pressure equipment stays above and outside the playable trench.",
+      "placementCount": 28,
+      "actorCount": 81,
+      "cameras": [
+        {
+          "name": "TrenchPortrait",
+          "p": [
+            -80,
+            1700,
+            1680
+          ],
+          "target": [
+            0,
+            -980,
+            55
+          ],
+          "fov": 34,
+          "aspect": 0.5625
+        },
+        {
+          "name": "TrenchLowSurvey",
+          "p": [
+            -2050,
+            600,
+            880
+          ],
+          "target": [
+            50,
+            -1320,
+            240
+          ],
+          "fov": 51,
+          "aspect": 0.5625
+        }
+      ],
+      "animation": {
+        "path": "/Game/MechalordReforged/Animation/LS_ReactorTrench.LS_ReactorTrench",
+        "bindings": 49,
+        "previewOnly": true,
+        "frames": 240
+      }
+    },
+    {
+      "path": "/Game/MechalordReforged/Maps/L_CoreCitadel",
+      "label": "Core Citadel",
+      "description": "A narrow arrival opens into a heavy twelve-sided battle bowl. The giant boss anchors the far half, with asymmetric spires and a sealed rear reactor framing its silhouette instead of covering the lane.",
+      "placementCount": 28,
+      "actorCount": 93,
+      "cameras": [
+        {
+          "name": "CitadelPortrait",
+          "p": [
+            110,
+            1680,
+            1310
+          ],
+          "target": [
+            0,
+            -1110,
+            55
+          ],
+          "fov": 37,
+          "aspect": 0.5625
+        },
+        {
+          "name": "CitadelBossThreeQuarter",
+          "p": [
+            1780,
+            -210,
+            880
+          ],
+          "target": [
+            0,
+            -1770,
+            250
+          ],
+          "fov": 47,
+          "aspect": 0.5625
+        }
+      ],
+      "animation": {
+        "path": "/Game/MechalordReforged/Animation/LS_CoreCitadel.LS_CoreCitadel",
+        "bindings": 62,
+        "previewOnly": true,
+        "frames": 240
+      }
+    }
+  ],
+  "warnings": [],
+  "materialSearch": [
+    "/Game/MechalordReforged/Materials/M_ReforgedEnamel.M_ReforgedEnamel",
+    "/Game/MechalordReforged/Materials/MI_amber.MI_amber",
+    "/Game/MechalordReforged/Materials/MI_bronze.MI_bronze",
+    "/Game/MechalordReforged/Materials/MI_cyan.MI_cyan",
+    "/Game/MechalordReforged/Materials/MI_dark.MI_dark",
+    "/Game/MechalordReforged/Materials/MI_ivory.MI_ivory",
+    "/Game/MechalordReforged/Materials/MI_red.MI_red",
+    "/Game/MechalordReforged/Materials/MI_redglow.MI_redglow",
+    "/Game/MechalordReforged/Materials/MI_rubber.MI_rubber",
+    "/Game/MechalordReforged/Materials/MI_rust.MI_rust",
+    "/Game/MechalordReforged/Materials/MI_steel.MI_steel",
+    "/Game/MechalordReforged/Materials/MI_teal.MI_teal"
+  ],
+  "visualApproval": "Technical rendering review completed; user and commercial quality acceptance pending",
+  "validation": {
+    "status": "passed",
+    "failures": [],
+    "dependencies": [
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Engine/EngineMaterials/WorldGridMaterial",
+      "/Game/MechalordReforged/Animation/LS_CoreCitadel",
+      "/Game/MechalordReforged/Animation/LS_ReactorTrench",
+      "/Game/MechalordReforged/Animation/LS_ReforgedAtelier",
+      "/Game/MechalordReforged/Animation/LS_SkyforgeViaduct",
+      "/Game/MechalordReforged/Maps/L_CoreCitadel",
+      "/Game/MechalordReforged/Maps/L_ReactorTrench",
+      "/Game/MechalordReforged/Maps/L_ReforgedAtelier",
+      "/Game/MechalordReforged/Maps/L_SkyforgeViaduct",
+      "/Game/MechalordReforged/Materials/MI_amber",
+      "/Game/MechalordReforged/Materials/MI_bronze",
+      "/Game/MechalordReforged/Materials/MI_cyan",
+      "/Game/MechalordReforged/Materials/MI_dark",
+      "/Game/MechalordReforged/Materials/MI_ivory",
+      "/Game/MechalordReforged/Materials/MI_redglow",
+      "/Game/MechalordReforged/Materials/MI_rubber",
+      "/Game/MechalordReforged/Materials/MI_rust",
+      "/Game/MechalordReforged/Materials/MI_steel",
+      "/Game/MechalordReforged/Materials/MI_teal",
+      "/Game/MechalordReforged/Materials/M_ReforgedEnamel",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Arm_L",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Arm_R",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Cannon_L",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Head",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Leg_L",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Leg_R",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Pelvis",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Shield_R",
+      "/Game/MechalordReforged/Meshes/ArcWarden/SM_ArcWarden_Torso",
+      "/Game/MechalordReforged/Meshes/ArticulatedServiceArm/SM_ArticulatedServiceArm_base",
+      "/Game/MechalordReforged/Meshes/ArticulatedServiceArm/SM_ArticulatedServiceArm_claw",
+      "/Game/MechalordReforged/Meshes/ArticulatedServiceArm/SM_ArticulatedServiceArm_forearm",
+      "/Game/MechalordReforged/Meshes/ArticulatedServiceArm/SM_ArticulatedServiceArm_shoulder",
+      "/Game/MechalordReforged/Meshes/AtelierPlinth/SM_AtelierPlinth_Base",
+      "/Game/MechalordReforged/Meshes/CableDrum/SM_CableDrum_drum",
+      "/Game/MechalordReforged/Meshes/CitadelBowl/SM_CitadelBowl_arena",
+      "/Game/MechalordReforged/Meshes/CitadelSpire/SM_CitadelSpire_spire",
+      "/Game/MechalordReforged/Meshes/CoolingStack/SM_CoolingStack_stack",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Cannon_L",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Cannon_R",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Forearm_L",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Forearm_R",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Head",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Jet_L",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Jet_R",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Leg_L",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Leg_R",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Pelvis",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_Torso",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_UpperArm_L",
+      "/Game/MechalordReforged/Meshes/ForgeColossus/SM_ForgeColossus_UpperArm_R",
+      "/Game/MechalordReforged/Meshes/GearlingSentinel/SM_GearlingSentinel_GearlingHull",
+      "/Game/MechalordReforged/Meshes/GearlingSentinel/SM_GearlingSentinel_Turret",
+      "/Game/MechalordReforged/Meshes/GearlingSentinel/SM_GearlingSentinel_WheelL",
+      "/Game/MechalordReforged/Meshes/GearlingSentinel/SM_GearlingSentinel_WheelR",
+      "/Game/MechalordReforged/Meshes/PressureVessel/SM_PressureVessel_fan",
+      "/Game/MechalordReforged/Meshes/PressureVessel/SM_PressureVessel_vessel",
+      "/Game/MechalordReforged/Meshes/ReactorBank/SM_ReactorBank_bank",
+      "/Game/MechalordReforged/Meshes/ReactorBulkhead/SM_ReactorBulkhead_bulkhead",
+      "/Game/MechalordReforged/Meshes/RelicGate/SM_RelicGate_arch",
+      "/Game/MechalordReforged/Meshes/RelicLauncher/SM_RelicLauncher_barrels",
+      "/Game/MechalordReforged/Meshes/RelicLauncher/SM_RelicLauncher_chassis",
+      "/Game/MechalordReforged/Meshes/RelicLauncher/SM_RelicLauncher_turret",
+      "/Game/MechalordReforged/Meshes/RelicLauncher/SM_RelicLauncher_yoke",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_FootL",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_FootR",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ForearmL",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ForearmR",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_HandL",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_HandR",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_Head",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ShinL",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ShinR",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ThighL",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_ThighR",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_Torso",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_UpperArmL",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_UpperArmR",
+      "/Game/MechalordReforged/Meshes/RelicMarshal/SM_RelicMarshal_Weapon",
+      "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Cannon",
+      "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Chassis",
+      "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Track_L",
+      "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Track_R",
+      "/Game/MechalordReforged/Meshes/RustCrawler/SM_RustCrawler_Turret",
+      "/Game/MechalordReforged/Meshes/SpineConnector/SM_SpineConnector_joint",
+      "/Game/MechalordReforged/Meshes/SunkenRoute/SM_SunkenRoute_trench",
+      "/Game/MechalordReforged/Meshes/SuspendedIsland/SM_SuspendedIsland_island",
+      "/Game/MechalordReforged/Meshes/TaperedButtress/SM_TaperedButtress_support",
+      "/Script/Engine",
+      "/Script/LevelSequence",
+      "/Script/MovieScene",
+      "/Script/MovieSceneTracks",
+      "/Script/NavigationSystem"
+    ]
+  },
+  "motionCheck": {
+    "phaseA": 3.666669011116028,
+    "phaseB": 34.33336019515991,
+    "changedAcrossTime": [
+      "RelicMarshal__Torso",
+      "GearlingSentinel__GearlingHull",
+      "RustCrawler__Chassis",
+      "ArcWarden__Pelvis",
+      "ForgeColossus__Pelvis",
+      "RelicMarshal__UpperArmL",
+      "RelicMarshal__UpperArmR",
+      "GearlingSentinel__WheelL",
+      "GearlingSentinel__WheelR",
+      "GearlingSentinel__Turret",
+      "RustCrawler__Turret",
+      "RelicLauncher__turret",
+      "RustCrawler__Cannon",
+      "ArcWarden__Head",
+      "ForgeColossus__Head",
+      "ForgeColossus__UpperArm_L",
+      "ForgeColossus__Jet_L",
+      "ForgeColossus__UpperArm_R",
+      "ForgeColossus__Jet_R",
+      "RelicLauncher__yoke",
+      "RelicMarshal__Weapon",
+      "ArcWarden__Shield_R",
+      "ArcWarden__Cannon_L",
+      "RelicLauncher__barrels",
+      "ForgeColossus__Cannon_L",
+      "ForgeColossus__Cannon_R"
+    ],
+    "movedFromRest": [
+      "RelicMarshal__Torso",
+      "GearlingSentinel__GearlingHull",
+      "RustCrawler__Chassis",
+      "ArcWarden__Pelvis",
+      "ForgeColossus__Pelvis",
+      "RelicMarshal__Head",
+      "RelicMarshal__UpperArmL",
+      "RelicMarshal__ThighL",
+      "RelicMarshal__UpperArmR",
+      "RelicMarshal__ThighR",
+      "GearlingSentinel__WheelL",
+      "GearlingSentinel__WheelR",
+      "GearlingSentinel__Turret",
+      "RustCrawler__Turret",
+      "ArcWarden__Torso",
+      "ForgeColossus__Torso",
+      "ForgeColossus__Leg_L",
+      "ForgeColossus__Leg_R",
+      "RelicLauncher__turret",
+      "RelicMarshal__ForearmL",
+      "RelicMarshal__ShinL",
+      "RelicMarshal__ShinR",
+      "ArcWarden__Head",
+      "ArcWarden__Arm_L",
+      "ArcWarden__Arm_R",
+      "ForgeColossus__Head",
+      "ForgeColossus__UpperArm_L",
+      "ForgeColossus__Jet_L",
+      "ForgeColossus__UpperArm_R",
+      "ForgeColossus__Jet_R",
+      "RelicLauncher__yoke",
+      "RelicMarshal__HandL",
+      "RelicMarshal__FootL",
+      "RelicMarshal__HandR",
+      "RelicMarshal__FootR",
+      "ArcWarden__Shield_R",
+      "ForgeColossus__Forearm_L",
+      "ForgeColossus__Forearm_R",
+      "RelicLauncher__barrels",
+      "ForgeColossus__Cannon_L",
+      "ForgeColossus__Cannon_R"
+    ],
+    "runtimeWorldA": true,
+    "runtimeWorldB": true
+  },
+  "captures": [
+    "delivery/native-reforged/skyforge.png",
+    "delivery/native-reforged/reactor-trench.png",
+    "delivery/native-reforged/core-citadel.png",
+    "delivery/native-reforged/relic-marshal.png",
+    "delivery/native-reforged/gearling.png",
+    "delivery/native-reforged/forge-colossus.png"
+  ],
+  "branch": "feature/native-reforged-world",
+  "preservedBranch": "feature/iron-front-lanes-and-arsenal"
+}

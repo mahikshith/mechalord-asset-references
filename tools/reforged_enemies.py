@@ -176,31 +176,36 @@ def forge_colossus():
     parts.append(part("Pelvis",None,(0,7,280),pelvis))
     torso=[loft("dark",[(317,68,47,0,8),(375,99,62,0,4),(448,105,61,0,4),(486,83,50,0,10)],16),
            loft("rust",[(323,73,45,0,1),(382,110,58,0,0),(441,108,57,0,0),(480,84,48,0,6)],12),
-           bevel("bronze",(0,-49,478),(160,19,22),6,(-15,0,0)),
-           collar("dark",(0,-58,401),73,54,18),
-           collar("bronze",(0,-72,401),65,52,12),
-           ellipsoid("amber",(0,-62,401),(91,22,94),segments=16,rings=10),
-           ellipsoid("redglow",(0,-74,401),(49,9,50),segments=12,rings=8),
+           bevel("bronze",(0,-49,478),(160,19,22),6,(0,0,-15)),
+           # Small arc lens recessed in chest armor; no full-face grille or spokes.
+           collar("dark",(0,-58,401),43,30,14),
+           ellipsoid("cyan",(0,-65,401),(54,14,56),segments=16,rings=10),
+           ellipsoid("ivory",(0,-73,402),(27,5,29),segments=12,rings=8),
+           bevel("steel",(-65,-47,406),(60,18,99),9,(0,-12,0)),
+           bevel("steel",(65,-47,406),(60,18,99),9,(0,12,0)),
+           loft("dark",[(331,19,9,0,-45),(354,37,11,0,-47),(367,32,10,0,-46)],6),
            bevel("steel",(0,61,400),(105,26,116),8)]
-    for x in (-34,-17,0,17,34):
-        h=103 if abs(x)<20 else 80
-        torso.append(bevel("steel",(x,-85,401),(7,8,h),2))
+    # Three disconnected retaining tabs touch the outer socket, never cross the lens.
+    for x,z,angle in ((34,421,-30),(-34,421,30),(0,362,0)):
+        torso.append(bevel("bronze",(x,-70,z),(14,7,11),2,(angle,0,0)))
     torso += studs([(x,-54,z) for x in(-76,76) for z in(357,448)],4)
-    # Side ducts keep the reactor embedded in a reinforced torso shell.
     for sign in(-1,1):
         for z in(346,362,378):torso.append(bevel("dark",(sign*85,-35,z),(28,9,6),2,(0,sign*18,0)))
     parts.append(part("Torso","Pelvis",(0,7,321),torso))
-    head=[ellipsoid("dark",(0,7,526),(88,76,99),segments=12,rings=8),
-          loft("ivory",[(489,29,25,0,-3),(527,43,33,0,0),(566,30,24,0,5),(596,7,9,0,6)],8),
-          bevel("dark",(0,-35,531),(74,10,14),3),
-          bevel("redglow",(-19,-41,533),(21,3,6),1,(0,-12,0)),
-          bevel("redglow",(19,-41,533),(21,3,6),1,(0,12,0)),
-          loft("ivory",[(488,12,7,0,-34),(549,10,8,0,-37),(573,3,5,0,-19)],4),
-          bevel("bronze",(-28,-32,505),(13,13,25),3),
-          bevel("bronze",(28,-32,505),(13,13,25),3)]
+    head=[ellipsoid("dark",(0,5,519),(107,77,73),segments=12,rings=8),
+          loft("steel",[(486,35,25,0,-1),(517,52,34,0,1),(546,45,30,0,5),(561,24,19,0,8)],8),
+          bevel("dark",(0,-35,519),(86,9,13),3),
+          bevel("redglow",(-22,-41,520),(23,3,4),1,(-12,0,0)),
+          bevel("redglow",(22,-41,520),(23,3,4),1,(12,0,0)),
+          bevel("steel",(-26,-39,535),(44,12,12),3,(-12,0,0)),
+          bevel("steel",(26,-39,535),(44,12,12),3,(12,0,0)),
+          loft("dark",[(485,24,10,0,-26),(503,34,12,0,-30),(512,27,11,0,-31)],6),
+          bevel("steel",(0,-42,506),(12,9,27),3),
+          bevel("bronze",(-41,-25,501),(9,10,21),3),
+          bevel("bronze",(41,-25,501),(9,10,21),3)]
     for sign in(-1,1):
-        head += [cone("bronze",(sign*32,3,583),10,2,44,(0,0,sign*-18)),
-                 cone("ivory",(sign*24,-38,486),7,1,25,(0,0,180))]
+        head += [cone("steel",(sign*44,5,554),10,2,32,(0,0,sign*-28)),
+                 cone("steel",(sign*27,-33,486),6,1,17,(0,0,180))]
     parts.append(part("Head","Torso",(0,6,486),head))
     for sign,suffix in((-1,"L"),(1,"R")):
         x=sign*62
