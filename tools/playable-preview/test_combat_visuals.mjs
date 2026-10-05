@@ -125,7 +125,7 @@ test('missile orientation follows real dx/dz and boss launch height follows boss
 });
 test('only guided missiles use fins/exhaust, standard fire uses solid bullets',()=>{
   const shots=[{x:0,z:2,heavy:false,dx:0,dz:32,kind:'pulse'},{x:1,z:2,heavy:true,dx:0,dz:32,kind:'cannon'},{x:2,z:2,heavy:true,dx:0,dz:32,kind:'missile'}];
-  missiles.update(shots,[],{...missileOptions,overdrive:false});assert.equal(missiles.bullets.count,2);assert.equal(missiles.tips.count,2);assert.equal(missiles.bodies.count,1);assert.equal(missiles.exhaust.count,1);assert.equal(missiles.wakes.count,0);
+  missiles.update(shots,[],{...missileOptions,overdrive:false});assert.equal(missiles.bullets.count,2);assert.equal(missiles.tips.count,2);assert.equal(missiles.bodies.count,1);assert.equal(missiles.exhaust.count,1);assert.equal(missiles.wakes.count,2); // Solid rounds have short streaks; only the missile has fins and motor exhaust.
 });
 test('troop bullets are cyan-blue and commander bullets warm gold',()=>{
   const base={x:0,z:1,dx:0,dz:32,heavy:false,kind:'pulse'};missiles.update([{...base,owner:'troop'},{...base,x:1,owner:'commander'}],[],{...missileOptions,overdrive:false});
@@ -178,7 +178,7 @@ test('projectile presentation freezes at zero simulation time and retries releas
   for(let i=0;i<150;i++){missiles.reset();missiles.update([shot],[],options);assert.equal(missiles.friendlyPaths.length,1);}missiles.update([],[],options);assert.equal(missiles.friendlyPaths.length,0);missiles.reset();assert.equal(missiles.previousTime,undefined);
 });
 test('world hit effects use the current hovering or grounded reactor and retained dead-target metadata',()=>{
-  const impacts=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{impact:(...v)=>impacts.push(v)},bossHitKick:0});
+  const impacts=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{abilities:{trigger:()=>{}},age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{impact:(...v)=>impacts.push(v)},bossHitKick:0});
   const hit={id:1,kind:'hit',x:.2,z:12,value:8,entityId:0,variant:4,size:.9};
   for(const bossY of [1.7,-2.55]){actor.trigger(hit,{bossY,targets:[]});const p=impacts.at(-1);assert(Math.abs(p[1]-bossY-4.31)<1e-8);assert.equal(p[2],-11.15);assert(actor.bossHitKick>0);}
   actor.presentation={targets:[{id:7,kind:'orb',depth:.2,z:8}]};actor.trigger({...hit,value:0,entityId:7,variant:-3,z:7.9},{bossY:0,targets:[]});assert.equal(impacts.at(-1)[1],1.1);assert(Math.abs(impacts.at(-1)[2]+7.74)<1e-8);
@@ -240,7 +240,9 @@ test('pickup armor transformation is bounded, freezes, follows hero, and expires
   for(let i=0;i<8;i++)fx.update(.1);assert.equal(fx.stats().acquirePulses,0);assert.equal(fx.acquireRing.count,0);assert.equal(fx.acquireTrace.count,0);fx.reset();scene.remove(hero);hero.children[0].geometry.dispose();hero.children[0].material.dispose();
 });
 test('per-instance fading preserves shader chunk hooks and alpha capacity',()=>{
-  for(const mesh of [fx.debris,fx.smoke,fx.fire,fx.acquireRing,fx.acquireTrace]){const shader={vertexShader:'#include <common>\n#include <begin_vertex>',fragmentShader:'#include <common>\n#include <color_fragment>'};mesh.material.onBeforeCompile(shader);assert(shader.vertexShader.includes('vInstanceOpacity = instanceOpacity'));assert(shader.fragmentShader.includes('diffuseColor.a *= vInstanceOpacity'));assert.equal(mesh.geometry.getAttribute('instanceOpacity').count,mesh===fx.debris?384:mesh===fx.acquireRing?4:mesh===fx.acquireTrace?32:256);}
+  for(const mesh of [fx.debris,fx.acquireRing,fx.acquireTrace]){const shader={vertexShader:'#include <common>\n#include <begin_vertex>',fragmentShader:'#include <common>\n#include <color_fragment>'};mesh.material.onBeforeCompile(shader);assert(shader.vertexShader.includes('vInstanceOpacity = instanceOpacity'));assert(shader.fragmentShader.includes('diffuseColor.a *= vInstanceOpacity'));assert.equal(mesh.geometry.getAttribute('instanceOpacity').count,mesh===fx.debris?384:mesh===fx.acquireRing?4:32);}
+  for(const mesh of [fx.smoke,fx.fire]){assert.equal(mesh.geometry.getAttribute('instanceOpacity').count,256);assert(mesh.material.vertexShader.includes('vFade=instanceOpacity'));assert(mesh.material.fragmentShader.includes('edge*vFade'));assert(!mesh.material.depthWrite);assert.equal(mesh.geometry.type,'PlaneGeometry');}
+  const clock=fx.combustionTime.value;fx.update(0);assert.equal(fx.combustionTime.value,clock);fx.update(.1);assert(fx.combustionTime.value>clock);
 });
 function socketFixture(){const root=new T.Group();for(const name of ['Torso','Barrel_L','Barrel_R','Pod_L','Pod_R']){const part=new T.Group();part.name=name;part.position.set(name.endsWith('L')?-1:name.endsWith('R')?1:0,name==='Torso'?2.35438:3,0);const mesh=new T.Mesh(bossGeometry,bossMaterial);mesh.name=name+'_MobileMesh';part.add(mesh);root.add(part);}return root;}
 const arsenalHero=new T.Group(),arsenalBoss=socketFixture(),retainedBossNodes=arsenalBoss.children.length,arsenal=new ArsenalVisuals(arsenalHero,arsenalBoss);
@@ -328,7 +330,7 @@ test('mechanical deaths contain plates, wheel hubs and struts with bounded delay
   for(let i=0;i<100;i++)fx.enemyDeath(i%3,-8,1,1.6,1.65);assert(fx.bursts.length<=32);fx.update(.15);assert(fx.stats().sparks<=128);assert(fx.stats().debris<=384);assert(fx.stats().fire+fx.stats().smoke<=256);allEffectsExpire(fx);assert.equal(fx.stats().queuedBursts,0);assert.equal(fx.stats().sparks,0);fx.reset();
 });
 test('world death effects share the accepted chest and front-surface anchor',()=>{
-  const calls=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{enemyDeath:(...v)=>calls.push(v)},shake:0,presentation:{targets:[{id:8,kind:'enemy',depth:1,variant:2}]}});
+  const calls=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{abilities:{trigger:()=>{}},age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{enemyDeath:(...v)=>calls.push(v)},shake:0,presentation:{targets:[{id:8,kind:'enemy',depth:1,variant:2}]}});
   actor.trigger({kind:'kill',x:1,z:8,entityId:8,variant:2},{targets:[]});assert.deepEqual(calls[0],[1,-7.2,2,1.6,1.65]);
 });
 test('gunner warnings follow authoritative charge and only mark locked aim',()=>{
@@ -339,7 +341,7 @@ test('gunner warnings follow authoritative charge and only mark locked aim',()=>
   for(let i=0;i<300;i++){cues.update([target]);cues.reset();assert.equal(cues.charges.count,0);assert.equal(scene.children.length,base);}let disposed=0;for(const mesh of [cues.charges,cues.locks])for(const r of [mesh.geometry,mesh.material])r.addEventListener('dispose',()=>disposed++);cues.dispose();assert.equal(disposed,4);
 });
 test('enemy firing cues use source identity and never fake commander recoil',()=>{
-  const muzzles=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{enemyRecoil:new Map(),fx:{muzzle:(...v)=>muzzles.push(v)},presentation:undefined});
+  const muzzles=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{abilities:{trigger:()=>{}},enemyRecoil:new Map(),fx:{muzzle:(...v)=>muzzles.push(v)},presentation:undefined});
   actor.trigger({kind:'enemyFire',entityId:12,variant:2,x:1,z:8,value:1},{targets:[{id:12,aimX:0}]});assert.equal(actor.enemyRecoil.get(12),.24);assert.equal(muzzles.length,0,'Muzzle birth waits for current-frame animated source, never guesses a height in the event handler');assert.equal(actor.recoil,undefined);
 });
 test('hostile shells are separate physical geometry and launch from their actual gunner',()=>{
@@ -354,7 +356,7 @@ test('braced gunner cue names only the authoritative guided resistance',()=>{
   assert.equal(enemyArmorLabel({role:'gunner',variant:2,guidedArmor:true}),'GUIDED RESIST');assert.equal(enemyArmorLabel({role:'battery',variant:2,guidedArmor:true}),'GUIDED RESIST');assert.equal(enemyArmorLabel({role:'battery',variant:2,guidedArmor:false}),'BATTERY');assert.equal(enemyArmorLabel({role:'gunner',variant:2,guidedArmor:false}),'GUNNER');
 });
 test('zero-damage reactor rounds deflect neutrally without boss damage recoil',()=>{
-  const impacts=[],deflections=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{impact:(...v)=>impacts.push(v),deflect:(...v)=>deflections.push(v)},bossHitKick:0});
+  const impacts=[],deflections=[],actor=Object.create(Battlefield.prototype);Object.assign(actor,{abilities:{trigger:()=>{}},age:1,boss:new T.Group(),hitNumbers:new Map(),fx:{impact:(...v)=>impacts.push(v),deflect:(...v)=>deflections.push(v)},bossHitKick:0});
   actor.trigger({kind:'hit',x:.1,z:12,value:0,entityId:0,variant:3},{bossY:.7,targets:[]});assert.equal(impacts.length,0);assert.equal(deflections.length,1);assert.equal(actor.bossHitKick,0);assert(Math.abs(deflections[0][1]-5.01)<1e-8);assert.equal(deflections[0][2],-11.15);
   fx.reset();fx.deflect(.1,5.01,-11.15);fx.update(0);assert.equal(fx.smoke.count,0);assert.equal(fx.sparkMesh.count,3);for(const spark of fx.sparks)if(spark.life>0)assert(spark.color.equals(new T.Color(0xaac2cc)));fx.reset();
 });

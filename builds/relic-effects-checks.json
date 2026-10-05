@@ -1,0 +1,12 @@
+{
+  "scope": "CPU actual Three geometry/event/pause/resource checks; browser appearance and Android GPU performance separately required",
+  "passed": 14,
+  "failed": 0,
+  "capacity": {
+    "ripples": 12,
+    "bolts": 32,
+    "stunMarkers": 48
+  },
+  "firstFrame": "trigger then update(dt=0) retains full activation",
+  "generatedAt": "2026-10-05T20:26:25.795Z"
+}

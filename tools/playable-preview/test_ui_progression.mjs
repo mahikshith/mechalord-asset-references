@@ -142,11 +142,16 @@ assert.equal(genuine.saved().commanderXP,35,'Existing nonzero schema-2 XP must n
 genuine.elements.get('start').click();assert.equal(testCore.calls.at(-1).rank,0);genuine.elements.get('pause-levels').click();
 console.log('PASS: malformed storage, free stage selection, blocked-storage fallback, reload, schema-1 migration and intermediate zero-XP repair.');
 
+const escortCase=await harness();escortCase.elements.get('start').click();testCore.s.weaponPower='escort';testCore.s.powerTime=10;testCore.s.escortShield=17;testCore.s.escortMax=30;escortCase.frame();assert.equal(escortCase.elements.get('power-name').textContent,'ESCORT GUARD');assert.equal(escortCase.elements.get('power-time').textContent,'17/30 · 10.0s');assert.equal(escortCase.elements.get('power-mode').textContent,'FINITE DEFENSE');escortCase.elements.get('pause-levels').click();console.log('PASS: finite escort budget is distinct from relic activation and weapon rank.');
+
 await build({entryPoints:[path.join(here,'audio.ts')],bundle:true,format:'esm',platform:'node',outfile:path.join(root,'builds/audio-check.mjs')});
 const {BattleAudio}=await import(pathToFileURL(path.join(root,'builds/audio-check.mjs')).href),audio=new BattleAudio();await audio.unlock();
-assert.equal(audio.buffers.size,18);
+assert.equal(audio.buffers.size,22);
+const relicSamples=['shield','emp','overdrive'].map(k=>audio.buffers.get(k).getChannelData(0));
+assert.equal(new Set(relicSamples.map(s=>s.length)).size,3,'Relic cues have distinct bounded lengths');
+for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)assert.notDeepEqual(relicSamples[i].slice(0,100),relicSamples[j].slice(0,100),'Relic sounds must be audibly distinct waveforms');
 for(const [,buffer]of audio.buffers){const values=buffer.getChannelData(0);assert(values.every(Number.isFinite));assert(values.some(value=>Math.abs(value)>.01));assert(values.every(value=>Math.abs(value)<=.96));}
 assert(audio.speak('intro','The front is mine.',true));assert(!audio.speak('intro','The front is mine.',true));
 for(let i=0;i<50;i++)audio.play('hit');assert.equal(audio.active.size,24);audio.silence();assert.equal(audio.active.size,0);
 audio.setEnabled(false);audio.play('win');assert.equal(audio.active.size,0);audio.setEnabled(true);audio.reset();assert(audio.speak('intro','Again.',true));audio.dispose();assert.equal(audio.active.size,0);
-console.log('PASS: 18 cached finite audible waveforms, bounded sources, local-voice deduplication, mute/reset/disposal.');
+console.log('PASS: 22 cached finite audible waveforms including distinct relic cues, bounded sources, local-voice deduplication, mute/reset/disposal.');

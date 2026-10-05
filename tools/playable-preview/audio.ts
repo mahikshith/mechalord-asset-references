@@ -1,6 +1,6 @@
 import type { Effect, Snapshot } from './contract';
 
-type Cue = 'pulse'|'twin'|'arc'|'rail'|'hit'|'grunt'|'impact'|'explosion'|'pickup'|'relic'|'windup'|'cannon'|'win'|'rank'|'start'|'loss'|'rolling'|'laser';
+type Cue = 'pulse'|'twin'|'arc'|'rail'|'hit'|'grunt'|'impact'|'explosion'|'pickup'|'relic'|'windup'|'cannon'|'win'|'rank'|'start'|'loss'|'rolling'|'laser'|'shield'|'emp'|'overdrive'|'shieldhit';
 /** Original, locally synthesized mechanical sounds. No downloaded samples or voice service. */
 export class BattleAudio {
   private context?: AudioContext;
@@ -25,7 +25,7 @@ export class BattleAudio {
     try {
       if (!this.context) {
         this.context = new AudioContext(); this.master = this.context.createGain(); this.master.gain.value = .65; this.master.connect(this.context.destination);
-        for (const cue of ['pulse','twin','arc','rail','hit','grunt','impact','explosion','pickup','relic','windup','cannon','win','rank','start','loss','rolling','laser'] as Cue[]) this.buffers.set(cue, this.make(cue));
+        for (const cue of ['pulse','twin','arc','rail','hit','grunt','impact','explosion','pickup','relic','windup','cannon','win','rank','start','loss','rolling','laser','shield','emp','overdrive','shieldhit'] as Cue[]) this.buffers.set(cue, this.make(cue));
       }
       if (this.enabled) await this.context.resume();
     } catch { /* Audio failure never blocks the game or its captions. */ }
@@ -54,7 +54,8 @@ export class BattleAudio {
       case 'hit': this.play('hit', event.value>0?.55:.16, event.value>0?.08:.12); break;
       case 'kill': this.play('explosion', event.variant>0?.7:.35, .11); if(event.variant>0)this.play('impact', .45, .15); break;
       case 'damage': case 'contact': case 'commanderHit': this.play('impact', .7, .13); break;
-      case 'block': this.play('arc', .35, .14); break;
+      case 'block': break; // Shield absorption has its own authoritative event.
+      case 'shieldHit': case 'escortBlock': this.play('shieldhit', .6, .1); break;
       case 'bossShot': this.play(event.value === 3 ? 'laser' : 'cannon', .85, .09); break;
       case 'enemyFire': this.play('cannon', event.value===2?.58:.42, .10); break;
       case 'bossPartBreak': this.play('explosion', .9, .14); this.play('impact', .75, .14); break;
@@ -66,7 +67,7 @@ export class BattleAudio {
       case 'commanderDeath': this.play('explosion', 1.2); this.play('impact', 1); break;
       case 'pickup': this.play(event.value === 3 || event.value === 4 ? 'relic' : event.value === 2 || event.value === 6 ? 'start' : 'pickup', .9, .25); break;
       case 'recruit': if (event.value > 0) this.play('pickup', .55, .2); break;
-      case 'relic': this.play('relic', .75, .3); break;
+      case 'relic': this.play(event.value===0?'shield':event.value===1?'emp':'overdrive', .85, .3); break;
     }
   }
   update(s: Snapshot, running: boolean): void {
@@ -102,14 +103,18 @@ export class BattleAudio {
   dispose(): void { this.silence(); if ('speechSynthesis' in window) window.speechSynthesis.removeEventListener('voiceschanged', this.voiceListener); void this.context?.close(); this.buffers.clear(); }
 
   private make(cue: Cue): AudioBuffer {
-    const audio = this.context!, length = cue === 'laser' ? .8 : cue === 'rolling' ? 1 : cue === 'explosion' ? 1.35 : cue === 'windup' ? .65 : ['win','rank'].includes(cue) ? .78 : ['pickup','relic','start','loss'].includes(cue) ? .4 : cue === 'grunt' ? .24 : cue === 'cannon' ? .3 : .14;
+    const audio = this.context!, length = cue === 'emp' ? .65 : cue === 'shield' ? .55 : cue === 'overdrive' ? .6 : cue === 'shieldhit' ? .19 : cue === 'laser' ? .8 : cue === 'rolling' ? 1 : cue === 'explosion' ? 1.35 : cue === 'windup' ? .65 : ['win','rank'].includes(cue) ? .78 : ['pickup','relic','start','loss'].includes(cue) ? .4 : cue === 'grunt' ? .24 : cue === 'cannon' ? .3 : .14;
     const buffer = audio.createBuffer(1, Math.ceil(length * audio.sampleRate), audio.sampleRate), samples = buffer.getChannelData(0);
     let seed = 18231, filtered = 0, phase = 0;
     for (let i = 0; i < samples.length; i++) {
       const t = i / audio.sampleRate, p = t / length; seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
       const noise = seed / 2147483648 - 1; filtered += (noise - filtered) * .12;
       let value = 0;
-      if (cue === 'laser') { phase += 2 * Math.PI * (180 + 75 * Math.sin(p * Math.PI)) / audio.sampleRate; value = (Math.sin(phase) * .32 + Math.sin(phase * 3.02) * .16 + filtered * .14) * Math.min(1,t*60) * Math.pow(1-p,.45); }
+      if(cue==='shield'){phase+=2*Math.PI*(300+p*260)/audio.sampleRate;value=(Math.sin(phase)*.25+Math.sin(phase*1.5)*.17+filtered*.08)*Math.sin(p*Math.PI)*Math.pow(1-p,.25);}
+      else if(cue==='emp'){phase+=2*Math.PI*(50+460*Math.exp(-p*9))/audio.sampleRate;value=(Math.sin(phase)*.55+noise*.24*Math.pow(Math.max(0,Math.sin(t*150)),4)+filtered*.7)*Math.min(1,t*300)*Math.exp(-p*4);}
+      else if(cue==='overdrive'){phase+=2*Math.PI*(85+320*p*p)/audio.sampleRate;value=(Math.sin(phase)*.30+Math.sin(phase*2.03)*.14+filtered*.28)*(0.7+.3*Math.sin(t*75))*Math.sin(p*Math.PI);}
+      else if(cue==='shieldhit'){phase+=2*Math.PI*(950-650*p)/audio.sampleRate;value=(Math.sin(phase)*.25+Math.sin(phase*1.73)*.18+noise*.10)*Math.exp(-p*7);}
+      else if (cue === 'laser') { phase += 2 * Math.PI * (180 + 75 * Math.sin(p * Math.PI)) / audio.sampleRate; value = (Math.sin(phase) * .32 + Math.sin(phase * 3.02) * .16 + filtered * .14) * Math.min(1,t*60) * Math.pow(1-p,.45); }
       else if (cue === 'rolling') value = filtered * .45 + Math.sin(t * Math.PI * 2 * 39) * .08 + Math.sin(t * Math.PI * 2 * 17) * .08 * Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * 11)), 8);
       else if (['pickup','relic','win','rank','start'].includes(cue)) {
         const notes = cue === 'rank' ? [392,494,587,784] : cue === 'win' ? [330,440,554,660] : cue === 'relic' ? [220,440,660,880] : [440,554,660,880];

@@ -10,13 +10,13 @@ namespace mech::assault
 enum class Phase { Ready, Run, Boss, Destroying, Won, Lost, LastStand };
 enum class Kind { Enemy, Crate, Gate, Hazard, Orb };
 enum class Relic { Shield, EMP, Overdrive };
-enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire };
+enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire, EmpPulse, EmpClear, EmpStun, ShieldHit, EscortBlock };
 enum class ProjectileKind { Shell, Rocket, Orb };
 enum class WeaponEmitter { Gunner, ArmL, ArmR, ShoulderL, ShoulderR, Core };
 enum class FriendlyKind { Pulse, Arc, Rail, Missile, Cannon };
-enum class WeaponPower { None, Guided, Cannons, Railburst };
+enum class WeaponPower { None, Guided, Cannons, Railburst, Escort };
 enum class TimePower { None, Freeze, Slow, Haste };
-enum class PickupKind { Guided=1, Cannons, Railburst, Freeze, Slow, Haste };
+enum class PickupKind { Guided=1, Cannons, Railburst, Freeze, Slow, Haste, Escort };
 enum class BossState { Armored, Exposed, Rebuilding, Destroying, Guarded };
 enum class BossPattern { Heavy, Sweep, Rockets, Laser };
 enum class BossAction { Strafe, Advance, Retreat, Windup, Fire, Dying };
@@ -28,6 +28,7 @@ struct Target
     int value=0,op=0,variant=0; bool active=false;
     double originX=0,motion=0,motionRate=1,fireClock=0,motionPhase=0,depth=.3;
     FireState fireState=FireState::Idle; double aimX=0,charge=0,fireDelay=0; int role=0,burst=0,dropPower=0;
+    double stunTime=0,ventClock=0,ventTime=0; bool ventOpen=false;
 };
 struct Shot
 {
@@ -61,6 +62,7 @@ public:
     int bossRevives=0,bossPartsMask=0;
     int healUsesRemaining=2; bool reviveUsed=false; double reviveProtection=0;
     double commanderHp=100,commanderMaxHp=100;
+    double empPulseTime=0,empStunTime=0; int escortShield=0;
     double bossX=0,bossZ=40,bossY=.8,powerTime=0,deathProgress=0,travelDistance=0,travelGoal=203.5;
     int level=0,army=8,weapon=1,weaponXP=0,weaponNeed=40,kills=0,score=0,effectCount=0;
     int rank=0,rankReward=0,bossPhase=1;
@@ -99,7 +101,7 @@ private:
     int nextTargetId=1,nextEffectId=1,nextEnemyShotId=1,nextPickupId=1,bossVolleys=0,sweepIndex=-1;
     double visualStrength=7,commanderChip=0,armorBudget=0,rebuildClock=0,coreGuardClock=0;
     uint64_t spawned=0;
-    bool bossLaneLocked=false;
+    bool bossLaneLocked=false,bossArrived=false;
     void Step(double Dt);
     void SpawnTimeline();
     void SiegeTimeline();
@@ -134,6 +136,6 @@ private:
     void AwardWeaponXP(int Amount);
     void BossStep(double Dt);
     void BeginBossDeath();
-    void HitTarget(Target& Enemy,double Damage,FriendlyKind WeaponKind=FriendlyKind::Pulse);
+    void HitTarget(Target& Enemy,double Damage,FriendlyKind WeaponKind=FriendlyKind::Pulse,bool IgnoreArmor=false);
 };
 }

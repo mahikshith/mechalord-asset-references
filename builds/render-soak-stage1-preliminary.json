@@ -1,0 +1,110 @@
+{
+  "scope": "Desktop real WebGL replay, 4x simulation speed. Not mobile FPS.",
+  "completed": 12,
+  "remaining": 0,
+  "wallSeconds": 353.35719999999924,
+  "frames": 20707,
+  "framesAbove34ms": 38,
+  "peakCalls": 149,
+  "peakTriangles": 223895,
+  "peakGeometries": 230,
+  "peakTextures": 25,
+  "runs": [
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 165,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 165,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 165,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116.56666564941406,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 167,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 167,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 167,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116.56666564941406,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 169,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 169,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 169,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116.56666564941406,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 171,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 171,
+      "textures": 13
+    },
+    {
+      "result": "won",
+      "seconds": 116.91666412353516,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 171,
+      "textures": 13
+    }
+  ]
+}

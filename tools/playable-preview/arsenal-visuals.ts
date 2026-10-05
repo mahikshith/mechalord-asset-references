@@ -3,8 +3,8 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {Snapshot} from './contract';
 import {WeaponSockets,flightAttitude,type EmitterPositions} from './weapon-sockets';
 
-export type ArsenalPickupKind='guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste';
-export const PICKUP_COLORS={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639} as const;
+export type ArsenalPickupKind='guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort';
+export const PICKUP_COLORS={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x9cfcb3} as const;
 const STEEL=0x30434e,IVORY=0xd5c7a7,BRONZE=0xb08749,BLACK=0x17232c;
 function paint(source:T.BufferGeometry,color:number,x=0,y=0,z=0,rx=0,ry=0,rz=0){
   const g=source.index?source.toNonIndexed():source;if(g!==source)source.dispose();g.rotateX(rx).rotateY(ry).rotateZ(rz).translate(x,y,z);
@@ -128,7 +128,7 @@ export class ArsenalVisuals {
     if(this.heroRig.parent!==this.hero)this.hero.add(this.heroRig);if(this.bossRig.parent!==this.boss)this.boss.add(this.bossRig);
     const state=s as Snapshot & {weaponPower?:ArsenalPickupKind|'none';powerTime?:number;weaponPermanent?:boolean;bossPartsMask?:number;bossPhase?:number;bossPattern?:string;bossY?:number;bossState?:'armored'|'exposed'|'rebuilding'|'destroying'|'guarded';bossRevives?:number;bossCoreTime?:number;timePower?:'none'|'freeze'|'slow'|'haste';timePowerTime?:number};
     const delta=Math.max(0,Math.min(dt,.15));this.clock+=delta;
-    const timeActive=(state.timePowerTime??0)>0,bossRate=!timeActive?1:state.timePower==='freeze'?0:state.timePower==='slow'?.5:state.timePower==='haste'?1.35:1;const bossDelta=delta*bossRate;this.bossClock+=bossDelta;this.bossSpin+=bossDelta*(s.bossAction==='windup'?51:30);
+    const timeActive=(state.timePowerTime??0)>0,bossRate=s.empStunTime>0?0:!timeActive?1:state.timePower==='freeze'?0:state.timePower==='slow'?.5:state.timePower==='haste'?1.35:1;const bossDelta=delta*bossRate;this.bossClock+=bossDelta;this.bossSpin+=bossDelta*(s.bossAction==='windup'?51:30);
     const live=s.phase==='run'||s.phase==='boss',powered=live&&((state.powerTime??0)>0||state.weaponPermanent===true);
     this.cannons.visible=powered&&state.weaponPower==='cannons';this.guided.visible=powered&&state.weaponPower==='guided';this.rail.visible=powered&&state.weaponPower==='railburst';
     this.heroRig.visible=live;
@@ -191,6 +191,9 @@ export function createPickup(kind:ArsenalPickupKind,shootable=false){
     for(const z of [-.35,-.07,.21])parts.push(paint(new T.TorusGeometry(.22,.037,4,12),color,0,0,z));
     parts.push(paint(new T.ConeGeometry(.13,.45,4),color,0,0,.72,Math.PI/2));
     icon.rotation.y=-.5;
+  }else if(kind==='escort'){
+    for(const side of [-1,1]){parts.push(paint(new T.OctahedronGeometry(.22),STEEL,side*.37,0,0),paint(new T.TorusGeometry(.30,.055,6,6),color,side*.37,0,.03));}
+    parts.push(paint(new T.BoxGeometry(.48,.08,.08),IVORY,0,0,0),paint(new T.TorusGeometry(.56,.027,5,24,Math.PI*1.4),color,0,0,-.08));
   }else if(kind==='freeze'){
     for(let i=0;i<6;i++){const angle=i*Math.PI/3;
       parts.push(paint(new T.BoxGeometry(.065,.70,.095),color,Math.sin(angle)*.32,Math.cos(angle)*.32,0,0,0,-angle));

@@ -46,3 +46,6 @@ body.boss-warning .route i{background:#ef7954}body.boss-warning #phase-label{col
 #power-symbol{font-size:14px}.temporary-power>span{display:none}
 .weapon-track{margin-top:3px;margin-bottom:2px}.commander-health{margin-top:3px}
 #abilities{bottom:calc(6px + env(safe-area-inset-bottom))}.footer-note{margin-top:4px}.footer-note button{padding-top:3px;padding-bottom:3px}
+
+/* Static active-state colors echo the three world effects; no flashing HUD. */
+.ability.relic-active[data-relic="0"]{border-color:#83edff;background:#173f55;color:#f0ffff;box-shadow:0 0 12px #50d7ff33}.ability.relic-active[data-relic="1"]{border-color:#cafbff;background:#233c61;color:#f0ffff;box-shadow:0 0 12px #71ddff33}.ability.relic-active[data-relic="2"]{border-color:#ffc078;background:#553424;color:#fff0da;box-shadow:0 0 12px #ffab4933}.ability.relic-active[data-relic="2"] #ability-effect{color:#ffd69f}

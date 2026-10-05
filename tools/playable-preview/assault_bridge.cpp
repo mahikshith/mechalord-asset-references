@@ -3,7 +3,7 @@
 static mech::assault::Battle Battle;
 static float Formation[24*3];
 static float LaserData[2*7];
-static float State[64],Targets[256*16],Shots[256*7],EnemyShots[96*13],Pickups[24*6],Effects[192*8];
+static float State[68],Targets[256*19],Shots[256*7],EnemyShots[96*13],Pickups[24*6],Effects[192*8];
 API("start_run") void Start(int Relic,int Level,int Rank) { Battle.Start(static_cast<mech::assault::Relic>(std::clamp(Relic,0,2)),Level,Rank); }
 API("level_name") const char* LevelName() { return Battle.LevelName(); }
 API("step") void Step(double Dt,double X) { Battle.Advance(Dt,X); }
@@ -31,17 +31,17 @@ API("state") float* GetState()
     State[49]=int(Battle.starterWeapon); State[50]=Battle.powerTime<=0 && Battle.starterWeapon!=mech::assault::WeaponPower::None && Battle.weaponPower==Battle.starterWeapon;
     State[51]=Battle.CanHeal(); State[52]=Battle.healUsesRemaining; State[53]=Battle.reviveUsed; State[54]=Battle.CanRevive();
     State[55]=Battle.bossPartsMask; State[56]=Battle.BossPart(); State[57]=Battle.BossPartHp(); State[58]=Battle.BossPartMax();
-    State[59]=20; State[60]=std::min(25.,std::max(0.,Battle.commanderMaxHp-Battle.commanderHp)); State[61]=30; State[62]=50; State[63]=Battle.reviveProtection; return State;
+    State[59]=20; State[60]=std::min(25.,std::max(0.,Battle.commanderMaxHp-Battle.commanderHp)); State[61]=30; State[62]=50; State[63]=Battle.reviveProtection; State[64]=Battle.empPulseTime; State[65]=Battle.empStunTime; State[66]=Battle.escortShield; State[67]=30; return State;
 }
 API("target_count") int TargetCount() { return Battle.TargetCount(); }
 API("targets") float* GetTargets()
 {
     int N=0; for(const auto& T:Battle.targets) if(T.active)
     {
-        float* O=Targets+N++*16;
+        float* O=Targets+N++*19;
         O[0]=T.id; O[1]=int(T.kind); O[2]=T.x; O[3]=T.z; O[4]=T.hp; O[5]=T.maxHp;
         O[6]=T.value; O[7]=T.op; O[8]=T.size; O[9]=T.hit; O[10]=T.variant; O[11]=T.depth;
-        O[12]=int(T.fireState); O[13]=T.aimX; O[14]=T.charge; O[15]=T.role;
+        O[12]=int(T.fireState); O[13]=T.aimX; O[14]=T.charge; O[15]=T.role; O[16]=T.stunTime; O[17]=T.ventOpen; O[18]=T.ventTime;
     } return Targets;
 }
 API("shot_count") int ShotCount() { return Battle.ShotCount(); }

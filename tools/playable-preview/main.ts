@@ -24,8 +24,8 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined;
 let dialogueTimer: ReturnType<typeof setTimeout> | undefined;
 const held = new Set<string>();
 const names = ['SHIELD', 'EMP', 'OVERDRIVE'], symbols = ['◈', 'ϟ', '»'];
-const descriptions = ['Shield protects your entire legion while active.', 'EMP damages nearby enemies and slows incoming attacks.', "Overdrive boosts your legion's damage and fire rate."];
-const abilityEffects = ['LEGION GUARD', 'PULSE + SLOW', 'ATTACK BOOST'];
+const descriptions = ['Shield protects your entire legion while active.', 'EMP clears ordinary machines and incoming fire, then stuns surviving elites for two seconds.', "Overdrive boosts your legion's damage and fire rate."];
+const abilityEffects = ['LEGION GUARD', 'CLEAR + 2s STUN', 'ATTACK BOOST'];
 const tierNames = ['PULSE', 'TWIN', 'ARC', 'SIEGE'];
 const levelNames = ['Reactor Siege', 'Roller Foundry', 'Citadel Breach'];
 const challenges = ['Bait the cannons. Break the batteries. Survive the reactor.', 'Roll. Dodge. Adapt. Moving dangers test your timing.', 'Aim. Upgrade. Breach. Break through heavier defenses.'];
@@ -168,7 +168,7 @@ function effects(s: Snapshot): void {
     else if (event.kind === 'gate') gateCleared = true;
     else if (event.kind === 'damage') { damage = true; casualties += Math.abs(event.value); }
     else if (event.kind === 'commanderHit') { damage = true; pulse($('commander-health'), 'health-hit'); }
-    else if (event.kind === 'block') shieldBlockUntil = s.time + .8;
+    else if (event.kind === 'shieldHit') shieldBlockUntil = s.time + .8;
     else if (event.kind === 'bossDeath') bossDied = true;
     else if (event.kind === 'pickup') pickedUp = event.value;
     else if (event.kind === 'coreExpose') toast(s.level === 0 ? 'CORE OPEN · DAMAGE CARRIES TO THE NEXT OPENING' : s.bossRevives ? 'CORE OPEN · FINISH THE TYRANT' : 'CORE OPEN · DESTROY IT BEFORE REBUILD', 1500);
@@ -217,7 +217,7 @@ function hud(s: Snapshot): void {
   $('weapon-name').textContent = tierNames[Math.max(0, Math.min(3, s.weapon - 1))];
   const powerActive = s.weaponPower !== 'none' && (s.weaponPermanent || s.powerTime > 0);
   $('temporary-power').hidden = !powerActive;
-  if (powerActive && s.weaponPower !== 'none') { const info = powers[s.weaponPower]; $('power-name').textContent = info.name; $('power-symbol').textContent = info.symbol; $('temporary-power').style.setProperty('--power-color', info.color); $('power-time').textContent = s.weaponPermanent ? 'FULL RUN' : `${s.powerTime.toFixed(1)}s`; $('power-mode').textContent = s.weaponPermanent ? 'EARNED ARSENAL' : 'TEMPORARY ARSENAL'; $('temporary-power').classList.toggle('permanent', s.weaponPermanent); $('power-fill').style.width = `${Math.min(100, s.powerTime / info.duration * 100)}%`; }
+  if (powerActive && s.weaponPower !== 'none') { const info = powers[s.weaponPower]; $('power-name').textContent = info.name; $('power-symbol').textContent = info.symbol; $('temporary-power').style.setProperty('--power-color', info.color); $('power-time').textContent = s.weaponPermanent ? 'FULL RUN' : `${s.powerTime.toFixed(1)}s`; if(s.weaponPower==='escort') $('power-time').textContent=`${Math.ceil(s.escortShield)}/${s.escortMax} · ${s.powerTime.toFixed(1)}s`; $('power-mode').textContent = s.weaponPower==='escort'?'FINITE DEFENSE':s.weaponPermanent ? 'EARNED ARSENAL' : 'TEMPORARY ARSENAL'; $('temporary-power').classList.toggle('permanent', s.weaponPermanent); $('power-fill').style.width = `${Math.min(100, s.powerTime / info.duration * 100)}%`; }
   const timeActive = (s.phase === 'run' || boss) && s.timePower !== 'none' && s.timePowerTime > 0; $('time-power').hidden = !timeActive;
   if (timeActive && s.timePower !== 'none') { const info = powers[s.timePower]; $('time-symbol').textContent = info.symbol; $('time-name').textContent = s.timePower === 'freeze' ? 'HOSTILES FROZEN' : info.name; $('time-left').textContent = `${s.timePowerTime.toFixed(1)}s`; $('time-power').style.setProperty('--power-color', info.color); }
   const maxTier = s.weapon >= 4 || s.weaponNeed <= 0;
@@ -233,7 +233,7 @@ function hud(s: Snapshot): void {
   transfer.setAttribute('aria-label', `Transfer ${s.healCost} troops for ${s.healAmount} commander health. ${s.healUsesRemaining} uses remaining.`);
   if (lastArmy !== s.army) { pulse($('army-count').parentElement!, 'pop'); lastArmy = s.army; }
   $('danger').hidden = true; document.body.classList.toggle('boss-warning', boss);
-  const button = $<HTMLButtonElement>('ability'); button.disabled = paused || destroying || s.energy < 100 || s.ability > 0; button.classList.toggle('ready', !button.disabled);
+  const button = $<HTMLButtonElement>('ability'); button.disabled = paused || destroying || s.energy < 100 || s.ability > 0; button.classList.toggle('ready', !button.disabled); button.classList.toggle('relic-active', s.ability>0); button.dataset.relic=String(s.relic);
   $('energy-fill').style.width = `${Math.max(0, Math.min(100, s.energy))}%`;
   $('ability-caption').textContent = s.ability > 0 ? `${s.relic === 0 && s.time < shieldBlockUntil ? 'HIT BLOCKED' : 'ACTIVE'} · ${s.ability.toFixed(1)}s` : s.energy >= 100 ? 'READY · TAP / SPACE' : `${Math.floor(s.energy)}% CHARGED`;
   button.setAttribute('aria-label', `${names[selected]}: ${descriptions[selected]} ${$('ability-caption').textContent}`);

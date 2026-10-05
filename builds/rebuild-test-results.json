@@ -2,58 +2,56 @@
   "schema": 4,
   "scope": "Actual continuous-travel Assault browser adapter/current WASM. Automated normal controls; no Unreal, physical-device or first-time-player validation.",
   "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
-  "bytes": 1339858,
-  "sha256": "e21b227b494dece0a668554b335c256113b8ab7717531f6482593a1876b179ba",
+  "bytes": 1356756,
+  "sha256": "3f6378def7a483a231ace762b07aae73dc6ba00f5cedb357edd5e10ec5439d55",
   "memoryBytes": 1179648,
-  "testedAt": "2026-10-05T19:25:38.994Z",
+  "testedAt": "2026-10-05T20:15:43.900Z",
   "winningRuns": [
     {
       "level": 0,
       "relic": 0,
-      "time": 94.18333435058594,
-      "army": 13,
+      "time": 140,
+      "army": 1,
+      "weapon": 3,
+      "kills": 43,
+      "commanderHp": 30,
+      "bossArmorRebuilds": 1,
+      "commanderReviveUsed": false,
+      "powers": [
+        1
+      ],
+      "contactAttacks": 8
+    },
+    {
+      "level": 0,
+      "relic": 1,
+      "time": 90.30000305175781,
+      "army": 1,
       "weapon": 4,
-      "kills": 46,
-      "commanderHp": 90,
+      "kills": 56,
+      "commanderHp": 84,
       "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
         2,
         1
       ],
-      "contactAttacks": 4
-    },
-    {
-      "level": 0,
-      "relic": 1,
-      "time": 110.26667022705078,
-      "army": 1,
-      "weapon": 4,
-      "kills": 48,
-      "commanderHp": 52,
-      "bossArmorRebuilds": 1,
-      "commanderReviveUsed": false,
-      "powers": [
-        2,
-        1
-      ],
-      "contactAttacks": 7
+      "contactAttacks": 5
     },
     {
       "level": 0,
       "relic": 2,
-      "time": 103.43333435058594,
+      "time": 135.43333435058594,
       "army": 1,
-      "weapon": 4,
-      "kills": 47,
-      "commanderHp": 74,
+      "weapon": 3,
+      "kills": 44,
+      "commanderHp": 57,
       "bossArmorRebuilds": 1,
       "commanderReviveUsed": false,
       "powers": [
-        2,
         1
       ],
-      "contactAttacks": 4
+      "contactAttacks": 7
     },
     {
       "level": 1,
@@ -75,12 +73,12 @@
     {
       "level": 1,
       "relic": 1,
-      "time": 107.55000305175781,
-      "army": 98,
+      "time": 93.61666870117188,
+      "army": 136,
       "weapon": 4,
       "kills": 118,
-      "commanderHp": 94,
-      "bossArmorRebuilds": 1,
+      "commanderHp": 98,
+      "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
         3,
@@ -128,22 +126,21 @@
     {
       "level": 2,
       "relic": 1,
-      "time": 122.19999694824219,
-      "army": 82,
+      "time": 104.11666870117188,
+      "army": 148,
       "weapon": 4,
-      "kills": 128,
-      "commanderHp": 92,
-      "bossArmorRebuilds": 1,
+      "kills": 127,
+      "commanderHp": 99,
+      "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
-        6,
         1,
-        5,
         3,
         4,
+        5,
         2
       ],
-      "contactAttacks": 3
+      "contactAttacks": 0
     },
     {
       "level": 2,
@@ -172,8 +169,8 @@
     "formationPairs": 2762563,
     "silentOverlapCount": 0
   },
-  "tests": 61,
-  "passed": 61,
+  "tests": 67,
+  "passed": 67,
   "failed": 0,
   "results": [
     {
@@ -262,6 +259,30 @@
     },
     {
       "name": "Shield blocks actual army damage and EMP damages local enemies",
+      "status": "pass"
+    },
+    {
+      "name": "EMP is one finite actual wave clear with bounded elite damage and a two-second stun",
+      "status": "pass"
+    },
+    {
+      "name": "EMP explicitly deletes live hostile rounds, interrupts a beam and holds the boss without instant defeat",
+      "status": "pass"
+    },
+    {
+      "name": "carrier vents publish an actual timed damage vulnerability rather than a cosmetic opening",
+      "status": "pass"
+    },
+    {
+      "name": "late defensive escort is a fixed optional choice with finite actual absorption and no healing",
+      "status": "pass"
+    },
+    {
+      "name": "Shield absorption has its own exact actual-hit events and EMP does not impersonate them",
+      "status": "pass"
+    },
+    {
+      "name": "earned guided loadout faces an actual armed boss attack before three-quarter armor loss",
       "status": "pass"
     },
     {
