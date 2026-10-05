@@ -76,3 +76,15 @@ Validation on the final binary: **71/71 simulation checks** and **14/14 independ
 The first candidate exposed grazing shots parked against armor. Exact captured contacts identified tolerance-boundary convergence; stepping toward the real surface and a bounded eight-interval fallback fixed them without widening geometry or awarding uncertain hits. Fourteen recorded cases pass an independent raw-model oracle, as do 388 poses / 4,268 transformed components. Extreme synthetic instantaneous motion still yields six conservative refusals; this is explicitly outside the tested normal trajectories. A refused shot never gains guessed damage and retains its six-second lifetime.
 
 Presentation checks: 63 combat, 19 focused projectile/beam, 15 relic, nine weapon-socket, nine boss-adapter, three actual-model integration checks and eight UI/audio/save groups pass. Browser captures show physical targeting, a detached cannon, collapse and a wounded guarded core. This review also found the old final explosion was anchored below the floor after collapse; checkpoint four corrects that visual defect before the final repeat-render audit.
+
+## Checkpoint 4 — reactor rupture and final delivery review
+
+The final destruction burst now starts at the actual posed reactor center. The collapsed rig places that center around 1.725 m above the deck; the previous root-relative anchor was below the floor. A brief layered rupture uses the existing fire, smoke, spark and fragment pools, followed by the recognizable 2.5-second breakup and wreck. Paused effects now skip physics entirely, fixing a zero-time floor-clamp movement found by the new regression.
+
+The focused presentation suite now passes **64/64** checks; actual retained-model integration passes **4/4**. No gameplay numbers or simulation binary changed from checkpoint three. Actual browser captures in `delivery/electrical-combat-proof/` show the above-floor burst and its later wreck, physical cannon targeting/breaks, carrier opening, Shield absorption, EMP clear, Overdrive and a real weapon upgrade. Browser warning/error output was empty during this inspection. The twelve-run final rendered audit is recorded separately when it finishes.
+
+### Remaining acceptance outside this desktop prototype
+
+- Test touch aiming, readability, sound and sustained performance on the Nothing Phone (3), including a 20-minute session. The desktop portrait canvas and automated controls do not establish these results.
+- Observe first-time players and tune the fresh-player boss tail. Some delayed automated routes still take 169 seconds; no claim of a perfected short-run pace, retention, addiction or willingness to pay is made.
+- Port the accepted combat and effects into the native Unreal project, verify the Windows/Android toolchain, package ARM64 and measure installed size. No native Android APK or iOS build was produced in these browser checkpoints. Downloadable chapters, store/gems and later platform work remain separate milestones.

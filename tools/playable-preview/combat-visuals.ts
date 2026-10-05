@@ -152,7 +152,7 @@ export class CombatVisuals {
     return detached>0;
   }
   /** Copies mesh transforms before the caller hides the live boss. Does not own its geometry. */
-  bossDeath(root:T.Object3D){
+  bossDeath(root:T.Object3D,reactorPosition?:T.Vector3){
     if(this.bossDestroyed)return false;this.bossDestroyed=true;
     root.updateWorldMatrix(true,true);
     // Keep eight slots for the final torso/head blast, even after repeated part loss.
@@ -176,8 +176,21 @@ export class CombatVisuals {
       const bounds=new T.Box3().setFromObject(group);const floor=Math.max(.12,center.y-bounds.min.y);
       this.fragments.push({group,v:velocity,spin:new T.Vector3((this.random()-.5)*2.5,(this.random()-.5)*2.5,(this.random()-.5)*2.5),delay,age:0,floor,settled:false,materials});centers.push(center);count++;
     });
-    const pos=root.getWorldPosition(new T.Vector3());this.bossBurn=new T.Vector3(pos.x,.4,pos.z);this.bossBurnTime=2.8;this.bossEmission=0;
-    this.impact(pos.x,pos.y+2,pos.z,2);for(const [i,p] of centers.slice(0,8).entries())this.later(p.x,p.y,p.z,.08+i*.095,i===0?2:1.2);
+    const pos=root.getWorldPosition(new T.Vector3()),torso=root.getObjectByName('Torso')??sources.find(o=>/torso/i.test(o.name));
+    // Collapse can put the root below the deck. The actual posed reactor remains above it.
+    const anchor=reactorPosition?.clone()??(torso?new T.Box3().setFromObject(torso).getCenter(new T.Vector3()):new T.Vector3(pos.x,pos.y+2,pos.z));
+    if(!anchor.toArray().every(Number.isFinite))anchor.set(pos.x,pos.y+2,pos.z);
+    anchor.y=Math.max(.45,anchor.y);
+    this.bossBurn=new T.Vector3(anchor.x,.4,anchor.z);this.bossBurnTime=2.8;this.bossEmission=0;
+    // One bounded rupture, using the existing shared fire/smoke/spark/debris pools.
+    this.puff(anchor.x,anchor.y,anchor.z,'flash',1.02,.13,0xffead0);
+    for(let i=0;i<12;i++){const a=i*Math.PI*2/12,r=.12+(i%3)*.16;
+      this.puff(anchor.x+Math.cos(a)*r,anchor.y+(i%3)*.20,anchor.z+Math.sin(a)*r,'fire',.48+this.random()*.30,.40+this.random()*.34,i%3?0xff8a25:0xff4520);}
+    for(let i=0;i<24;i++)this.spark(anchor.x,anchor.y,anchor.z,2.2, i%4?0xffbd61:0xd7f4ff);
+    for(let i=0;i<5;i++)this.puff(anchor.x+(this.random()-.5)*.65,anchor.y+.20,anchor.z+(this.random()-.5)*.65,'smoke',.40+this.random()*.16,.85+this.random()*.35,0x505964);
+    for(let i=0;i<10;i++)this.chunk(anchor.x,anchor.y,anchor.z,.16+this.random()*.10,i%3?0x69777e:0xd5a858,3.2,i%4===0?'rotor':i%4===1?'strut':'plate');
+    this.later(anchor.x-.38,anchor.y+.22,anchor.z,.12,1.8);this.later(anchor.x+.38,anchor.y+.40,anchor.z,.27,1.6);
+    for(const [i,p] of centers.slice(0,6).entries())this.later(p.x,Math.max(.25,p.y),p.z,.08+i*.095,i===0?2:1.2);
     return count>0;
   }
   /** Freeze actual skinned pose, then detach anatomical mesh pieces. Independent of boss wreck. */
@@ -236,7 +249,7 @@ export class CombatVisuals {
     // Substeps keep bounce stable after a slow frame; freeze exactly when dt=0.
     const elapsed=Math.max(0,Math.min(dt,.15));this.age+=elapsed;this.combustionTime.value=this.age;
     if(elapsed>0){for(const burst of this.bursts){burst.delay-=elapsed;if(burst.delay<=0)this.impact(burst.p.x,burst.p.y,burst.p.z,burst.strength);}this.bursts=this.bursts.filter(b=>b.delay>0);}
-    const steps=Math.max(1,Math.ceil(elapsed/(1/60))),step=elapsed/steps;
+    const steps=elapsed>0?Math.ceil(elapsed/(1/60)):0,step=steps?elapsed/steps:0;
     for(let n=0;n<steps;n++){
       for(const c of this.chunks){if(c.life<=0)continue;c.life-=step;c.v.y-=step*9.8;c.p.addScaledVector(c.v,step);c.r.addScaledVector(c.spin,step);
         const floor=Math.max(.04,c.size.y*.5);if(c.p.y<floor){c.p.y=floor;c.v.y=Math.abs(c.v.y)*.26;c.v.x*=.67;c.v.z*=.67;c.spin.multiplyScalar(.6);c.bounce++;if(c.bounce>3)c.v.y=0;}}

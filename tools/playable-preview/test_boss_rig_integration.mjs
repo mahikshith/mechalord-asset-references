@@ -17,6 +17,20 @@ test('spatial impacts and exposed-core burst use actual contact/surface data wit
  const points=[],original=fx.impact.bind(fx);fx.impact=(...v)=>points.push(v);actor.trigger({kind:'hit',x:1.7,y:3.6,z:11.5,value:8,variant:3,hitRegion:'cannonL'}, {bossY:1.2,targets:[]});assert.deepEqual(points.at(-1).slice(0,3),[1.7,3.6,-11.5]);
  actor.trigger({kind:'coreExpose',x:0,z:12}, {bossY:1.2,bossRegions:[{id:'core',x:2,y:5.48,z:10.99}],targets:[]});assert.deepEqual(points.at(-1).slice(0,3),[2,5.48,-10.99]);fx.impact=original;
 });
+test('collapsed actual GLB ruptures at the posed above-floor reactor, with bounded particles and exact pause/reset',()=>{
+ fx.reset();actor.bossExploded=false;actor.float=()=>{};
+ const collapsed={...pose,rootY:-2.55,pitch:0,roll:0,leg:[.65,.65],knee:[.8,.8]};adapter.apply(collapsed);
+ const torso=boss.getObjectByName('Torso'),heart=new T.Vector3(-4.470348358e-8,.6995289325714111,-.6541118025779724).applyMatrix4(torso.matrixWorld);
+ assert(heart.y>1.5&&heart.y<2);const region={id:'core',x:heart.x,y:heart.y,z:-heart.z};
+ actor.trigger({kind:'bossDeath',x:collapsed.rootX,z:-collapsed.worldZ}, {bossPose:collapsed,bossRegions:[region],targets:[]});
+ const live=fx.puffs.filter(p=>p.life>0),flash=live.find(p=>p.kind==='flash');assert(flash);assert(flash.p.distanceTo(heart)<1e-8);assert.equal(live.length,18);assert.equal(fx.sparks.filter(p=>p.life>0).length,24);assert.equal(fx.chunks.filter(p=>p.life>0).length,10);assert(fx.bursts.length<=8);assert(fx.bursts.every(b=>b.p.y>=.25));assert(fx.fragments.length<=24);
+ assert(live.filter(p=>p.kind==='fire').every(p=>p.size>=.48&&p.size<.78));assert(live.filter(p=>p.kind==='fire').every(p=>p.max<=.74));
+ const frozen=JSON.stringify({p:fx.puffs.map(p=>[...p.p.toArray(),p.life]),s:fx.sparks.map(p=>[...p.p.toArray(),p.life]),c:fx.chunks.map(c=>[...c.p.toArray(),c.life]),b:fx.bursts.map(b=>b.delay),f:fx.fragments.map(f=>[...f.group.position.toArray(),f.age])});fx.update(0);
+ assert.equal(JSON.stringify({p:fx.puffs.map(p=>[...p.p.toArray(),p.life]),s:fx.sparks.map(p=>[...p.p.toArray(),p.life]),c:fx.chunks.map(c=>[...c.p.toArray(),c.life]),b:fx.bursts.map(b=>b.delay),f:fx.fragments.map(f=>[...f.group.position.toArray(),f.age])}),frozen);
+ for(let i=0;i<151;i++)fx.update(1/60);assert(fx.fragments.every(f=>f.settled));assert(fx.puffs.filter(p=>p.life>0&&p.kind==='fire').every(p=>p.size<=.38));
+ fx.reset();assert.equal(fx.fragments.length,0);assert.equal(fx.bursts.length,0);assert(fx.puffs.every(p=>p.life===0));assert(fx.sparks.every(p=>p.life===0));assert(fx.chunks.every(c=>c.life===0));actor.bossExploded=false;
+});
+
 test('all weapon attachments use actual ballistic slope while legacy shot data remains compatible',()=>{
  const hero=new T.Group(),arsenal=new ArsenalVisuals(hero,boss),base={phase:'boss',timePower:'none',timePowerTime:0,weaponPower:'cannons',weaponPermanent:true,powerTime:0,bossPartsMask:0,bossPhase:1,bossPattern:'heavy',bossY:1.2,bossAction:'strafe',bossAttack:0,bossHp:100,bossState:'armored',bossX:2,bossZ:12,enemyShots:[],shots:[{x:0,y:1.42,z:1,dx:0,dy:9,dz:30,owner:'commander',kind:'cannon'}]};arsenal.update(base,0);const a=-Math.atan2(9,30);assert(Math.abs(hero.getObjectByName('HandCannon_L').rotation.x-(a+.065))<1e-9);assert(Math.abs(arsenal.rail.rotation.x-a)<1e-9);for(const rack of arsenal.guided.children)assert(Math.abs(rack.rotation.x-a)<1e-9);arsenal.update({...base,shots:[{...base.shots[0],dy:undefined,y:undefined}]},0);assert(Number.isFinite(arsenal.rail.rotation.x));arsenal.dispose();
 });

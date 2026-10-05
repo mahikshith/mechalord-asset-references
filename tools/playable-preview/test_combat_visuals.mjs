@@ -70,6 +70,10 @@ test('boss settles by the result overlay and keeps a bounded wreck until retry',
   for(let i=0;i<6;i++)fx.update(.15);assert.deepEqual(fx.fragments.map(f=>f.group.position.toArray()),positions);assert.equal(disposed,0);
   fx.reset();assert.equal(fx.stats().bossFragments,0);assert.equal(disposed,14);assert.equal(sourceGeometryDisposed,false);
 });
+test('legacy collapsed boss uses a finite visible torso anchor and safe synthetic fallback',()=>{
+ fx.reset();const root=new T.Group();root.position.set(-2,-2.55,-15);scene.add(root);const torso=new T.Mesh(bossGeometry,bossMaterial);torso.name='Torso';torso.position.y=4.3;root.add(torso);fx.bossDeath(root);const flash=fx.puffs.find(p=>p.life>0&&p.kind==='flash');assert(Math.abs(flash.p.y-1.75)<1e-8);assert.equal(flash.p.x,-2);assert.equal(flash.p.z,-15);fx.reset();root.remove(torso);fx.bossDeath(root);assert(fx.puffs.filter(p=>p.life>0).every(p=>p.p.y>=.45));assert(fx.bursts.length<=32);fx.reset();fx.bossDeath(root,new T.Vector3(NaN,NaN,NaN));assert(fx.puffs.filter(p=>p.life>0).every(p=>p.p.toArray().every(Number.isFinite)&&p.p.y>=.45));fx.reset();scene.remove(root);
+});
+
 test('boss dismantling caps at 24 pieces',()=>{
   fx.reset();for(let i=0;i<30;i++)boss.add(new T.Mesh(bossGeometry,bossMaterial));fx.bossDeath(boss);assert.equal(fx.stats().bossFragments,24);fx.reset();
 });

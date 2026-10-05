@@ -113,7 +113,7 @@ export class Battlefield{
   if(e.kind==='hazardBreak'){this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
   if(e.kind==='commanderDeath'&&!this.commanderExploded){this.scene.updateMatrixWorld(true);this.fx.commanderDeath(this.hero);this.commanderExploded=true;this.hero.visible=false;this.shake=.4;}
   if(e.kind==='retreat')this.hitNumbers.delete(e.entityId);
-  if(e.kind==='bossDeath'&&!this.bossExploded){this.scene.updateMatrixWorld(true);this.fx.bossDeath(this.boss);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
+  if(e.kind==='bossDeath'&&!this.bossExploded){this.scene.updateMatrixWorld(true);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.bossDeath(this.boss,core?new T.Vector3(core.x,core.y,-core.z):undefined);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
  }
  weaponUpgrade(previous:number,next:number){return this.abilities.weaponUpgrade(previous,next);}
  sacrifice(positions:{x:number,z:number}[]){this.fx.sacrifice(this.hero,positions);}
