@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-05T21:41:43.594Z",
+  "url": "http://127.0.0.1:8077/playable/index.html",
+  "checks": [
+    "play",
+    "mute",
+    "pause",
+    "resume",
+    "restart resets troops and charge",
+    "return to level selection",
+    "earned rank and all three best scores unchanged"
+  ],
+  "warnings": [],
+  "screenshot": "delivery/electrical-combat-proof/player-hud-final.jpg",
+  "scope": "Desktop browser interaction at portrait proportions; not physical-device touch or audio-quality validation"
+}

@@ -16,8 +16,8 @@ User authorization, 6 October 2026: continue autonomously, use parallel agents, 
 - [x] Formation-safe scheduling: account for the whole army rather than a point-sized hero, within the documented modeled trajectories and horizon.
 - [x] Boss part targeting: authoritative hit recipients, separately damaged weapons and animated measured volumes.
 - [x] Regression harness: power semantics, collisions, gate conservation, pause, retry, saves and delayed controllers. Final rendered replay is recorded separately below.
-- [ ] Portrait render review: laser, hostile fire, each relic, rewards, carrier, boss and victory/defeat.
-- [ ] Record delivered build, evidence, unresolved limitations and next native milestone.
+- [x] Portrait render review: laser, hostile fire, each relic, rewards, carrier, boss and victory/defeat.
+- [x] Record delivered build, evidence, unresolved limitations and next native milestone.
 
 ## Native and delivery boundaries
 
@@ -81,7 +81,13 @@ Presentation checks: 63 combat, 19 focused projectile/beam, 15 relic, nine weapo
 
 The final destruction burst now starts at the actual posed reactor center. The collapsed rig places that center around 1.725 m above the deck; the previous root-relative anchor was below the floor. A brief layered rupture uses the existing fire, smoke, spark and fragment pools, followed by the recognizable 2.5-second breakup and wreck. Paused effects now skip physics entirely, fixing a zero-time floor-clamp movement found by the new regression.
 
-The focused presentation suite now passes **64/64** checks; actual retained-model integration passes **4/4**. No gameplay numbers or simulation binary changed from checkpoint three. Actual browser captures in `delivery/electrical-combat-proof/` show the above-floor burst and its later wreck, physical cannon targeting/breaks, carrier opening, Shield absorption, EMP clear, Overdrive and a real weapon upgrade. Browser warning/error output was empty during this inspection. The twelve-run final rendered audit is recorded separately when it finishes.
+The focused presentation suite now passes **64/64** checks; actual retained-model integration passes **4/4**. No gameplay numbers or simulation binary changed from checkpoint three. Actual browser captures in `delivery/electrical-combat-proof/` show the above-floor burst and its later wreck, physical cannon targeting/breaks, carrier opening, Shield absorption, EMP clear, Overdrive, a real weapon upgrade and commander defeat. Browser warning/error output was empty during this inspection.
+
+**Final rendered replay audit:** all twelve full WebGL runs on checkpoint `a9152e2` won with zero unresolved contacts and no timeout. The run rendered 19,388 frames over 331.67 wall-clock seconds at 4× simulation speed; 47 frames exceeded 34 ms. The requested viewport was 420 × 933 and the actual CSS canvas was 359 × 798. Peak work was 158 draw calls / 223,889 triangles. Registered geometry counts warmed from 148 to 154 to 163, then stayed at 163 for runs 3–12; each run ended with 13 textures. The sole unparented geometry was the unchanged shared Three.js Sprite geometry. No warning/error logs were captured. `builds/render-soak-final.json` preserves the per-run results and delivered-code fingerprints. This is a desktop resource/retry check, not a mobile frame-rate result.
+
+The normal player page was separately checked through Play, mute, pause, resume, restart and return to level selection. Restart restored the 14-troop saved loadout and 55% initial relic charge. Earned rank and all three best scores remained unchanged. The actual portrait HUD screenshot is `delivery/electrical-combat-proof/player-hud-final.jpg`; `builds/player-ui-final.json` stores the check receipt and empty warning/error log. Temporary review tabs and viewport overrides were removed; the normal game remains open at `http://127.0.0.1:8077/playable/index.html`.
+
+Saved implementation checkpoints: electrical combat `5609ac4`; first rendered audit `5fbd3fa`; formation-aware attacks `0ca269b`; independent boss systems `9b9d0a8`; reactor rupture and paused debris `a9152e2`. The final evidence commit follows those checkpoints. Only task-specific files were staged; unrelated local asset changes and the prior TRELLIS removal remain untouched.
 
 ### Remaining acceptance outside this desktop prototype
 

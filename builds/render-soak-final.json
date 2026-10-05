@@ -1,0 +1,378 @@
+{
+  "scope": "Desktop real WebGL replay, 4x simulation speed. Not mobile FPS.",
+  "completed": 12,
+  "remaining": 0,
+  "wallSeconds": 331.67169999999925,
+  "frames": 19388,
+  "framesAbove34ms": 47,
+  "peakCalls": 158,
+  "peakTriangles": 223889,
+  "peakGeometries": 222,
+  "peakTextures": 25,
+  "runs": [
+    {
+      "result": "won",
+      "seconds": 105.63333129882812,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 148,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 10,
+        "deferred": 4,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 3.307602643966675
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.25,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 154,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 12,
+        "deferred": 4,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 1.9199999570846558
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 107.94999694824219,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 12,
+        "deferred": 2,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 3.094705820083618
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 105.63333129882812,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 10,
+        "deferred": 4,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 3.307602643966675
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.51667022705078,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 12,
+        "deferred": 5,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 1.9199999570846558
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 107.94999694824219,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 12,
+        "deferred": 2,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 3.094705820083618
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 105.63333129882812,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 10,
+        "deferred": 4,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 3.307602643966675
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.51667022705078,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 12,
+        "deferred": 5,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 1.9199999570846558
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 107.94999694824219,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 12,
+        "deferred": 2,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 3.094705820083618
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 105.6500015258789,
+      "rank": 2,
+      "relic": 0,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 10,
+        "deferred": 4,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 3.307602643966675
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 116.51667022705078,
+      "rank": 2,
+      "relic": 1,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 12,
+        "deferred": 5,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 1.9199999570846558
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "seconds": 107.94999694824219,
+      "rank": 2,
+      "relic": 2,
+      "geometries": 163,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 12,
+        "deferred": 2,
+        "unsupported": 2,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 1,
+        "horizon": 3.094705820083618
+      },
+      "orphanGeometry": [
+        {
+          "id": 1428,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    }
+  ],
+  "recordedAt": "2026-10-05T21:38:14.515Z",
+  "coreSha256": "73b4ca12e4df96223ce7af134adb8d52a5fa10a112aa4b911eda773da484c9f1",
+  "reviewSha256": "568eefbe0e620c6edef31ff71e4e19d70cc471c83e758f886313bb6f1b01d521",
+  "requestedViewport": {
+    "width": 420,
+    "height": 933
+  },
+  "observedCssCanvas": {
+    "height": 798,
+    "width": 359
+  },
+  "console": [],
+  "notes": [
+    "Desktop browser resource stability only; no physical-phone FPS or human pacing claim.",
+    "Initial resource warm-up covers all three relics. Unparented Sprite geometry is Three.js module-global shared geometry."
+  ]
+}
