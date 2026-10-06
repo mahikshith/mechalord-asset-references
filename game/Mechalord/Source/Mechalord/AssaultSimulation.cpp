@@ -150,6 +150,7 @@ bool Battle::BeginClash()
 {
     if(phase!=Phase::Boss||combatPower!=CombatPower::Tempest||combatPowerTime<=0||clash.active)return false;
     for(auto& L:lasers)if(L.active){
+        ClipLaserToShield(L);
         // Intersect the actual finite-width beams in 3D, not just their
         // centerlines. Angled hostile rays aimed at the commander can overlap
         // the forward cannon volume even when their centerlines meet below it.
@@ -159,7 +160,9 @@ bool Battle::BeginClash()
         const double BX=L.x-AX*L.z-x,BY=L.y-AY*L.z-1.42+beamSlope*1.32;
         const double DY=AY-beamSlope,Radius=(L.width+friendlyBeam.width)*.5;
         const double A=AX*AX+DY*DY,B=2*(AX*BX+DY*BY),C=BX*BX+BY*BY-Radius*Radius;
-        double Lo=1.32,Hi=std::min(40.,L.z-.35);
+        // A shield-clipped beam has no invisible continuation behind the armor.
+        // Its clash interval must be the same finite beam the player sees.
+        double Lo=std::max(1.32,std::min(L.z,L.endZ)),Hi=std::min({40.,L.z-.35,friendlyBeam.endZ});
         if(A<1e-12){if(C>0)continue;}
         else{const double Disc=B*B-4*A*C;if(Disc<0)continue;const double Root=std::sqrt(Disc);Lo=std::max(Lo,(-B-Root)/(2*A));Hi=std::min(Hi,(-B+Root)/(2*A));}
         if(Lo>Hi)continue;
@@ -245,14 +248,14 @@ bool Battle::Activate()
     Emit(EffectKind::Relic,x,0,int(relic),0,-2,relic==Relic::EMP?3.2:1.5);
     if(relic==Relic::EMP)
     {
-        empPulseTime=.65; empStunTime=2.; Emit(EffectKind::EmpPulse,x,0,2,0,-2,26);
+        empPulseTime=.65; empStunTime=ability; Emit(EffectKind::EmpPulse,x,0,int(std::ceil(empStunTime)),0,-2,26);
         for(auto& T:targets) if(T.active && T.op==0 && T.kind==Kind::Enemy && T.z>=-4 && T.z<=26 && std::abs(T.x)<=5)
         {
             if(T.variant==0) HitTarget(T,T.hp,FriendlyKind::Pulse,true);
             else
             {
                 HitTarget(T,std::min(T.maxHp*.45,20.+weapon*6.),FriendlyKind::Pulse,true);
-                if(T.active) { T.stunTime=2.; T.fireState=FireState::Reload; T.fireClock=T.charge=0; Emit(EffectKind::EmpStun,T.x,T.z,2,T.id,T.variant,T.size); }
+                if(T.active) { T.stunTime=empStunTime; T.fireState=FireState::Reload; T.fireClock=T.charge=0; Emit(EffectKind::EmpStun,T.x,T.z,int(std::ceil(empStunTime)),T.id,T.variant,T.size); }
             }
         }
         for(auto& S:enemyShots) if(S.active)
@@ -262,7 +265,7 @@ bool Battle::Activate()
         if(phase==Phase::Boss && bossZ<=26)
         {
             DamageBoss(60.,bossX); bossLaneLocked=false; bossClock=-.5; firePose=0; sweepIndex=-1; bossAttack=0; bossAction=BossAction::Strafe;
-            Emit(EffectKind::EmpStun,bossX,bossZ,2,0,3,2.4);
+            Emit(EffectKind::EmpStun,bossX,bossZ,int(std::ceil(empStunTime)),0,3,2.4);
         }
     }
     return true;
@@ -762,6 +765,41 @@ bool Battle::FormationHit(double X0,double Z0,double X1,double Z1,double Radius,
     for(int I=0;I<24;++I) if(formationAlive[I]) { double X,Z; TroopPosition(I,X,Z); Body(X,Z,.36,I); }
     return Found;
 }
+bool Battle::ShieldPlateHit(double X0,double Y0,double Z0,double X1,double Y1,double Z1,double Radius,double& HitX,double& HitY,double& HitZ) const
+{
+    if(!RelicActive(Relic::Shield))return false;
+    // Match PlatedShield's nine deployed panels, including the two folded wings.
+    // World uses armyCenterZ=1.5, frontZ=centerZ-3.45 and a front face at -.105.
+    // Simulation Z runs toward the enemy; renderer Z has the opposite sign.
+    double Center=0,Outer=0;int Count=0;
+    for(int I=0;I<24;++I)if(formationAlive[I]){double X,Z;TroopPosition(I,X,Z);Center+=X;++Count;}
+    Center=Count?Center/Count:x;
+    for(int I=0;I<24;++I)if(formationAlive[I]){double X,Z;TroopPosition(I,X,Z);Outer=std::max(Outer,std::abs(X-Center));}
+    const double Width=std::clamp(std::max(1.5,Outer+.8)*2+.55,3.8,8.1),Spread=Width/8;
+    // Clip to actual deployed armor height before testing the footprint. A shot
+    // above the 2.95m upper plate is not intercepted by an invisible tall wall.
+    double Near=0,Far=1;
+    if(std::abs(Y1-Y0)<1e-12){if(Y0<.05-Radius||Y0>2.95+Radius)return false;}
+    else {double A=(.05-Radius-Y0)/(Y1-Y0),B=(2.95+Radius-Y0)/(Y1-Y0);if(A>B)std::swap(A,B);Near=std::max(Near,A);Far=std::min(Far,B);if(Near>Far)return false;}
+    double Best=2;
+    for(int I=0;I<9;++I){
+        const double Side=(I-4)/4.,Wing=std::abs(Side)>.73?.34*std::abs(Side):0;
+        const double Angle=-Side*(std::abs(Side)>.73?.40:.035),C=std::cos(Angle),S=std::sin(Angle);
+        const double CX=Center+(I-4)*Spread-.105*S,CZ=1.95-Wing+.105*C;
+        auto LocalX=[&](double X,double Z){return C*(X-CX)+S*(Z-CZ);};
+        auto LocalZ=[&](double X,double Z){return -S*(X-CX)+C*(Z-CZ);};
+        const double X0L=LocalX(X0,Z0),Z0L=LocalZ(X0,Z0),X1L=LocalX(X1,Z1),Z1L=LocalZ(X1,Z1);
+        // Front inset plate plus its bevel; swept radius prevents fast rockets
+        // tunnelling through the physical cover between fixed simulation steps.
+        const double Fraction=SweepBox(X0L+(X1L-X0L)*Near,Z0L+(Z1L-Z0L)*Near,X0L+(X1L-X0L)*Far,Z0L+(Z1L-Z0L)*Far,0,0,Spread*.5+Radius,.06+Radius);
+        if(Fraction>1)continue;
+        const double F=Near+Fraction*(Far-Near);
+        if(F<Best){Best=F;const double LX=std::clamp(X0L+(X1L-X0L)*F,-Spread*.5,Spread*.5),LZ=std::clamp(Z0L+(Z1L-Z0L)*F,-.06,.06);
+            HitX=CX+C*LX-S*LZ;HitY=std::clamp(Y0+(Y1-Y0)*F,.05,2.95);HitZ=CZ+S*LX+C*LZ;
+        }
+    }
+    return Best<=1;
+}
 void Battle::DamageCommander(int Damage)
 {
     if(phase==Phase::Lost || phase==Phase::LastStand || Damage<=0) return;
@@ -1034,6 +1072,16 @@ void Battle::MoveEnemyShots(double Dt)
         }
         const double BeforeZ=S.z,BeforeX=S.x; S.x+=S.dx*Dt*Slow; S.z+=S.dz*Dt*Slow;
         int Slot=-1; double HitX=0,HitZ=0;
+        const auto Height=[&](double Z){return .85+(S.launchY-.85)*std::clamp(Z/std::max(.1,S.launchZ),0.,1.);};
+        double HitY=0;
+        if(ShieldPlateHit(BeforeX,Height(BeforeZ),BeforeZ,S.x,Height(S.z),S.z,S.radius,HitX,HitY,HitZ))
+        {
+            S.active=false;S.x=HitX;S.z=HitZ;
+            Emit(EffectKind::ShieldHit,HitX,HitZ,S.damage,S.id,-6,S.radius);
+            auto& E=effects[effectCount-1];E.spatial=true;
+            E.y=HitY;
+            continue;
+        }
         // Earliest physical body receives the shot. Troops do not act as a
         // hidden global health pool for projectiles striking the commander.
         if(FormationHit(BeforeX,BeforeZ,S.x,S.z,S.radius,true,Slot,HitX,HitZ))
@@ -1263,16 +1311,30 @@ void Battle::BossVolley()
     }
     Emit(EffectKind::BossShot,bossX,bossZ,int(bossPattern),0,3,2.7);
 }
+void Battle::ClipLaserToShield(Laser& L)
+{
+    if(!L.active||(clash.active&&clash.laserId==L.id))return;
+    if(L.shieldClipped){L.endX=L.unoccludedEndX;L.endY=L.unoccludedEndY;L.endZ=L.unoccludedEndZ;L.shieldClipped=false;}
+    double X,Y,Z;
+    if(ShieldPlateHit(L.x,L.y,L.z,L.endX,L.endY,L.endZ,L.width*.5,X,Y,Z)){
+        L.unoccludedEndX=L.endX;L.unoccludedEndY=L.endY;L.unoccludedEndZ=L.endZ;
+        L.endX=X;L.endY=Y;L.endZ=Z;L.shieldClipped=true;
+    }
+}
 void Battle::MoveLasers(double Dt)
 {
     for(auto& L:lasers) if(L.active)
     {
+        ClipLaserToShield(L);
         const double Step=Dt*(timePower==TimePower::Freeze?0:timePower==TimePower::Slow?.5:timePower==TimePower::Haste?1.35:1);
         L.time=std::max(0.,L.time-Step); L.tick-=Step;
         if(L.tick<=0 && Step>0)
         {
-            L.tick+=.17; int Slot=-1; double X=0,Z=0;
-            if(FormationHit(L.x,L.z,L.endX,L.endZ,L.width*.5,true,Slot,X,Z)) { if(Slot<0) DamageCommander(12); else DamageArmy(6,X,Z,L.id,Slot); }
+            L.tick+=.17;
+            if(L.shieldClipped){Emit(EffectKind::ShieldHit,L.endX,L.endZ,12,L.id,-6,L.width*.5);auto& E=effects[effectCount-1];E.spatial=true;E.y=L.endY;}
+            else {int Slot=-1; double X=0,Z=0;
+                if(FormationHit(L.x,L.z,L.endX,L.endZ,L.width*.5,true,Slot,X,Z)) { if(Slot<0) DamageCommander(12); else DamageArmy(6,X,Z,L.id,Slot); }
+            }
         }
         if(L.time<=0) L.active=false;
         if(phase==Phase::Lost || phase==Phase::LastStand) return;

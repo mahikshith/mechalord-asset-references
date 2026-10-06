@@ -3,7 +3,7 @@ import type {Effect,Snapshot} from './contract';
 import {PlatedShield} from './plated-shield';
 
 export interface RelicViewOptions {depthScale?:number;armyRadius:number;armyCenterX:number;armyCenterZ:number;visible:boolean;paused?:boolean;}
-type Spark={mesh:T.Mesh<T.RingGeometry,T.MeshBasicMaterial>;life:number;duration:number;size:number;x:number;z:number;shield:boolean};
+type Spark={mesh:T.Mesh<T.RingGeometry,T.MeshBasicMaterial>;life:number;duration:number;size:number;x:number;y:number;z:number;exact:boolean;shield:boolean};
 type Bolt={start:T.Vector3;end:T.Vector3;life:number;seed:number};
 const CYAN=0x65efff,AMBER=0xffa54b;
 /** Cosmetic, fixed-capacity adapters for actual simulation events. No inferred hits or damage. */
@@ -40,7 +40,7 @@ export class RelicEffects {
   for(let i=0;i<4;i++){const collar=new T.Mesh(new T.TorusGeometry(.26,.043,5,24),this.energy(i%2?CYAN:AMBER,.95));collar.name='OverdrivePosedWeapon_'+i;collar.visible=false;this.root.add(collar);this.weaponEnergy.push(collar);}
   for(const side of [-1,1]){const satellite=new T.Group();satellite.name='EscortEmitter_'+side;satellite.position.set(side*1.1,1.65,.6);const housing=new T.Mesh(new T.OctahedronGeometry(.18),new T.MeshStandardMaterial({color:0x526678,metalness:.55,roughness:.4}));const halo=new T.Mesh(new T.TorusGeometry(.27,.025,6,20),this.energy(0x9cfcb3,.8));satellite.add(housing,halo);this.escort.add(satellite);}
   const rippleGeometry=new T.RingGeometry(.82,1,40);
-  for(let i=0;i<12;i++){const mesh=new T.Mesh(rippleGeometry,this.energy(CYAN,.9));mesh.visible=false;this.root.add(mesh);this.sparks.push({mesh,life:0,duration:.48,size:.65,x:0,z:0,shield:true});}
+  for(let i=0;i<12;i++){const mesh=new T.Mesh(rippleGeometry,this.energy(CYAN,.9));mesh.visible=false;this.root.add(mesh);this.sparks.push({mesh,life:0,duration:.48,size:.65,x:0,y:1.05,z:0,exact:false,shield:true});}
   const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(this.boltPositions,3).setUsage(T.DynamicDrawUsage));geometry.setAttribute('color',new T.BufferAttribute(this.boltColors,3).setUsage(T.DynamicDrawUsage));geometry.setDrawRange(0,0);
   this.lightning=new T.LineSegments(geometry,new T.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.95,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending}));this.lightning.frustumCulled=false;this.lightning.name='EMP_ActualTargetBolts';this.root.add(this.lightning);
   for(let i=0;i<32;i++)this.bolts.push({start:new T.Vector3(),end:new T.Vector3(),life:0,seed:i});
@@ -62,7 +62,7 @@ export class RelicEffects {
   if(this.disposed||this.eventIDs.has(e.id))return;this.eventIDs.add(e.id);if(this.eventIDs.size>512)this.eventIDs.delete(this.eventIDs.values().next().value!);
   if(e.kind==='relic'||e.kind==='pickup'||e.kind==='combatPower'){this.pulseLife=this.pulseDuration;this.pulseType=e.kind==='relic'?e.value:3;this.refreshImpact();}
   if(e.kind==='empPulse'){this.empLife=.65;this.wave.position.set(e.x,0,-e.z);this.wave.visible=true;this.wave.scale.set(1,1,1);this.pulseLife=this.pulseDuration;this.pulseType=1;this.refreshImpact();}
-  if(e.kind==='shieldHit'||e.kind==='escortBlock'){if(e.kind==='shieldHit')this.shield.hit(e.x);const p=this.sparks[this.sparkCursor++%12];p.life=p.duration=.48;p.x=e.x;p.z=-e.z;p.shield=e.kind==='shieldHit';p.mesh.visible=true;p.mesh.material.color.setHex(p.shield?CYAN:0x9cfcb3);}
+  if(e.kind==='shieldHit'||e.kind==='escortBlock'){if(e.kind==='shieldHit')this.shield.hit(e.x);const p=this.sparks[this.sparkCursor++%12];p.life=p.duration=.48;p.x=e.x;p.y=e.y??1.05;p.z=-e.z;p.exact=e.variant===-6||e.kind==='escortBlock';p.shield=e.kind==='shieldHit';p.mesh.visible=true;p.mesh.material.color.setHex(p.shield?CYAN:0x9cfcb3);}
   if(e.kind==='empStun'||e.kind==='empClear'||(e.kind==='kill'&&s?.effects?.some(a=>a.kind==='empPulse'))){
    const b=this.bolts[this.boltCursor++%32];b.life=.25;b.seed=e.id;b.start.set(s?.x??e.x,1.8,0);b.end.set(e.x,e.kind==='empStun'&&e.entityId===0?(s?.bossY??0)+4.3:e.variant===3?3.8:1.25,-e.z);this.writeBolts();
   }
@@ -75,7 +75,7 @@ export class RelicEffects {
   this.rim.position.copy(this.center);this.rim.scale.set(this.radii.x,this.radii.z,1);
   for(const p of this.sparks){if(p.life<=0){p.mesh.visible=false;continue;}p.life=Math.max(0,p.life-dt);p.mesh.visible=o.visible&&p.life>0;const age=1-p.life/p.duration;
    // The physical armor receives the hit; its panel recoils while a tight surface spark fades.
-   p.mesh.position.set(T.MathUtils.clamp(p.x,this.center.x-this.shield.stats.width*.5,this.center.x+this.shield.stats.width*.5),1.05,this.shield.stats.frontZ-.17);p.mesh.rotation.set(0,0,age*1.7);p.mesh.scale.setScalar(.10+age*.48);p.mesh.material.opacity=(1-age)*.9;
+   if(p.exact)p.mesh.position.set(p.x,p.y,p.z-.015);else p.mesh.position.set(T.MathUtils.clamp(p.x,this.center.x-this.shield.stats.width*.5,this.center.x+this.shield.stats.width*.5),1.05,this.shield.stats.frontZ-.17);p.mesh.rotation.set(0,0,age*1.7);p.mesh.scale.setScalar(.10+age*.48);p.mesh.material.opacity=(1-age)*.9;
   }
   this.empLife=Math.max(0,this.empLife-dt);this.wave.visible=o.visible&&this.empLife>0;
   let ec=0;if(this.wave.visible){const p=1-this.empLife/.65,r=1+25*(1-Math.pow(1-p,2));this.wave.scale.set(r,1,r);for(const child of this.wave.children){const m=(child as T.Mesh).material as T.MeshBasicMaterial;m.opacity=(child.name==='EMP_VerticalWave'?.10:.92)*(1-p);}

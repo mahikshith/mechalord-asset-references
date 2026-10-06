@@ -12,8 +12,11 @@ export class PlatedShield {
   const part=(g:T.BufferGeometry,c:number,x=0,y=0,z=0,rx=0)=>{const p=g.index?g.toNonIndexed():g;if(g!==p)g.dispose();p.rotateX(rx).translate(x,y,z);const color=new T.Color(c),a=new Float32Array(p.attributes.position.count*3);for(let i=0;i<a.length;i+=3){a[i]=color.r;a[i+1]=color.g;a[i+2]=color.b;}p.setAttribute('color',new T.BufferAttribute(a,3));parts.push(p);};
   const plate=(w:number,h:number,d:number,y:number,z:number,color:number)=>{const s=new T.Shape();s.moveTo(-w/2+.06,-h/2);s.lineTo(w/2-.06,-h/2);s.lineTo(w/2,-h/2+.06);s.lineTo(w/2,h/2-.06);s.lineTo(w/2-.06,h/2);s.lineTo(-w/2+.06,h/2);s.lineTo(-w/2,h/2-.06);s.lineTo(-w/2,-h/2+.06);s.closePath();part(new T.ExtrudeGeometry(s,{depth:d,bevelEnabled:true,bevelSegments:1,steps:1,bevelSize:.025,bevelThickness:.025}),color,0,y,z-d/2);};
   plate(.88,1.20,.12,.83,0,0x3d5157);plate(.77,.98,.07,.83,-.105,0x86908b);plate(.88,.27,.13,1.63,0,0xc8bda3);
+  // A second telescoping armor tier covers the marshal and descending shoulder rockets.
+  // Narrow seams keep the friendly barrels readable while the hostile contact is physical.
+  plate(.88,.78,.12,2.27,.025,0x3d5157);plate(.77,.66,.07,2.27,-.080,0x86908b);plate(.88,.27,.13,2.765,.025,0xc8bda3);
   // Open vision/fire slot beneath the reinforced upper brow; feet and piston struts show weight.
-  for(const side of [-1,1]){part(new T.BoxGeometry(.09,1.72,.19),0x283e48,side*.42,.95,.045);part(new T.CylinderGeometry(.035,.035,.64,8),0xb49360,side*.33,.37,.18);part(new T.BoxGeometry(.23,.13,.43),0x24323a,side*.30,.12,.09);for(const y of [.43,1.24,1.65])part(new T.CylinderGeometry(.03,.03,.018,6),0x42392d,side*.32,y,-.16,Math.PI/2);}
+  for(const side of [-1,1]){part(new T.BoxGeometry(.09,2.72,.19),0x283e48,side*.42,1.45,.045);part(new T.CylinderGeometry(.035,.035,.64,8),0xb49360,side*.33,.37,.18);part(new T.BoxGeometry(.23,.13,.43),0x24323a,side*.30,.12,.09);for(const y of [.43,1.24,1.65,2.05,2.70])part(new T.CylinderGeometry(.03,.03,.018,6),0x42392d,side*.32,y,-.16,Math.PI/2);}
   // Recessed face seam, central ridge and inset copper hazard bars remain dark against explosions.
   part(new T.BoxGeometry(.034,.79,.028),0x334247,0,.83,-.159);for(const side of [-1,1])part(new T.BoxGeometry(.26,.07,.025),0xb78547,side*.2,.46,-.16);
   const g=mergeGeometries(parts,false)!;parts.forEach(p=>p.dispose());

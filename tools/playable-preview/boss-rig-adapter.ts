@@ -22,6 +22,7 @@ export class BossRigAdapter {
  private dummy=new T.Object3D();private euler=new T.Euler();private rotation=new T.Quaternion();
  private forward=new T.Vector3();
  private highlightClock=0;
+ private cueColor=new T.Color();
  private flashes=new Map<BossRegionID,number>();
  private regionMaterials=new Map<BossRegionID,{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];intensities:number[]}[]>();
  private disposed=false;
@@ -37,7 +38,7 @@ export class BossRigAdapter {
    }
   }
   const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));
-  this.cues=new T.InstancedMesh(geometry,new T.MeshBasicMaterial({color:0xfff1c0,transparent:true,opacity:.95,side:T.DoubleSide,depthWrite:false,toneMapped:false}),7);
+  this.cues=new T.InstancedMesh(geometry,new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.95,side:T.DoubleSide,depthWrite:false,toneMapped:false}),7);
   this.cues.name='AuthoritativeBossPartCues';this.cues.frustumCulled=false;this.cues.count=0;scene.add(this.cues);
   this.reactorCue=new T.Mesh(new T.RingGeometry(.965,1,64),new T.MeshBasicMaterial({color:0xffce80,transparent:true,opacity:.8,side:T.DoubleSide,depthWrite:false,toneMapped:false}));this.reactorCue.name='MeasuredOvalReactorCue';this.reactorCue.visible=false;scene.add(this.reactorCue);
   // A temporary face wash preserves the retained oval reactor and its underlying detail.
@@ -80,9 +81,10 @@ export class BossRigAdapter {
    const marker=(r.id==='legL'||r.id==='legR')?components?.find(c=>c.regionId===r.id&&c.active)??r:r;
    this.dummy.position.set(marker.x,marker.y,-marker.z);this.dummy.quaternion.fromArray(marker.quaternion);this.dummy.scale.set(marker.radiusX*1.05,marker.radiusY*1.05,1);
    // Forward face is native -Z, transformed by the region's exact quaternion.
-   this.dummy.position.addScaledVector(this.dummy.getWorldDirection(this.forward),-(marker.radiusZ+.035));this.dummy.updateMatrix();this.cues.setMatrixAt(count++,this.dummy.matrix);
+   this.dummy.position.addScaledVector(this.dummy.getWorldDirection(this.forward),-(marker.radiusZ+.035));this.dummy.updateMatrix();this.cues.setMatrixAt(count,this.dummy.matrix);
+   this.cueColor.setHex(r.id===focus?0x9cf5ff:0x655e50);this.cues.setColorAt(count++,this.cueColor);
   }
-  this.cues.count=count;this.cues.instanceMatrix.needsUpdate=true;
+  this.cues.count=count;this.cues.instanceMatrix.needsUpdate=true;if(this.cues.instanceColor)this.cues.instanceColor.needsUpdate=true;
  }
  notifyHit(region:BossRegionID|undefined,damage:number){if(region&&Number.isFinite(damage)&&damage>0)this.flashes.set(region,.24);}
  impact(effect?:Partial<AuthoritativeBossImpact>,target=new T.Vector3()):T.Vector3|undefined{

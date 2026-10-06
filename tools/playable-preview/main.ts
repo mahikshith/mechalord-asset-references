@@ -36,6 +36,8 @@ let playing = false, targetX = 0, lastArmy = 8, lastWeapon = 1, previous = perfo
 let defeating = false, defeatRemaining = 0, downed = false;
 let clashing = false, rewarding = false, reviving = false, rewardChoosing = false;
 let finalReward = false;
+let pendingReward: LegacyImprint | undefined;
+let latestSnapshot: Snapshot | undefined;
 let clashHeld = false, clashHoldTime = 0;
 let focusPart: BossRegionId | undefined;
 let campaignSave = false;
@@ -48,8 +50,8 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined;
 let dialogueTimer: ReturnType<typeof setTimeout> | undefined;
 const held = new Set<string>();
 const names = ['SHIELD', 'EMP', 'OVERDRIVE'];
-const descriptions = ['Shield protects your entire legion while active.', 'EMP clears ordinary machines and incoming fire, then stuns surviving elites for two seconds.', "Overdrive boosts your legion's damage and fire rate."];
-const abilityEffects = ['LEGION GUARD', 'CLEAR + 2s STUN', 'ATTACK BOOST'];
+const descriptions = ['Shield protects your entire legion while active.', 'EMP clears ordinary machines and incoming fire, then briefly stuns surviving elites.', "Overdrive boosts your legion's damage and fire rate."];
+const abilityEffects = ['LEGION GUARD', 'CLEAR + STUN', 'ATTACK BOOST'];
 const tierNames = ['PULSE', 'TWIN', 'ARC', 'SIEGE'];
 const levelNames = chapters.map(chapter=>chapter.name);
 const challenges = chapters.map(chapter=>chapter.challenge);
@@ -98,7 +100,7 @@ function refreshLevels(): void {
   $<HTMLSelectElement>('practice-relic').value=String(selected);
   $('relic-description').textContent=selectedLevel===campaignIndex?'All three relics are equipped. Charge them in battle; use 1 / 2 / 3 or tap their icons.':`Practice equips ${names[selected]}. ${descriptions[selected]}`;
   $('legacy-imprint').hidden=!progress.legacyImprint;
-  $('legacy-imprint').textContent=progress.legacyImprint?`NEXT CAMPAIGN · ${{laser:'LASER +25%',vitality:'+20 MAX HP',endurance:'POWER DURATION +15%'}[progress.legacyImprint]}`:'';
+  $('legacy-imprint').textContent=progress.legacyImprint?`NEXT CAMPAIGN · ${{laser:'LASER +25%',vitality:'+20 MAX HP',endurance:'RELIC + BURST DURATION +15%'}[progress.legacyImprint]}`:'';
   $('start').textContent = selectedLevel === campaignIndex ? 'PLAY IRON MARCH' : 'PLAY PRACTICE';
   const rank = commanderRank(); $('commander-rank').textContent = `COMMANDER RANK ${rank + 1}`;
   $('commander-development').textContent = rank >= 3 ? headStarts[rank] : `${progress.commanderXP}/${rankThresholds[rank + 1]} XP · ${rank === 0 ? 'HAND CANNONS NEXT' : rank === 1 ? 'GUIDED MISSILES NEXT' : 'RAIL BURST NEXT'}`;
@@ -140,6 +142,7 @@ function begin(): void {
   intro = false; playing = true; paused = false; defeating = false; downed = false; defeatRemaining = 0; targetX = 0; lastArmy = 8 + commanderRank() * 2; lastWeapon = 1; previous = performance.now();
   bossIntroduced = false; secondPhaseAnnounced = false;
   clashing = rewarding = reviving = rewardChoosing = false; focusPart = undefined;
+  pendingReward=undefined; latestSnapshot=undefined;
   for(const id of ['clash-panel','reward','revive-cinematic']) $(id).hidden = true;
   document.body.classList.remove('clashing');
   shieldBlockUntil = 0;
@@ -151,7 +154,7 @@ function begin(): void {
   audio.play('start', .7);
 }
 function pause(value = !paused): void {
-  if (!playing || defeating || downed || rewarding) return;
+  if (!playing || defeating || downed) return;
   paused = value; core.pause(value); clearInput(); $('paused').hidden = !paused;
   if (paused) { audio.silence(); clearDialogue(); } else void audio.unlock();
 }
@@ -162,9 +165,15 @@ function activate(relic: Relic = selected): void {
 function fireLaser(): void { if(canAct()) core.fireLaser(); }
 function clashPulse(): void { if(playing && clashing && !paused && !graphicsLost) core.clashTap(); }
 function chooseReward(choice:'laser'|'vitality'|'endurance'):void {
-  if(!playing || !rewarding || rewardChoosing || graphicsLost) return;
-  rewardChoosing = true;
+  if(!playing || !rewarding || rewardChoosing || paused || graphicsLost || latestSnapshot?.phase!=='reward') return;
+  rewardChoosing = true; pendingReward=choice; clearInput();
   for(const kind of ['laser','vitality','endurance']) $<HTMLButtonElement>(`reward-${kind}`).disabled=true;
+  world.beginAbsorption(choice,latestSnapshot); $('reward').hidden=true;
+  void audio.unlock(); audio.play('relic',.7);
+}
+function completeAbsorption():void {
+  const choice=pendingReward;if(!choice)return;
+  pendingReward=undefined;
   if(core.chooseReward(choice)) { if(finalReward) { progress.legacyImprint=choice; saveProgress(); refreshLevels(); } clearInput(); rewarding=false; $('reward').hidden=true; previous=performance.now(); void audio.unlock(); }
   else { rewardChoosing=false; for(const kind of ['laser','vitality','endurance']) $<HTMLButtonElement>(`reward-${kind}`).disabled=false; }
 }
@@ -179,6 +188,7 @@ function showIntro(): void {
   clearInput(); intro = true; playing = false; paused = false; defeating = false; downed = false; defeatRemaining = 0; previewLevel();
   audio.reset(); clearBattleAnnouncements();
   clashing = rewarding = reviving = rewardChoosing = false; focusPart=undefined;
+  pendingReward=undefined; latestSnapshot=undefined;
   for(const id of ['clash-panel','reward','revive-cinematic']) $(id).hidden=true;
   document.body.classList.remove('clashing');
   for (const id of ['hud', 'abilities', 'result', 'paused', 'danger', 'time-power', 'combat-power', 'last-stand']) $(id).hidden = true;
@@ -202,7 +212,7 @@ function finish(s: Snapshot): void {
   $('next-level').hidden = !hasNext; $('result').classList.toggle('has-next', hasNext);
   $('result-eyebrow').textContent = `${s.levelName || levelNames[level]} ${won ? 'CLEARED' : 'ASSAULT'}`;
   $('result-title').textContent = won ? 'VICTORY!' : 'REGROUP';
-  $('result-copy').textContent = won ? `${promoted ? '“New arsenal. Next front.” ' : '“The front is ours. Forward.” '}Best score ${progress.best[level]}.` : level === 0 ? 'Move after a cannon locks. Break the battery before its next volley.' : 'Shoot gates to improve your choice. Break crates for weapon XP.';
+  $('result-copy').textContent = won ? `${promoted ? '“New arsenal. Next front.” ' : '“The front is ours. Forward.” '}Best score ${progress.best[level]}.` : s.campaign ? 'Choose recruitment gates. Move after cannon locks; use charged relics to survive the march.' : level === 0 ? 'Move after a cannon locks. Break the battery before its next volley.' : 'Shoot gates to improve your choice. Break crates for weapon XP.';
   $('result-kills').textContent = String(s.kills); $('result-score').textContent = String(s.score);
   $('result').hidden = false; audio.play(won ? promoted ? 'rank' : 'win' : 'loss', .9);
   if (won) audio.speak('commander-win', promoted ? 'New arsenal. Next front.' : 'The front is ours. Forward.');
@@ -228,7 +238,7 @@ function effects(s: Snapshot): void {
     else if (event.kind === 'bossRevive') { secondPhaseAnnounced = true; dialogue('boss-revive', 'FORGE TYRANT', 'My core still burns. Face the furnace.', true); }
     else if (event.kind === 'bossPartBreak') toast(brokenPartMessage(event,s),1500);
     else if (event.kind === 'healthPickup') { pulse($('commander-health'), 'health-restored'); toast(`FIELD REPAIR · +${Math.round(event.value)} HP`, 1000); }
-    else if (event.kind === 'clashWin') toast('BEAM OVERPOWERED · ARMOR BROKEN', 1200);
+    else if (event.kind === 'clashWin') toast('BEAM OVERPOWERED · TYRANT HIT', 1200);
     else if (event.kind === 'clashLose') toast('CLASH LOST · GET CLEAR', 1200);
     else if (event.kind === 'actStart') { bossIntroduced=false; secondPhaseAnnounced=false; focusPart=undefined; clearDialogue(); toast(`ACT ${(s.actIndex??0)+1} · ${campaignActs[s.actIndex??0].toUpperCase()}`, 1800); }
     else if (event.kind === 'heal' || event.kind === 'revive') { pulse($('commander-health'), 'health-restored'); toast(event.kind === 'revive' ? 'LEGION TRANSFER · BACK IN THE FIGHT' : `LEGION TRANSFER · +${event.value} HP`, 1500); }
@@ -249,7 +259,7 @@ function effects(s: Snapshot): void {
     else if (s.bossPhase === 2 && !secondPhaseAnnounced) { secondPhaseAnnounced = true; dialogue('boss-phase-two', 'FORGE TYRANT', 'Now face my full arsenal.', true); }
   }
   if (!progress.gateHint && playing && !paused && s.targets.filter(target => target.kind === 'gate' && target.z > 0 && target.z < 26).length >= 2) {
-    toast(s.level === 0 ? 'Choose a gate to recruit. Keep room to dodge.' : 'Blue = gain. Red = danger. Shoot to improve gates.', 2400);
+    toast(s.campaign || s.level === 0 ? 'Choose a gate to recruit. Keep room to dodge.' : 'Blue = gain. Red = danger. Shoot to improve gates.', 2400);
     progress.gateHint = true; saveProgress();
   }
 }
@@ -307,7 +317,7 @@ function hud(s: Snapshot): void {
     button.setAttribute('aria-pressed',String(active));
   }
   const laserButton=$<HTMLButtonElement>('laser-cannon'); laserButton.hidden=!(s.laserCharges&&s.laserCharges>0) || clashing || destroying || rewarding || reviving;
-  laserButton.disabled=!canAct(); $('laser-charges').textContent=String(s.laserCharges??0);
+  laserButton.disabled=!canAct() || !!combatActive; $('laser-charges').textContent=String(s.laserCharges??0);
   laserButton.setAttribute('aria-label',`Fire lightning cannon. ${s.laserCharges??0} charges. Keyboard L. Cross the boss beam to start a clash.`);
   $('combat-hint').textContent = exposed ? 'CORE OPEN · MAKE EACH SHOT COUNT' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : boss && s.bossPattern === 'laser' ? windup ? 'LASER CHARGING · PREPARE TO DODGE' : 'DODGE THE BEAM · FIRE BACK' : boss && s.bossPattern === 'rockets' ? 'BAIT THE MISSILES · THEN CHANGE LANE' : reactorShield?'BREAK THE REACTOR SHIELD · CORE WOUNDS REMAIN':guarded ? 'CORE GUARDED · DODGE THE NEXT VOLLEY' : runnerGunner ? runnerGunner.fireState === 'locked' ? 'AIM LOCKED · CHANGE LANE' : 'CANNON TRACKING · PREPARE TO MOVE' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'BREAK PARTS · WATCH ITS NEXT ATTACK' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'BREAK CRATES · EARN WEAPON XP';
   if(boss && !rebuilding && !guarded && !reactorShield) {
@@ -318,6 +328,13 @@ function hud(s: Snapshot): void {
   if(boss && !rebuilding && (s.bossEvadeTell??0)>0) { $('objective').textContent='BOOSTERS CHARGING'; $('combat-hint').textContent='DODGE COMING · TRACK THE BOOSTERS'; }
   else if(boss && s.bossAction==='evade') { $('objective').textContent='BOOSTER DODGE'; $('combat-hint').textContent='FOLLOW THE TYRANT · RECOVERY NEXT'; }
   else if(boss && (s.bossFiringWindow??0)>0 && !s.lasers.length && !projectiles) { $('objective').textContent='BOOSTERS COOLING'; $('combat-hint').textContent='RECOVERY WINDOW · AIM AT EXPOSED PARTS'; }
+  if(boss && s.bossPattern==='laser' && (windup || s.lasers.length>0) && !laserButton.hidden && !laserButton.disabled) {
+    $('objective').textContent=windup && s.bossAttack<.9?'LASER READY · WAIT FOR ITS BEAM':'COUNTER NOW · TAP LASER';
+    $('combat-hint').textContent=windup && s.bossAttack<.9?'LINE UP WITH THE CORE · MATCH ITS BEAM':'TAP LASER OR L · THEN TAP / HOLD TO PUSH';
+    laserButton.setAttribute('aria-label','Counter the boss beam with your lightning cannon. Line up with the core; tap when its beam fires. Keyboard L. Then tap or hold to push the clash.');
+  }
+  if(pendingReward) { $('phase-label').textContent='TYRANT CORE CAPTURED'; $('objective').textContent='ABSORBING CORE'; $('kill-label').textContent={laser:'LASER POWER',vitality:'VITALITY',endurance:'RELIC ENDURANCE'}[pendingReward]; }
+  if(s.phase==='reviving') { $('phase-label').textContent='LEGION REBOOT'; $('objective').textContent='TRANSFERRING POWER'; $('kill-label').textContent='COMMANDER REVIVING'; }
 }
 document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => button.addEventListener('click', () => {
   selectedLevel = Math.max(0, Math.min(chapters.length-1, Number(button.dataset.level))); previewLevel();
@@ -372,20 +389,22 @@ function frame(now: number): void {
       if(clashing && clashHeld) { clashHoldTime+=dt; if(clashHoldTime>=1/3) { clashHoldTime-=1/3; clashPulse(); } }
       core.step(dt, targetX);
     }
+    if(playing && pendingReward && !paused && !graphicsLost && world.absorptionRemaining<=0) completeAbsorption();
     // Exactly one snapshot per frame: effects are consumed only here.
     const snapshot = core.snapshot();
+    latestSnapshot=snapshot;
     const enteringClash=!!snapshot.clash?.active&&!clashing;
     clashing=!!snapshot.clash?.active; if(!clashing) {clashHeld=false;clashHoldTime=0;} reviving=snapshot.phase==='reviving';
     if(enteringClash || snapshot.phase==='reward'&&!rewarding || reviving) clearInput();
     if(playing && snapshot.phase==='reward') {
       if(!rewarding) { audio.silence(); clearDialogue(); rewardChoosing=false; }
-      rewarding=true; $('reward').hidden=false;
+      rewarding=true; $('reward').hidden=rewardChoosing||paused;
       finalReward=!!snapshot.campaign && (snapshot.actIndex??0)===2;
       const bonuses=snapshot.rewardBonuses??{laser:0,vitality:0,endurance:0};
       $('reward-copy').textContent=snapshot.campaign && (snapshot.actIndex??0)<2?`Carry this core into ${campaignActs[(snapshot.actIndex??0)+1]}. Your surviving legion continues.`:'Carry one imprint into your next campaign. Replaces your previous imprint.';
       $('reward-laser-copy').textContent=finalReward?'+25% beam damage next campaign':`+25% beam damage · +${(bonuses.laser+1)*25}% total`;
       $('reward-vitality-copy').textContent=finalReward?'+20 maximum HP next campaign':'+20 maximum HP · restore up to 35 HP';
-      $('reward-endurance-copy').textContent=finalReward?'+15% power duration next campaign':`+15% power duration · +${(bonuses.endurance+1)*15}% total`;
+      $('reward-endurance-copy').textContent=finalReward?'+15% relic + burst duration next campaign':`+15% relic + burst duration · +${(bonuses.endurance+1)*15}% total`;
       for(const kind of ['laser','vitality','endurance']) $<HTMLButtonElement>(`reward-${kind}`).disabled=rewardChoosing;
     } else if(snapshot.phase!=='reward') { rewarding=false; $('reward').hidden=true; }
     $('revive-cinematic').hidden=!playing||!reviving;
@@ -396,7 +415,7 @@ function frame(now: number): void {
     // must still animate, and its timer must not inherit that intervening pause.
     if (playing && snapshot.phase === 'lost') { paused = false; downed = false; $('paused').hidden = true; $('last-stand').hidden = true; }
     if (!intro && !paused && playing) effects(snapshot);
-    audio.update(snapshot, !intro && !paused && playing && snapshot.phase !== 'lastStand' && snapshot.phase !== 'reward');
+    audio.update(snapshot, !intro && !paused && playing && snapshot.phase !== 'lastStand' && (snapshot.phase !== 'reward'||!!pendingReward));
     if (playing) {
       if (snapshot.phase === 'lastStand') {
         if (!downed) { clearInput(); audio.silence(); clearDialogue(); paused = false; $('paused').hidden = true; }

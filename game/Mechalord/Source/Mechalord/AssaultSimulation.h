@@ -47,7 +47,12 @@ struct EnemyShot
     ProjectileKind kind=ProjectileKind::Shell; bool active=false,boss=false; double homing=0; int sourceId=0;
     WeaponEmitter emitter=WeaponEmitter::Gunner; double launchX=0,launchZ=0,launchY=1.65;
 };
-struct Laser { int id=0; double x=0,z=0,endX=0,endZ=-5,width=.36,time=0,tick=0; bool active=false; double y=4.3,endY=.22; };
+struct Laser {
+    int id=0; double x=0,z=0,endX=0,endZ=-5,width=.36,time=0,tick=0; bool active=false; double y=4.3,endY=.22;
+    // Only the visible endpoint is exported. Preserve the actual unoccluded ray
+    // internally so moving/expiring cover restores it without growing the beam.
+    double unoccludedEndX=0,unoccludedEndY=0,unoccludedEndZ=0; bool shieldClipped=false;
+};
 struct FriendlyBeam { int id=0; double x=0,y=1.42,z=1.32,endX=0,endY=1.42,endZ=40,width=.28,time=0; };
 struct Clash { bool active=false; double progress=.5,time=0,x=0,y=0,z=0,heroX=0,heroY=1.42,heroZ=1.32,enemyX=0,enemyY=0,enemyZ=0; int result=0,laserId=0; };
 struct Pickup { int id=0; PickupKind kind=PickupKind::Guided; double x=0,z=0,radius=1.05; bool active=false; int choiceGroup=0,bonusTroops=0; };
@@ -174,9 +179,11 @@ private:
     void FinalDefeat();
     void BreakBossParts();
     void MoveLasers(double Dt);
+    void ClipLaserToShield(Laser& Beam);
     void DamageBoss(double Damage,double AtX,FriendlyKind WeaponKind=FriendlyKind::Pulse);
     void UpdateBossHealth();
     bool FormationHit(double X0,double Z0,double X1,double Z1,double Radius,bool Leader,int& Slot,double& HitX,double& HitZ,double Depth=-1) const;
+    bool ShieldPlateHit(double X0,double Y0,double Z0,double X1,double Y1,double Z1,double Radius,double& HitX,double& HitY,double& HitZ) const;
     void Charge(double Amount);
     void Fire();
     void MoveShots(double Dt);

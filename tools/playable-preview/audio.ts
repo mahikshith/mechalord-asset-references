@@ -41,6 +41,7 @@ export class BattleAudio {
   silence(): void {
     for (const source of this.active) { try { source.stop(); } catch {} }
     this.active.clear(); this.rolling = undefined; this.rollingGain = undefined; this.music.length=0;
+    this.clashLive=false; this.last.delete('clash');
     if (this.speaking && 'speechSynthesis' in window) window.speechSynthesis.cancel(); this.speaking = false;
   }
   play(cue: Cue, volume = 1, cooldown = 0): void {
@@ -94,13 +95,13 @@ export class BattleAudio {
     this.updateMusic(s);
     if(s.clash?.active && !this.clashLive) this.play('clash', .7, 1);
     this.clashLive=!!s.clash?.active;
-    if (!this.rolling) {
+    if (!this.rolling && this.active.size < 24) {
       this.rolling = this.context.createBufferSource(); this.rolling.buffer = this.buffers.get('rolling')!; this.rolling.loop = true;
       this.rollingGain = this.context.createGain(); this.rollingGain.gain.value = 0; this.rolling.connect(this.rollingGain).connect(this.master!); this.rolling.start(); this.active.add(this.rolling);
       const source = this.rolling, gain = this.rollingGain; source.onended = () => { this.active.delete(source); source.disconnect(); gain.disconnect(); };
     }
     const roller = s.targets.some(target => target.kind === 'hazard' && target.z > -2 && target.z < 15);
-    this.rollingGain!.gain.setTargetAtTime(s.phase === 'destroying' || s.phase === 'won' || s.phase === 'lost' || s.phase === 'reviving' || s.clash?.active ? 0 : roller ? .23 : s.phase === 'run' ? .065 : .015, this.context.currentTime, .1);
+    this.rollingGain?.gain.setTargetAtTime(s.phase === 'destroying' || s.phase === 'won' || s.phase === 'lost' || s.phase === 'reviving' || s.clash?.active ? 0 : roller ? .23 : s.phase === 'run' ? .065 : .015, this.context.currentTime, .1);
   }
   private updateMusic(s:Snapshot):void {
     const audio=this.context!;
