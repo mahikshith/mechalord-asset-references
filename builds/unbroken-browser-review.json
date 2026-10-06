@@ -1,0 +1,122 @@
+{
+  "scope": "Desktop real WebGL replay, 4x simulation speed. Not mobile FPS.",
+  "completed": 3,
+  "remaining": 0,
+  "wallSeconds": 285.90839999999105,
+  "frames": 8410,
+  "framesAbove34ms": 111,
+  "peakCalls": 217,
+  "peakTriangles": 279531,
+  "peakGeometries": 426,
+  "peakTextures": 28,
+  "runs": [
+    {
+      "result": "won",
+      "level": 5,
+      "seconds": 398.5833435058594,
+      "act": 2,
+      "rank": 0,
+      "relic": 1,
+      "geometries": 356,
+      "textures": 14,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 35,
+        "deferred": 7,
+        "unsupported": 0,
+        "existingUnsafe": 7,
+        "capacity": 0,
+        "authoredRockets": 3,
+        "horizon": 3.013547897338867
+      },
+      "orphanGeometry": [
+        {
+          "id": 2706,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "level": 5,
+      "seconds": 366.0666809082031,
+      "act": 2,
+      "rank": 3,
+      "relic": 2,
+      "geometries": 363,
+      "textures": 14,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 26,
+        "deferred": 6,
+        "unsupported": 0,
+        "existingUnsafe": 3,
+        "capacity": 0,
+        "authoredRockets": 2,
+        "horizon": 2.319999933242798
+      },
+      "orphanGeometry": [
+        {
+          "id": 2706,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "level": 5,
+      "seconds": 366.25,
+      "act": 2,
+      "rank": 3,
+      "relic": 2,
+      "geometries": 364,
+      "textures": 14,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 26,
+        "deferred": 9,
+        "unsupported": 0,
+        "existingUnsafe": 8,
+        "capacity": 0,
+        "authoredRockets": 2,
+        "horizon": 2.319999933242798
+      },
+      "orphanGeometry": [
+        {
+          "id": 2706,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    }
+  ],
+  "coreSha256": "80b87ff77cc580cd0ee2b483179bd504b30a944530885e9b1c055df70a492209",
+  "checkedAt": "2026-10-06T18:36:32.432Z",
+  "consoleWarningsAndErrors": [],
+  "resourceAssessment": "All three replays completed. Textures returned to 14 each time. The only detached geometry retained across all runs is the same id2706 Sprite quad, the module-level singleton in Three.js Sprite.js; no additional orphan geometry appeared. End-of-run wreck geometry varies with actual damage history. This is a bounded three-run desktop check, not a proof of indefinite stability or mobile performance.",
+  "renderBundleSha256": "4a8d1d2b2595ea9db720cf0f330751cc77518e1e3d242fc2139aec734db6c34d",
+  "postReplayPresentationChecks": [
+    "Camera containment and clearing stale damage numbers during revival were adjusted after these repeats; final release uses targeted vertex and browser checks for those changes, with the same tested core."
+  ],
+  "finalRenderBundleSha256": "962bd6241dd66c08221aeb87cba897335ac10468e75cdf1635099772ffcdd353",
+  "finalTargetedChecks": [
+    "12 actual-vertex framing cases passed including animated commander and new troop strafe poses.",
+    "Opposite-edge public replays inspected in final browser bundle.",
+    "Revival replay: army56 to44, commander0 to50HP; no stale damage label or attacking beam during protected animation.",
+    "Final laser clash inspected; no final browser warnings or errors."
+  ]
+}

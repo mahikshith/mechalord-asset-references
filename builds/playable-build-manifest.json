@@ -1,31 +1,31 @@
 {
-  "builtAt": "2026-10-06T03:44:39.678Z",
-  "coreAsset": "assault.7cf83ed15c19ea3a.wasm",
-  "coreSha256": "7cf83ed15c19ea3abbecffb5de6e4c95035d2697cc95b62ef388adf222a5cf60",
+  "builtAt": "2026-10-06T18:47:13.124Z",
+  "coreAsset": "assault.80b87ff77cc580cd.wasm",
+  "coreSha256": "80b87ff77cc580cd0ee2b483179bd504b30a944530885e9b1c055df70a492209",
   "files": {
-    "assault.7cf83ed15c19ea3a.wasm": {
-      "bytes": 1835455,
-      "sha256": "7cf83ed15c19ea3abbecffb5de6e4c95035d2697cc95b62ef388adf222a5cf60"
+    "assault.80b87ff77cc580cd.wasm": {
+      "bytes": 1881269,
+      "sha256": "80b87ff77cc580cd0ee2b483179bd504b30a944530885e9b1c055df70a492209"
     },
     "game.js": {
-      "bytes": 798388,
-      "sha256": "6da14a40a855f4407eb479b713ab3ed93d25348ac9c17962691065c73aea4cb4"
+      "bytes": 847114,
+      "sha256": "5762e210201f8b7a8d8af3b89eaff92f6cf7c8c8586d2b939b664a8e58d8a622"
     },
     "review.js": {
-      "bytes": 782566,
-      "sha256": "59d979e1dac44c72a72ffd981a3d04adcb0e04f9fd2009cd1adda6487725ecf4"
+      "bytes": 825725,
+      "sha256": "962bd6241dd66c08221aeb87cba897335ac10468e75cdf1635099772ffcdd353"
     },
     "index.html": {
-      "bytes": 6629,
-      "sha256": "e4af93aead19bd710de500363976bfd6b3e84485fae104b891656118b600136c"
+      "bytes": 9425,
+      "sha256": "ce5daba2824524919cf8607aee30a2d3bc7d51a9e9e1bef5eda4b76ec77105e3"
     },
     "review.html": {
-      "bytes": 4478,
-      "sha256": "d8c7cc931d5d520eb01c165b40e8aaacdb749bd82493b6c5f031f0bb3d75063d"
+      "bytes": 5101,
+      "sha256": "625c5bf640bb55b7fe8524a55ce5b9d79b88fa3991c965a423ee8c376194a299"
     },
     "style.css": {
-      "bytes": 24268,
-      "sha256": "62226e8a03aee3ccdeac09012153a1f8b0ad509e4b750f18778fae77a68cb4ff"
+      "bytes": 30396,
+      "sha256": "55d39c79c7c23d9265d94384560ef6e48628c25db9d09ff5ca920b5da7fcd9ae"
     },
     "commander.glb": {
       "bytes": 2383864,
@@ -46,6 +46,30 @@
     "forge-tyrant.glb": {
       "bytes": 1041540,
       "sha256": "1d158ca4de14fbec5e2ba2eb53bdf3f8e787be30937fba90d7b70c03b0f7e73b"
+    },
+    "environment/CoolingStack.glb": {
+      "bytes": 108380,
+      "sha256": "ddb52830dca176b25a9588f9a7b221980720fa43f417bd708144462b2fa53ba4"
+    },
+    "environment/ReactorBank.glb": {
+      "bytes": 100884,
+      "sha256": "4cc8b87c9c24329739f8c3a271bb3710fc348ddbe96957d50e6fcbe225f5d1a7"
+    },
+    "environment/ArticulatedServiceArm.glb": {
+      "bytes": 177776,
+      "sha256": "37046d56e7849d4a63146db071b3f6cb746c4752b87b05f04288f833256122c4"
+    },
+    "environment/CitadelSpire.glb": {
+      "bytes": 18112,
+      "sha256": "0c9049047c0f30b4df6c7049ca44c4e977804842576984a94b37ec62cc518019"
+    },
+    "environment/DistantFoundryWorks.glb": {
+      "bytes": 206492,
+      "sha256": "fe9a992735341a5a569ef485aaaf8529d508ae1ad1f696cc9a5b632ba748f388"
+    },
+    "environment/DistantTransferGallery.glb": {
+      "bytes": 87444,
+      "sha256": "13c0e8556d26498ecaa258d06243a331f07773e2365689b965e8ecbfeb169387"
     }
   }
 }

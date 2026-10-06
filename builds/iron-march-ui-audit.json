@@ -1,0 +1,30 @@
+{
+  "verifiedAt": "2026-10-06T18:31:21.150Z",
+  "status": "passed",
+  "groups": 15,
+  "scope": "Actual main.ts and audio.ts modules; deterministic DOM/storage/audio doubles and simulated combat boundary. Does not measure rendered graphics, native combat balance or a physical phone.",
+  "sourceHashes": {
+    "main.ts": "5bd8fcd6768c12881a470d2a3ec12e7d7007e813fe6b5f0e9da83578461825ed",
+    "audio.ts": "140df1a1f2d19c586820d84131a03c8ebf6f889f83bb39b94b662abeec60e625",
+    "index.html": "64c83efe6fb8cd2dfe4382eb95ed47a36bdc50353e0416af1de17f1b0a955376",
+    "style.css": "55d39c79c7c23d9265d94384560ef6e48628c25db9d09ff5ca920b5da7fcd9ae",
+    "chapter-catalog.ts": "1f15f65ee36540e7c6c5806a61a99292afbda18610adba51aedf663621e25f80"
+  },
+  "checks": [
+    "rank and exactly-once victory awards",
+    "weapon acquisition and retry feedback",
+    "true commander HP and delayed defeat",
+    "time powers, casualties and single boss bar",
+    "optional troop healing and revival decisions",
+    "storage migration and malformed/blocked storage",
+    "escort defense HUD",
+    "five practice fronts plus continuous campaign",
+    "finite power and boss evasion cues",
+    "all relics, laser clash inputs, pause, reward continuation, revival and aim side",
+    "menu announcement cleanup without save mutation",
+    "practice selector and campaign versus equipped relic availability",
+    "one final legacy imprint, persistence, replace semantics and practice isolation",
+    "33 finite cached sound/music waveforms",
+    "three synchronized music layers and bounded 24-source lifecycle"
+  ]
+}

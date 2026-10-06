@@ -1,0 +1,56 @@
+{
+  "scope": "CPU actual Three materials, geometry, authoritative endpoints, timers, pause and ownership; visual browser review and phone GPU performance separately required",
+  "passed": 12,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "all simultaneous relic timers drive their own visuals and retired dome remains hidden",
+      "pass": true
+    },
+    {
+      "name": "metal shield hits recoil one panel and leave bounded scorch tint while paused frames freeze",
+      "pass": true
+    },
+    {
+      "name": "EMP has physical-thickness jagged full-platform ring and upright ion forks, then expires",
+      "pass": true
+    },
+    {
+      "name": "laser clash appears only from authoritative active state and uses actual world contact",
+      "pass": true
+    },
+    {
+      "name": "clash source clipping preserves full .80m beam width and exact elevated endpoint",
+      "pass": true
+    },
+    {
+      "name": "dynamic clash contact follows changes, freezes exactly, bounds all repeated resources and reset",
+      "pass": true
+    },
+    {
+      "name": "Arc Storm layered branch trunk has real endpoint bloom and no proximity-generated links",
+      "pass": true
+    },
+    {
+      "name": "repair cartridge has green cross and only positive actual healing emits a one-second rising plus",
+      "pass": true
+    },
+    {
+      "name": "missile hot flame shader and soft smoke have actual turbulence rather than hard dot geometry",
+      "pass": true
+    },
+    {
+      "name": "freeze marks only actually stopped near enemies while slow marks all visible active enemy timers",
+      "pass": true
+    },
+    {
+      "name": "shield break is five armor fragments and no invented unit death or delayed explosion",
+      "pass": true
+    },
+    {
+      "name": "all new resources dispose exactly once and leave the accepted hero intact",
+      "pass": true
+    }
+  ],
+  "generatedAt": "2026-10-06T18:27:59.884Z"
+}

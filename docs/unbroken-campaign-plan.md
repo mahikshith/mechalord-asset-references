@@ -13,22 +13,24 @@ Shared simulation fields are agreed before dependent integration. Presentation c
 
 ## Requested changes and acceptance
 
-- [ ] 1. Replace curved shield bubble with deployed metal plates protecting the legion.
-- [ ] 2. Identify vulnerable boss components and flash the entire struck component.
-- [ ] 3–4, 8. Replace orb dots and cap-shaped ammunition; visible metal bodies, fins, rear flame and bounded smoke.
-- [ ] 5. Broader boss beam and real hero/boss laser clash; capped tap contribution, clear outcome, matching audio.
-- [ ] 6. Main three-act continuous campaign with rising pressure; all three relics in a compact icon pane; preserve old practice stages/saves.
-- [ ] 7, 10. Platform-wide electrical EMP and substantial branching chain-lightning and other power effects.
-- [ ] 9. Shielded enemies block three attacks before breakage and health damage.
-- [ ] 11. Actual healing pickups with a green rising + on collection.
-- [ ] 12. Moving threats, attack tells, recoveries and authored escalation create urgency without indefinite enemy-clear stops.
-- [ ] 13. Four distinct articulated enemies: Bulwark, Volt Hound, Mortar Wasp and Arc Engineer, each tied to a different gameplay behavior.
-- [ ] 14. Bring brighter teal/copper/ivory environment cues from Reforged into accepted industrial materials and silhouettes.
-- [ ] 15. Original industrial music and differentiated combat/power sound cues; gesture unlock, mute/pause support.
-- [ ] 16. Commander and troop strafe animation responds to actual horizontal motion.
-- [ ] 17. Incoming damage follows actual commander/troop contact, preserving meaningful heal/revival choices.
-- [ ] 18. Protected, short revival scene visibly rebuilds/re-energizes the commander.
-- [ ] 19. After each campaign boss, choose laser power, vitality or relic endurance; actual bonuses carry into the next act.
+Checked items below mean implemented and covered by the recorded prototype checks. They do not replace the user's visual acceptance, first-time-player observations or physical-phone validation. See `unbroken-campaign-results.md` for results and remaining limits.
+
+- [x] 1. Replace curved shield bubble with deployed metal plates protecting the legion.
+- [x] 2. Identify vulnerable boss components and flash the entire struck component.
+- [x] 3–4, 8. Replace orb dots and cap-shaped ammunition; visible metal bodies, fins, rear flame and bounded smoke.
+- [x] 5. Broader boss beam and real hero/boss laser clash; capped tap contribution, clear outcome, matching audio.
+- [x] 6. Main three-act continuous campaign with rising pressure; all three relics in a compact icon pane; preserve old practice stages/saves.
+- [x] 7, 10. Platform-wide electrical EMP and substantial branching chain-lightning and other power effects.
+- [x] 9. Shielded enemies block three attacks before breakage and health damage.
+- [x] 11. Actual healing pickups with a green rising + on collection.
+- [x] 12. Moving threats, attack tells, recoveries and authored escalation create urgency without indefinite enemy-clear stops.
+- [x] 13. Four distinct articulated enemies: Bulwark, Volt Hound, Mortar Wasp and Arc Engineer, each tied to a different gameplay behavior.
+- [x] 14. Bring brighter teal/copper/ivory environment cues from Reforged into accepted industrial materials and silhouettes.
+- [x] 15. Original industrial music and differentiated combat/power sound cues; gesture unlock, mute/pause support.
+- [x] 16. Commander and troop strafe animation responds to actual horizontal motion.
+- [x] 17. Incoming damage follows actual commander/troop contact, preserving meaningful heal/revival choices.
+- [x] 18. Protected, short revival scene visibly rebuilds/re-energizes the commander.
+- [x] 19. After each campaign boss, choose laser power, vitality or relic endurance; actual bonuses carry into the next act.
 
 ## Review gates
 

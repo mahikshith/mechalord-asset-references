@@ -1,8 +1,8 @@
 {
   "scope": "Current WASM and adapter through public controls, independent finite-power/chapter audit; no render, human or phone claim",
   "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
-  "sha256": "7cf83ed15c19ea3abbecffb5de6e4c95035d2697cc95b62ef388adf222a5cf60",
-  "timestamp": "2026-10-06T03:44:52.407Z",
+  "sha256": "80b87ff77cc580cd0ee2b483179bd504b30a944530885e9b1c055df70a492209",
+  "timestamp": "2026-10-06T18:31:04.923Z",
   "tests": 6,
   "passed": 6,
   "failed": 0,
@@ -16,7 +16,7 @@
       "activations": 1,
       "frames": 75,
       "pulses": 2,
-      "hits": 5
+      "hits": 4
     },
     "salvo": {
       "activations": 1,
@@ -28,8 +28,8 @@
     {
       "power": "tempest",
       "phase": "run",
-      "time": 34.61666488647461,
-      "elapsed": 1.0333328247070312,
+      "time": 34.63333511352539,
+      "elapsed": 1.0333366394042969,
       "births": 0,
       "pulseFrames": 0,
       "chainHits": 0,
@@ -42,13 +42,13 @@
       "elapsed": 1.2333335876464844,
       "births": 0,
       "pulseFrames": 2,
-      "chainHits": 5,
+      "chainHits": 4,
       "beamFrames": 0
     },
     {
       "power": "salvo",
       "phase": "run",
-      "time": 35.41666793823242,
+      "time": 35.43333435058594,
       "elapsed": 1.8333358764648438,
       "births": 6,
       "pulseFrames": 0,
@@ -59,9 +59,9 @@
   "runs": [
     {
       "level": 3,
-      "time": 193.0833282470703,
-      "bossSeconds": 97.08332824707031,
-      "hostileLaunches": 75,
+      "time": 181.68333435058594,
+      "bossSeconds": 85.68333435058594,
+      "hostileLaunches": 58,
       "breaks": 6,
       "rollers": 3,
       "carriers": 3,
@@ -69,6 +69,7 @@
       "offers": [
         "arcstorm",
         "freeze",
+        "health",
         "tempest",
         "escort",
         "salvo"
@@ -76,9 +77,9 @@
     },
     {
       "level": 4,
-      "time": 193.88333129882812,
-      "bossSeconds": 91.88333129882812,
-      "hostileLaunches": 28,
+      "time": 200.61666870117188,
+      "bossSeconds": 98.61666870117188,
+      "hostileLaunches": 33,
       "breaks": 6,
       "rollers": 2,
       "carriers": 4,
@@ -93,7 +94,7 @@
   ],
   "results": [
     {
-      "name": "ABI4 exposes all five distinct chapter identities and clean finite powers",
+      "name": "ABI5 exposes all five distinct chapter identities and clean finite powers",
       "status": "pass"
     },
     {

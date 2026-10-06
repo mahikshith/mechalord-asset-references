@@ -1,78 +1,119 @@
 {
-  "scope": "Actual retained troop vertex projections, exact runtime resize, both sides, 5m/s commands, maximum upgrade zoom and .12m shake; CPU geometry proof only.",
+  "scope": "Actual retained troop and skinned commander vertices in both Run and Idle, half-step animation samples, exact runtime resize, both edges, new yaw/bank poses, .225m X/Y shake, upgrade and revival zoom, instant dt0 replay reset and preserved paused camera. CPU geometry proof; browser follows separately.",
+  "troopVertices": 4582,
+  "commanderVertices": 14793,
+  "commanderAnimationSamples": 16,
+  "transformedParentIsolation": true,
+  "commanderEnvelope": {
+    "min": [
+      -0.888855192185811,
+      -0.09355466327227926,
+      -0.6647091204165669
+    ],
+    "max": [
+      0.8989580896428685,
+      1.940030654849151,
+      0.6364647609956025
+    ]
+  },
   "results": [
     {
       "w": 420,
       "h": 933,
       "side": -1,
-      "maxPanMetres": 0.6499999999999998,
-      "minActualVertexMarginPixels": 8.093407125033337
+      "maxPanMetres": 1.1,
+      "minTroopVertexMarginPixels": 16.40130850838473,
+      "minCommanderVertexMarginPixels": 34.2969543227066
     },
     {
       "w": 420,
       "h": 933,
       "side": 1,
-      "maxPanMetres": 0.6499999999999998,
-      "minActualVertexMarginPixels": 7.397016483929065
+      "maxPanMetres": 1.1,
+      "minTroopVertexMarginPixels": 15.201357952385706,
+      "minCommanderVertexMarginPixels": 32.97966957446374
     },
     {
-      "w": 412,
-      "h": 915,
+      "w": 425,
+      "h": 798,
       "side": -1,
-      "maxPanMetres": 0.6499999999999998,
-      "minActualVertexMarginPixels": 8.13123682099699
+      "maxPanMetres": 1.1,
+      "minTroopVertexMarginPixels": 33.44284233495858,
+      "minCommanderVertexMarginPixels": 59.91532585608066
     },
     {
-      "w": 412,
-      "h": 915,
+      "w": 425,
+      "h": 798,
       "side": 1,
-      "maxPanMetres": 0.6499999999999998,
-      "minActualVertexMarginPixels": 7.448864681542545
+      "maxPanMetres": 1.1,
+      "minTroopVertexMarginPixels": 31.679199674033214,
+      "minCommanderVertexMarginPixels": 59.940672186370534
     },
     {
       "w": 375,
       "h": 667,
       "side": -1,
-      "maxPanMetres": 0,
-      "minActualVertexMarginPixels": 24.210794362861513
+      "maxPanMetres": 0.8962112592004706,
+      "minTroopVertexMarginPixels": 31.600750854846503,
+      "minCommanderVertexMarginPixels": 55.01919490280089
     },
     {
       "w": 375,
       "h": 667,
       "side": 1,
-      "maxPanMetres": 0,
-      "minActualVertexMarginPixels": 23.83200975482049
+      "maxPanMetres": 0.8825311855613671,
+      "minTroopVertexMarginPixels": 30.421413461695863,
+      "minCommanderVertexMarginPixels": 53.2097070060442
+    },
+    {
+      "w": 412,
+      "h": 915,
+      "side": -1,
+      "maxPanMetres": 1.1,
+      "minTroopVertexMarginPixels": 16.442897760788586,
+      "minCommanderVertexMarginPixels": 33.95216231673801
+    },
+    {
+      "w": 412,
+      "h": 915,
+      "side": 1,
+      "maxPanMetres": 1.1,
+      "minTroopVertexMarginPixels": 15.269002666603512,
+      "minCommanderVertexMarginPixels": 32.66306627166796
     },
     {
       "w": 352,
       "h": 782,
       "side": -1,
-      "maxPanMetres": 0.6499999999999997,
-      "minActualVertexMarginPixels": 9.171573343296886
+      "maxPanMetres": 1.1,
+      "minTroopVertexMarginPixels": 16.306503249860352,
+      "minCommanderVertexMarginPixels": 30.962200015512057
     },
     {
       "w": 352,
       "h": 782,
       "side": 1,
-      "maxPanMetres": 0.6499999999999997,
-      "minActualVertexMarginPixels": 8.624172685147698
+      "maxPanMetres": 1.1,
+      "minTroopVertexMarginPixels": 15.325015510507171,
+      "minCommanderVertexMarginPixels": 29.881319262112584
     },
     {
       "w": 560,
       "h": 850,
       "side": -1,
-      "maxPanMetres": 0,
-      "minActualVertexMarginPixels": 66.57980878230671
+      "maxPanMetres": 0.1130486609047161,
+      "minTroopVertexMarginPixels": 52.54925561264238,
+      "minCommanderVertexMarginPixels": 71.06159977864165
     },
     {
       "w": 560,
       "h": 850,
       "side": 1,
-      "maxPanMetres": 0,
-      "minActualVertexMarginPixels": 66.10402171566665
+      "maxPanMetres": 0.0994393012712963,
+      "minTroopVertexMarginPixels": 50.57336228991443,
+      "minCommanderVertexMarginPixels": 69.03545851830688
     }
   ],
-  "instantRecruitMarginPixels": 13.875803653751746,
   "passed": true,
-  "generatedAt": "2026-10-05T21:20:09.772Z"
+  "generatedAt": "2026-10-06T18:46:17.522Z"
 }

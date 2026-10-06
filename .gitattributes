@@ -1,0 +1,3 @@
+# Preserve exact bytes for the fingerprinted, generated playtest delivery.
+# The build manifest must still match these files after a Windows checkout.
+delivery/playable/** -text whitespace=cr-at-eol

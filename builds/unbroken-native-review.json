@@ -1,0 +1,37 @@
+{
+  "evasionFixtures": 6,
+  "fixtures": 48,
+  "sourceSha256": "1889cda12b2fcfb65251e7717bdf118a6abdecd679d7e69d58ac0b6e981bf3d5",
+  "evasionOutput": "6/6 native evasion ordering fixtures passed (tell/dash x30/60/120Hz).",
+  "scope": "Explicit production-method fixtures and deterministic public-action route feasibility, not human difficulty or performance validation",
+  "alternateRouteOutput": [
+    "48 production-method fixtures passed.",
+    "rank0 act0 cleared time149.1 hp85 army20 boss59.1s",
+    "rank0 act1 cleared time309.6 hp90 army1 boss64.5s",
+    "rank0 act2 cleared time486.5 hp90 army1 boss74.8s",
+    "route rank0 phase4 act2 time486.5 hp90 army1 score5503 clashesTicks219 supports1 unresolved0",
+    "rank3 act0 cleared time112.6 hp115 army60 boss22.6s",
+    "rank3 act1 cleared time258.7 hp115 army15 boss50.1s",
+    "rank3 act2 cleared time418.7 hp115 army11 boss58.0s",
+    "route rank3 phase4 act2 time418.7 hp115 army11 score5614 clashesTicks146 supports1 unresolved0"
+  ],
+  "commands": [
+    "tools/vendor/zig-x86_64-windows-0.17.0/zig.exe c++ -std=c++17 -O2 -Igame/Mechalord/Source/Mechalord game/Mechalord/Source/Mechalord/AssaultSimulation.cpp tools/playable-preview/test_unbroken_campaign.cpp -o builds/unbroken-campaign-test.exe",
+    "builds/unbroken-campaign-test.exe",
+    "builds/unbroken-campaign-test.exe alternate",
+    "tools/vendor/zig-x86_64-windows-0.17.0/zig.exe c++ -std=c++17 -O2 -Igame/Mechalord/Source/Mechalord game/Mechalord/Source/Mechalord/AssaultSimulation.cpp tools/playable-preview/test_boss_evasion.cpp -o builds/unbroken-evasion-check.exe",
+    "builds/unbroken-evasion-check.exe"
+  ],
+  "headerSha256": "8761718c78a921d06b2418fdfb5ba985b3e14459259acd58695651609ca245f6",
+  "defaultRouteOutput": [
+    "48 production-method fixtures passed.",
+    "rank0 act0 cleared time149.1 hp85 army20 boss59.1s",
+    "rank0 act1 cleared time309.6 hp90 army1 boss64.5s",
+    "rank0 act2 cleared time487.3 hp90 army1 boss75.7s",
+    "route rank0 phase4 act2 time487.3 hp90 army1 score5453 clashesTicks219 supports1 unresolved0",
+    "rank3 act0 cleared time112.6 hp115 army60 boss22.6s",
+    "rank3 act1 cleared time258.7 hp115 army15 boss50.1s",
+    "rank3 act2 cleared time422.5 hp115 army11 boss61.8s",
+    "route rank3 phase4 act2 time422.5 hp115 army11 score5604 clashesTicks146 supports1 unresolved0"
+  ]
+}

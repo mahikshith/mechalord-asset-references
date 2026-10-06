@@ -1,0 +1,377 @@
+{
+  "sha256": "80b87ff77cc580cd0ee2b483179bd504b30a944530885e9b1c055df70a492209",
+  "abi": 5,
+  "checks": [
+    {
+      "name": "ABI5 adapter initializes six stages and exposes finite campaign fields",
+      "status": "pass"
+    },
+    {
+      "name": "legacy imprint is actual once-only campaign benefit at run start",
+      "status": "pass"
+    },
+    {
+      "name": "inactive and paused actions cannot mutate unavailable rewards or charges",
+      "status": "pass"
+    }
+  ],
+  "runs": [
+    {
+      "rank": 0,
+      "strategy": "vitality and pickup recovery",
+      "phase": "won",
+      "seconds": 532.2000122070312,
+      "act": 2,
+      "hp": 100,
+      "army": 27,
+      "acts": [
+        {
+          "act": 0,
+          "time": 190.25,
+          "bossSeconds": 100.25,
+          "hp": 100,
+          "army": 1
+        },
+        {
+          "act": 1,
+          "time": 352.45001220703125,
+          "bossSeconds": 66.20001220703125,
+          "hp": 90,
+          "army": 1
+        },
+        {
+          "act": 2,
+          "time": 532.2000122070312,
+          "bossSeconds": 77.75,
+          "hp": 100,
+          "army": 27
+        }
+      ],
+      "clashes": 3,
+      "wins": 3,
+      "heals": 16,
+      "shieldBreaks": 22,
+      "revives": 0,
+      "archetypes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "maxTargets": 22,
+      "frames": 31933,
+      "roles": {
+        "1": {
+          "births": 6,
+          "minZ": 0.9200000166893005,
+          "tells": 0,
+          "skillFrames": 0,
+          "fires": 0,
+          "contacts": 2,
+          "supports": 0,
+          "shieldBreaks": 6
+        },
+        "2": {
+          "births": 3,
+          "minZ": 2.0299999713897705,
+          "tells": 96,
+          "skillFrames": 120,
+          "fires": 0,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "3": {
+          "births": 3,
+          "minZ": 11.466500282287598,
+          "tells": 285,
+          "skillFrames": 105,
+          "fires": 14,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "4": {
+          "births": 3,
+          "minZ": 9.438833236694336,
+          "tells": 498,
+          "skillFrames": 7,
+          "fires": 16,
+          "contacts": 0,
+          "supports": 1,
+          "shieldBreaks": 0
+        }
+      },
+      "unresolved": 0
+    },
+    {
+      "rank": 0,
+      "strategy": "endurance and late sacrifice",
+      "phase": "won",
+      "seconds": 574.3666381835938,
+      "act": 2,
+      "hp": 100,
+      "army": 1,
+      "acts": [
+        {
+          "act": 0,
+          "time": 190.25,
+          "bossSeconds": 100.25,
+          "hp": 100,
+          "army": 1
+        },
+        {
+          "act": 1,
+          "time": 352.45001220703125,
+          "bossSeconds": 66.20001220703125,
+          "hp": 90,
+          "army": 1
+        },
+        {
+          "act": 2,
+          "time": 574.3666381835938,
+          "bossSeconds": 119.9166259765625,
+          "hp": 100,
+          "army": 1
+        }
+      ],
+      "clashes": 3,
+      "wins": 3,
+      "heals": 16,
+      "shieldBreaks": 22,
+      "revives": 0,
+      "archetypes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "maxTargets": 22,
+      "frames": 34463,
+      "roles": {
+        "1": {
+          "births": 6,
+          "minZ": 0.9200000166893005,
+          "tells": 0,
+          "skillFrames": 0,
+          "fires": 0,
+          "contacts": 2,
+          "supports": 0,
+          "shieldBreaks": 6
+        },
+        "2": {
+          "births": 3,
+          "minZ": 2.0958333015441895,
+          "tells": 216,
+          "skillFrames": 120,
+          "fires": 0,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "3": {
+          "births": 3,
+          "minZ": 11.466500282287598,
+          "tells": 285,
+          "skillFrames": 105,
+          "fires": 14,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "4": {
+          "births": 3,
+          "minZ": 9.438833236694336,
+          "tells": 324,
+          "skillFrames": 6,
+          "fires": 13,
+          "contacts": 0,
+          "supports": 2,
+          "shieldBreaks": 0
+        }
+      },
+      "unresolved": 0
+    },
+    {
+      "rank": 3,
+      "strategy": "vitality and pickup recovery",
+      "phase": "won",
+      "seconds": 438.8500061035156,
+      "act": 2,
+      "hp": 115,
+      "army": 15,
+      "acts": [
+        {
+          "act": 0,
+          "time": 112.56666564941406,
+          "bossSeconds": 22.566665649414062,
+          "hp": 115,
+          "army": 60
+        },
+        {
+          "act": 1,
+          "time": 267.95001220703125,
+          "bossSeconds": 59.38334655761719,
+          "hp": 110,
+          "army": 31
+        },
+        {
+          "act": 2,
+          "time": 438.8500061035156,
+          "bossSeconds": 68.89999389648438,
+          "hp": 115,
+          "army": 15
+        }
+      ],
+      "clashes": 2,
+      "wins": 2,
+      "heals": 14,
+      "shieldBreaks": 22,
+      "revives": 0,
+      "archetypes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "maxTargets": 20,
+      "frames": 26332,
+      "roles": {
+        "1": {
+          "births": 6,
+          "minZ": 4.474999904632568,
+          "tells": 0,
+          "skillFrames": 0,
+          "fires": 0,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 6
+        },
+        "2": {
+          "births": 3,
+          "minZ": 1.2400000095367432,
+          "tells": 96,
+          "skillFrames": 120,
+          "fires": 0,
+          "contacts": 1,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "3": {
+          "births": 3,
+          "minZ": 8.968125343322754,
+          "tells": 99,
+          "skillFrames": 22,
+          "fires": 3,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "4": {
+          "births": 3,
+          "minZ": 10.74233341217041,
+          "tells": 222,
+          "skillFrames": 4,
+          "fires": 12,
+          "contacts": 0,
+          "supports": 1,
+          "shieldBreaks": 0
+        }
+      },
+      "unresolved": 0
+    },
+    {
+      "rank": 3,
+      "strategy": "endurance and late sacrifice",
+      "phase": "won",
+      "seconds": 462.5333251953125,
+      "act": 2,
+      "hp": 115,
+      "army": 9,
+      "acts": [
+        {
+          "act": 0,
+          "time": 112.56666564941406,
+          "bossSeconds": 22.566665649414062,
+          "hp": 115,
+          "army": 60
+        },
+        {
+          "act": 1,
+          "time": 267.95001220703125,
+          "bossSeconds": 59.38334655761719,
+          "hp": 110,
+          "army": 31
+        },
+        {
+          "act": 2,
+          "time": 462.5333251953125,
+          "bossSeconds": 92.58331298828125,
+          "hp": 115,
+          "army": 9
+        }
+      ],
+      "clashes": 2,
+      "wins": 2,
+      "heals": 14,
+      "shieldBreaks": 22,
+      "revives": 0,
+      "archetypes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "maxTargets": 20,
+      "frames": 27753,
+      "roles": {
+        "1": {
+          "births": 6,
+          "minZ": 4.474999904632568,
+          "tells": 0,
+          "skillFrames": 0,
+          "fires": 0,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 6
+        },
+        "2": {
+          "births": 3,
+          "minZ": 1.2400000095367432,
+          "tells": 96,
+          "skillFrames": 120,
+          "fires": 0,
+          "contacts": 1,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "3": {
+          "births": 3,
+          "minZ": 8.968125343322754,
+          "tells": 117,
+          "skillFrames": 22,
+          "fires": 3,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "4": {
+          "births": 3,
+          "minZ": 10.74233341217041,
+          "tells": 222,
+          "skillFrames": 4,
+          "fires": 12,
+          "contacts": 0,
+          "supports": 1,
+          "shieldBreaks": 0
+        }
+      },
+      "unresolved": 0
+    }
+  ],
+  "notes": [
+    "Driven through production TypeScript adapter and public actions only.",
+    "Laser clash uses at most three input pulses per second; no damage or resource state is injected.",
+    "These are deterministic feasibility routes, not human difficulty or physical-device performance validation."
+  ]
+}

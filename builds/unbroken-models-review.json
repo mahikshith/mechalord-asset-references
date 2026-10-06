@@ -1,0 +1,59 @@
+{
+  "scope": "CPU real mesh bounds, posed emitters, shields, material flashes, revival timeline and bounded repeated allocations; rendered appearance checked separately",
+  "passed": 10,
+  "failed": 0,
+  "stats": {
+    "visible": 96,
+    "batches": 99,
+    "textures": 1,
+    "triangles": [
+      12076,
+      9940,
+      6412,
+      12132
+    ]
+  },
+  "checks": [
+    {
+      "name": "four distinct original silhouettes fit their authored neutral collision footprint",
+      "passed": true
+    },
+    {
+      "name": "posed muzzle follows actual yaw, recoil and hover, and remains attached to a real weapon",
+      "passed": true
+    },
+    {
+      "name": "committed Wasp and Engineer barrels match published physical projectile origins despite locomotion",
+      "passed": true
+    },
+    {
+      "name": "three-hit enemy shield visibly disappears only at zero guard",
+      "passed": true
+    },
+    {
+      "name": "joint animation rotates about hips and bounded pools do not allocate per frame",
+      "passed": true
+    },
+    {
+      "name": "entire real boss component flashes on confirmed damaging hit and resets its own materials",
+      "passed": true
+    },
+    {
+      "name": "confirmed reactor damage washes the entire measured oval face with correct posed depth offset",
+      "passed": true
+    },
+    {
+      "name": "blocked boss hits do not flash false damage and disposal restores original material",
+      "passed": true
+    },
+    {
+      "name": "revival geometry uses actual 1.5-second timer and remains stable while paused",
+      "passed": true
+    },
+    {
+      "name": "model cleanup releases only owned batches and textures",
+      "passed": true
+    }
+  ],
+  "generatedAt": "2026-10-06T18:36:07.956Z"
+}

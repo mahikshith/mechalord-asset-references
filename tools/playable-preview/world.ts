@@ -4,7 +4,7 @@ import type {Snapshot,Target,Effect} from './contract';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {CombatVisuals,CombatMissiles,CommanderPowerVisuals,RobotFormation,EnemyWeaponCues,combatImpactPoint} from './combat-visuals';
 import {RelicEffects} from './relic-effects';
-import {FormationFraming} from './portrait-framing';
+import {FormationFraming,commanderAnimationBounds} from './portrait-framing';
 import {BossRigAdapter} from './boss-rig-adapter';
 import {BattleEnvironment,ENVIRONMENT_PALETTES} from './environment';
 import {ArsenalVisuals,createPickup,updatePickup,disposePickup} from './arsenal-visuals';
@@ -72,6 +72,7 @@ export class Battlefield{
   for(let i=0;i<16;i++){const e=this.eliteTemplate.clone(true);e.visible=false;this.elitePool.push(e);this.scene.add(e);this.eliteSockets.push(new WeaponSockets(e,true));const vent=new T.Mesh(ventGeometry,ventMaterial);vent.name='CarrierVulnerability';vent.position.set(0,1.5,.55);vent.visible=false;e.add(vent);}
   this.boss.clear();this.bossModel=tyrant.scene;this.bossModel.rotation.y=Math.PI;this.boss.add(this.bossModel);this.bossModel.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}if(/^(Arm_[LR]|Barrel_[LR]|Pod_[LR]|Leg_[LR]|Knee_[LR]|Head)$/.test(o.name)){o.userData.restQuaternion=o.quaternion.clone();this.bossJoints.push(o);}});
   this.bossAdapter=new BossRigAdapter(this.boss,this.scene);this.arsenal=new ArsenalVisuals(this.hero,this.boss);
+  this.formationFraming.setCommanderBounds(commanderAnimationBounds(this.model,hero.animations));
   this.mixer=new T.AnimationMixer(hero.scene);for(const clip of hero.animations){if(clip.name==='Run')this.run=this.mixer.clipAction(clip);if(clip.name==='Idle')this.idle=this.mixer.clipAction(clip);}this.idle?.play();
   const parts=(gltf:any)=>{gltf.scene.updateMatrixWorld(true);let mesh:any;gltf.scene.traverse((o:any)=>{if(o.isMesh&&!mesh)mesh=o;});const geo=mesh.geometry.clone().applyMatrix4(mesh.matrixWorld),m=mesh.material.clone();m.roughness=.85;m.metalness=.05;return [geo,m] as [T.BufferGeometry,T.MeshStandardMaterial];};
   const [ag,am]=parts(troop);ag.computeBoundingBox();if(ag.boundingBox)this.formationFraming.setBounds(ag.boundingBox);this.allies=new T.InstancedMesh(ag,am,64);this.allies.castShadow=true;this.allies.frustumCulled=false;this.scene.add(this.allies);
@@ -103,7 +104,7 @@ export class Battlefield{
   if(e.kind==='heal'&&e.value>0){this.fx.healthPickup(this.hero,e.value);this.float('+'+Math.round(e.value),e.x,-e.z,'#7dffc1',2.3,true);}
   if(e.kind==='shieldBreak'){this.fx.shieldBreak(e.x,1.2,-e.z);this.float('GUARD BROKEN',e.x,-e.z,'#f4d394',2.6,true);}
   if(e.kind==='enemySupport')this.fx.energyImpact(e.x,1.6,-e.z,0x73edc1);
-  if(e.kind==='revive'){this.commanderExploded=false;this.hero.visible=true;}
+  if(e.kind==='revive'){this.commanderExploded=false;this.hero.visible=true;this.commanderHitKick=0;for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];}
   const z=-e.z;
   // Events arrive before update: detach parts from this frame's authoritative pose.
   const spatial=current;
@@ -148,7 +149,7 @@ export class Battlefield{
   // Constant close portrait framing: commander below centre, long visible approach.
    const halfWidth=5.05,distance=(halfWidth/Math.min(.45,this.camera.aspect))/Math.tan(T.MathUtils.degToRad(15)),lookZ=this.cameraLookZ;
   this.camera.position.set(0,distance*.58,lookZ+distance*.815);this.camera.lookAt(0,.1,lookZ);
-  const pan=this.formationFraming.update(this.camera,intro||this.commanderExploded?[]:s.formation,renderDt,this.canvas.clientWidth);this.camera.position.x=pan;this.camera.lookAt(pan,.1,lookZ);
+  const pan=this.formationFraming.update(this.camera,intro||this.commanderExploded?[]:s.formation,renderDt,this.canvas.clientWidth,intro||this.commanderExploded?undefined:s.x,reviving);this.camera.position.x=pan;this.camera.lookAt(pan,.1,lookZ);
   if(this.shake>0&&active&&!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false)){this.camera.position.x+=(Math.random()-.5)*this.shake;this.camera.position.y+=(Math.random()-.5)*this.shake;this.shake=Math.max(0,this.shake-renderDt*.65);}
   const horizontalVelocity=renderDt>0?(s.x-this.previousX)/renderDt:0;this.previousX=s.x;
   this.strafe+=(T.MathUtils.clamp(horizontalVelocity/5,-1,1)-this.strafe)*(1-Math.exp(-renderDt*13));
