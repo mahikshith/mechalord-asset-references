@@ -11,7 +11,8 @@ await build({entryPoints:[path.join(here,'environment.ts')],bundle:true,platform
 const {BattleEnvironment,planEnvironmentSection,ENVIRONMENT_PALETTES}=await import(pathToFileURL(output).href);
 
 const signatures=new Set();
-for(let stage=0;stage<3;stage++)for(let section=0;section<300;section++){
+assert.equal(ENVIRONMENT_PALETTES.length,5);assert.equal(new Set(ENVIRONMENT_PALETTES.map(p=>p.sky)).size,5);
+for(let stage=0;stage<5;stage++)for(let section=0;section<300;section++){
   const plan=planEnvironmentSection(section,stage);assert.deepEqual(plan,planEnvironmentSection(section,stage));
   assert(plan.left>=0&&plan.left<6&&plan.right>=0&&plan.right<6);signatures.add(`${plan.left},${plan.right}`);
 }
@@ -24,10 +25,15 @@ assert.equal(floor.length,1);assert.equal(floor[0].geometry.attributes.position.
 floor[0].geometry.computeBoundingBox();assert(Math.abs(floor[0].geometry.boundingBox.max.y)<.00001);assert(Math.abs(floor[0].geometry.boundingBox.max.x*2-9.7)<.00001);
 assert(!environment.root.children.some(mesh=>mesh.material===environment.materials.get('tile')),'No alternating tile material can render');
 assert.equal(floor[0].material.map.colorSpace,SRGBColorSpace);assert.equal(textureCount,3);
+assert.equal(environment.banks.length,5);
 for(const stage of environment.banks)for(const variant of stage)for(const mesh of variant){
   mesh.geometry.computeBoundingBox();assert(mesh.geometry.boundingBox.min.x+6.3>=4.75,'Side decoration must remain outside steerable lanes');
 }
 console.log(`PASS: seeded plans (${signatures.size} left/right combinations), continuous 9.7m deck, no tile batches, original albedo and lane clearance.`);
+const bayGeometry=stage=>environment.banks[stage].map(v=>v.map(m=>m.geometry.attributes.position.count).join(',')).join('|');
+assert.notEqual(bayGeometry(3),bayGeometry(0),'Storm needs different source architecture, not only recoloring');
+assert.notEqual(bayGeometry(4),bayGeometry(1),'Forge needs different source architecture, not only recoloring');
+assert.notEqual(bayGeometry(3),bayGeometry(4));
 
 // Follow a specific world section across the recycling boundary, rather than comparing array slots.
 function sectionPosition(env,section,side){
@@ -46,10 +52,13 @@ console.log('PASS: all 22 retained side bays preserve identity and move continuo
 
 let maxBatches=0,maxTriangles=0,armMoved=false,fanMoved=false;
 let previousArm,previousFan;
-for(let stage=0;stage<3;stage++)for(let frame=0;frame<2400;frame++){
+for(let stage=0;stage<5;stage++)for(let frame=0;frame<2400;frame++){
   environment.update(frame*.17,stage,1/60);assert.equal(environment.root.children.length,objects);assert.equal(environment.geometries.size,geometryCount);assert.equal(environment.textures.length,textureCount);
   assert.equal(environment.materials.get('deck').color.getHex(),ENVIRONMENT_PALETTES[stage].deck);
   assert.equal(environment.counts.reduce((sum,n)=>sum+n,0),24,'Exactly two side bays per recycled section');
+  for(let other=0;other<5;other++)if(other!==stage)assert(environment.banks[other].flat().every(m=>!m.visible&&m.count===0),'Inactive chapters cannot render');
+  assert.equal(environment.chapterMotes.count,stage>=3?24:0);
+  if(stage>=3&&frame%120===0){const matrix=new Matrix4();for(let i=0;i<24;i++){environment.chapterMotes.getMatrixAt(i,matrix);assert(Math.abs(new Vector3().setFromMatrixPosition(matrix).x)>5.65,'Chapter ambience cannot enter combat lanes');}}
   let batches=0,triangles=0;
   for(const mesh of environment.root.children){
     assert(mesh.count<=mesh.instanceMatrix.count);if(frame%120===0)assert(mesh.instanceMatrix.array.every(Number.isFinite));
@@ -62,7 +71,10 @@ for(let stage=0;stage<3;stage++)for(let frame=0;frame<2400;frame++){
 assert(armMoved&&fanMoved,'Articulated arms and cooling blades need real motion');assert(maxBatches<=40);assert(maxTriangles<=65000);
 environment.update(Infinity,NaN,NaN);assert(environment.root.children.every(mesh=>mesh.instanceMatrix.array.every(Number.isFinite)));
 const bytes=[...environment.geometries].reduce((sum,geometry)=>sum+Object.values(geometry.attributes).reduce((size,attribute)=>size+attribute.array.byteLength,0)+(geometry.index?.array.byteLength??0),0);
-console.log(`PASS: 7200 updates, fixed ${objects} batches allocated, max ${maxBatches} visible batches / ${maxTriangles} triangles, geometry ${(bytes/1048576).toFixed(2)} MiB, moving arms/fans and finite invalid-input handling.`);
+environment.update(30,3,1/60);const pausedAge=environment.age,pausedMatrices=environment.root.children.map(m=>Array.from(m.instanceMatrix.array));
+for(let i=0;i<20;i++)environment.update(30,3,0);assert.equal(environment.age,pausedAge);environment.root.children.forEach((m,i)=>assert.deepEqual(Array.from(m.instanceMatrix.array),pausedMatrices[i],'Zero-time update must freeze all ambience'));
+await fs.writeFile(path.join(root,'builds/environment-chapters-checks.json'),JSON.stringify({scope:'CPU geometry/resource/placement checks, not rendered visual acceptance or device fps',chapters:5,updates:12000,allocatedBatches:objects,maxVisibleBatches:maxBatches,maxVisibleTriangles:maxTriangles,geometryBytes:bytes,textures:textureCount,ambienceCapacity:24,pausedMatricesStable:true,timestamp:new Date().toISOString()},null,2)+'\n');
+console.log(`PASS: 12000 updates, fixed ${objects} batches allocated, max ${maxBatches} visible batches / ${maxTriangles} triangles, geometry ${(bytes/1048576).toFixed(2)} MiB, five distinct chapters and frozen zero-time ambience.`);
 
 let disposals=0;for(const geometry of environment.geometries)geometry.addEventListener('dispose',()=>disposals++);
 environment.dispose();assert.equal(scene.children.length,0);assert.equal(disposals,geometryCount);environment.dispose();assert.equal(disposals,geometryCount);

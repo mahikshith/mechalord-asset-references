@@ -1,0 +1,120 @@
+{
+  "scope": "Current WASM and adapter through public controls, independent finite-power/chapter audit; no render, human or phone claim",
+  "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
+  "sha256": "7cf83ed15c19ea3abbecffb5de6e4c95035d2697cc95b62ef388adf222a5cf60",
+  "timestamp": "2026-10-06T03:44:52.407Z",
+  "tests": 6,
+  "passed": 6,
+  "failed": 0,
+  "powers": {
+    "tempest": {
+      "activations": 1,
+      "frames": 63,
+      "beams": 59
+    },
+    "arcstorm": {
+      "activations": 1,
+      "frames": 75,
+      "pulses": 2,
+      "hits": 5
+    },
+    "salvo": {
+      "activations": 1,
+      "frames": 111,
+      "shots": 6
+    }
+  },
+  "earned": [
+    {
+      "power": "tempest",
+      "phase": "run",
+      "time": 34.61666488647461,
+      "elapsed": 1.0333328247070312,
+      "births": 0,
+      "pulseFrames": 0,
+      "chainHits": 0,
+      "beamFrames": 59
+    },
+    {
+      "power": "arcstorm",
+      "phase": "run",
+      "time": 30.91666603088379,
+      "elapsed": 1.2333335876464844,
+      "births": 0,
+      "pulseFrames": 2,
+      "chainHits": 5,
+      "beamFrames": 0
+    },
+    {
+      "power": "salvo",
+      "phase": "run",
+      "time": 35.41666793823242,
+      "elapsed": 1.8333358764648438,
+      "births": 6,
+      "pulseFrames": 0,
+      "chainHits": 0,
+      "beamFrames": 0
+    }
+  ],
+  "runs": [
+    {
+      "level": 3,
+      "time": 193.0833282470703,
+      "bossSeconds": 97.08332824707031,
+      "hostileLaunches": 75,
+      "breaks": 6,
+      "rollers": 3,
+      "carriers": 3,
+      "gates": 3,
+      "offers": [
+        "arcstorm",
+        "freeze",
+        "tempest",
+        "escort",
+        "salvo"
+      ]
+    },
+    {
+      "level": 4,
+      "time": 193.88333129882812,
+      "bossSeconds": 91.88333129882812,
+      "hostileLaunches": 28,
+      "breaks": 6,
+      "rollers": 2,
+      "carriers": 4,
+      "gates": 3,
+      "offers": [
+        "tempest",
+        "salvo",
+        "escort",
+        "arcstorm"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "name": "ABI4 exposes all five distinct chapter identities and clean finite powers",
+      "status": "pass"
+    },
+    {
+      "name": "earned tempest is finite, physical and survives pause/reset correctly",
+      "status": "pass"
+    },
+    {
+      "name": "earned arcstorm is finite, physical and survives pause/reset correctly",
+      "status": "pass"
+    },
+    {
+      "name": "earned salvo is finite, physical and survives pause/reset correctly",
+      "status": "pass"
+    },
+    {
+      "name": "authored chapter3 has real independent pressure and an intact spatial boss",
+      "status": "pass"
+    },
+    {
+      "name": "authored chapter4 has real independent pressure and an intact spatial boss",
+      "status": "pass"
+    }
+  ]
+}

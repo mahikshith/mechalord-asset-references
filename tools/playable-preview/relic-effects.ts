@@ -53,7 +53,7 @@ export class RelicEffects {
  get stats(){return {sparks:this.sparks.filter(s=>s.life>0).length,bolts:this.bolts.filter(b=>b.life>0).length,sparkCapacity:12,boltCapacity:32,clock:this.clock,pulseLife:this.pulseLife,empLife:this.empLife,stunned:this.stun.count};}
  trigger(e:Effect,s?:Snapshot){
   if(this.disposed||this.eventIDs.has(e.id))return;this.eventIDs.add(e.id);if(this.eventIDs.size>512)this.eventIDs.delete(this.eventIDs.values().next().value!);
-  if(e.kind==='relic'||e.kind==='pickup'){this.pulseLife=this.pulseDuration;this.pulseType=e.kind==='relic'?e.value:3;this.refreshImpact();}
+  if(e.kind==='relic'||e.kind==='pickup'||e.kind==='combatPower'){this.pulseLife=this.pulseDuration;this.pulseType=e.kind==='relic'?e.value:3;this.refreshImpact();}
   if(e.kind==='empPulse'){this.empLife=.65;this.wave.position.set(e.x,0,-e.z);this.wave.visible=true;this.wave.scale.set(1,1,1);this.pulseLife=this.pulseDuration;this.pulseType=1;this.refreshImpact();}
   if(e.kind==='shieldHit'||e.kind==='escortBlock'){const p=this.sparks[this.sparkCursor++%12];p.life=p.duration=.48;p.x=e.x;p.z=-e.z;p.shield=e.kind==='shieldHit';p.mesh.visible=true;p.mesh.material.color.setHex(p.shield?CYAN:0x9cfcb3);}
   if(e.kind==='empStun'||e.kind==='empClear'||(e.kind==='kill'&&s?.effects?.some(a=>a.kind==='empPulse'))){

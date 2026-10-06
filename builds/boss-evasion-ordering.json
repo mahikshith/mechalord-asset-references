@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "scope": "Explicit native portable-simulation unit fixtures for second booster breaking during an evasion tell/dash; production DamageRegion and Advance, no Unreal or physical-device proof. Public-control feasibility is in separate actual-WASM receipts.",
+  "sha256": "7cf83ed15c19ea3abbecffb5de6e4c95035d2697cc95b62ef388adf222a5cf60",
+  "source": "tools/playable-preview/test_boss_evasion.cpp",
+  "caseSetup": "One surviving10HP booster, legal vulnerable jet pair, active tell or dash; no gameplay hit injection during normal runs.",
+  "cases": 6,
+  "passed": 6,
+  "hz": [
+    30,
+    60,
+    120
+  ],
+  "states": [
+    "tell",
+    "dash"
+  ],
+  "checks": [
+    "Actual second-booster destruction",
+    "Both evade timers canceled",
+    "1.4-second recovery entered",
+    "No booster displacement during recovery",
+    "Pause freezes timers",
+    "Grounded movement remains<=1.25m/s",
+    "Canceled evasion never restarts"
+  ],
+  "compile": "tools/vendor/zig-x86_64-windows-0.17.0/zig.exe c++ -std=c++17 -O2 -Igame/Mechalord/Source/Mechalord tools/playable-preview/test_boss_evasion.cpp game/Mechalord/Source/Mechalord/AssaultSimulation.cpp -o builds/test_boss_evasion.exe",
+  "run": "builds/test_boss_evasion.exe",
+  "testedAt": "2026-10-06T03:44:28.876437+00:00"
+}

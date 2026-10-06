@@ -3,8 +3,8 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {Snapshot} from './contract';
 import {WeaponSockets,flightAttitude,type EmitterPositions} from './weapon-sockets';
 
-export type ArsenalPickupKind='guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort';
-export const PICKUP_COLORS={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x9cfcb3} as const;
+export type ArsenalPickupKind='guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort'|'tempest'|'arcstorm'|'salvo';
+export const PICKUP_COLORS={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x9cfcb3,tempest:0x50e5ff,arcstorm:0xba8cff,salvo:0xff7148} as const;
 const STEEL=0x30434e,IVORY=0xd5c7a7,BRONZE=0xb08749,BLACK=0x17232c;
 function paint(source:T.BufferGeometry,color:number,x=0,y=0,z=0,rx=0,ry=0,rz=0){
   const g=source.index?source.toNonIndexed():source;if(g!==source)source.dispose();g.rotateX(rx).rotateY(ry).rotateZ(rz).translate(x,y,z);
@@ -37,17 +37,17 @@ export function syncBossParts(root:T.Object3D,mask:number){
 /** Owns only its added rigs. Never changes the core or the parent actor transform. */
 export class ArsenalVisuals {
   readonly heroRig=new T.Group();readonly bossRig=new T.Group();
-  private cannons=new T.Group();private guided=new T.Group();private rail=new T.Group();
+  private cannons=new T.Group();private guided=new T.Group();private rail=new T.Group();private lance=new T.Group();private storm=new T.Group();private lanceMuzzle=new T.Object3D();private lanceTip:T.Mesh;
   private hands:HandRig[]=[];private wings:BossWing[]=[];private powerGlow:T.Mesh[]=[];
   private clock=0;private bossClock=0;private bossSpin=0;private spin=0;private unfolded=0;private previousFire=0;private recoil=0;private lastNearShotZ?:number;
   private railFlash:T.Mesh;
   readonly sockets:WeaponSockets;
   private socketCharges=new Map<string,T.Mesh>();private socketFlashes=new Map<string,T.Mesh>();private flashTimes=new Map<string,number>();private shotIDs=new Set<number>();
-  private boosters:{group:T.Group,plumes:T.Mesh[]}[]=[];private previousBoss=new T.Vector3();private previousVelocityZ=0;private hasBossPosition=false;
+  private boosters:{key:string,group:T.Group,plumes:T.Mesh[]}[]=[];private boosterThrust=.45;private boosterMode='idle';private previousBoss=new T.Vector3();private previousVelocityZ=0;private hasBossPosition=false;
   private bossCharge:T.Mesh;private laserCharges:T.Mesh[]=[];private faceRig=new T.Group();private faceHead?:T.Object3D;
   constructor(private hero:T.Group,private boss:T.Group){
     this.sockets=new WeaponSockets(boss);
-    this.heroRig.name='Arsenal_Hero';this.bossRig.name='Arsenal_Boss';this.heroRig.add(this.cannons,this.guided,this.rail);hero.add(this.heroRig);boss.add(this.bossRig);
+    this.heroRig.name='Arsenal_Hero';this.bossRig.name='Arsenal_Boss';this.heroRig.add(this.cannons,this.guided,this.rail,this.lance,this.storm);hero.add(this.heroRig);boss.add(this.bossRig);
     for(const side of [-1,1]){
       const group=new T.Group();group.name='HandCannon_'+(side<0?'L':'R');group.position.set(side*.90,1.42,-.22);group.rotation.y=Math.PI;this.cannons.add(group);
       const housing=assembly([
@@ -78,6 +78,13 @@ export class ArsenalVisuals {
     ]));
     const coils:T.BufferGeometry[]=[];for(let i=0;i<4;i++)coils.push(paint(new T.TorusGeometry(.16,.025,4,10),0xc293ff,0,0,.25+i*.19));this.rail.add(assembly(coils,true));
     this.railFlash=glow(.23,0xe4c1ff);this.railFlash.position.z=1.2;this.rail.add(this.railFlash);
+
+    // The straight Lance pitches around its authoritative muzzle rather than moving the ray.
+    this.lance.name='TempestLance_MuzzlePivot';this.lance.position.set(0,1.42,-1.32);this.lance.rotation.y=Math.PI;
+    this.lance.add(assembly([paint(new T.CylinderGeometry(.17,.23,.82,12),STEEL,0,0,-.41,Math.PI/2),paint(new T.TorusGeometry(.20,.045,5,24),BRONZE,0,0,-.05),paint(new T.BoxGeometry(.46,.12,.44),IVORY,0,.16,-.46)]));
+    const lanceCoils:T.BufferGeometry[]=[];for(let i=0;i<4;i++)lanceCoils.push(paint(new T.TorusGeometry(.19,.025,5,20),0x48dbff,0,0,-.18-i*.15));this.lance.add(assembly(lanceCoils,true));this.lanceMuzzle.name='CommanderSocket_tempest';this.lance.add(this.lanceMuzzle);this.lanceTip=glow(.13,0x71edff);this.lance.add(this.lanceTip);
+    this.storm.name='ArcStorm_InductionRig';this.storm.position.set(0,1.9,-.48);
+    const inductors:T.BufferGeometry[]=[];for(const side of [-1,1]){inductors.push(paint(new T.CylinderGeometry(.14,.19,.38,8),STEEL,side*.32,0,0),paint(new T.TorusGeometry(.22,.035,5,20),0xba8cff,side*.32,.10,0,Math.PI/2),paint(new T.OctahedronGeometry(.10),0xe1cbff,side*.32,.28,0));}this.storm.add(assembly(inductors));
 
     // Rigs use boss-local units; the parent scales the whole boss consistently.
     const back=assembly([
@@ -118,11 +125,11 @@ export class ArsenalVisuals {
     }
     for(const key of ['boosterL','boosterR']){const anchor=this.sockets.node(key);if(!anchor)continue;const group=new T.Group();group.name='OriginalBoosterExhaust_'+key;anchor.add(group);
       const side=key.endsWith('L')?1:-1;const collar=assembly([paint(new T.TorusGeometry(.18,.04,5,16),BRONZE,0,0,0,Math.PI/2),paint(new T.CylinderGeometry(.18,.23,.24,12),STEEL,0,.085,0),paint(new T.BoxGeometry(.76,.16,.20),BRONZE,side*.36,.12,0),paint(new T.BoxGeometry(.16,.35,.26),STEEL,side*.67,.20,0)]);group.add(collar);
-      const plumes=[glow(.14,0xe8fbff),glow(.21,0x65dfff),glow(.28,0x337dd9)];plumes.forEach((mesh,i)=>{mesh.name='BoosterPlasmaStage_'+i;mesh.position.y=[-.28,-.65,-1.0][i];(mesh.material as T.MeshBasicMaterial).opacity=[.85,.42,.12][i];mesh.visible=false;group.add(mesh);});this.boosters.push({group,plumes});
+      const plumes=[glow(.14,0xe8fbff),glow(.21,0x65dfff),glow(.28,0x337dd9)];plumes.forEach((mesh,i)=>{mesh.name='BoosterPlasmaStage_'+i;mesh.position.y=[-.28,-.65,-1.0][i];(mesh.material as T.MeshBasicMaterial).opacity=[.85,.42,.12][i];mesh.visible=false;group.add(mesh);});this.boosters.push({key,group,plumes});
     }
     this.reset();
   }
-  emitters(out?:EmitterPositions){return this.sockets.positions(out);}
+  emitters(out?:EmitterPositions){const positions=this.sockets.positions(out);if(this.lance.visible&&this.heroRig.visible){this.lanceMuzzle.getWorldPosition(positions.commanderTempest??=new T.Vector3());}else delete positions.commanderTempest;return positions;}
   update(s:Snapshot,dt:number){
     const head=this.boss.getObjectByName('Head');if(head&&head!==this.faceHead){this.faceRig.removeFromParent();head.add(this.faceRig);this.faceHead=head;}this.faceRig.visible=!!head;
     if(this.heroRig.parent!==this.hero)this.hero.add(this.heroRig);if(this.bossRig.parent!==this.boss)this.boss.add(this.bossRig);
@@ -131,6 +138,13 @@ export class ArsenalVisuals {
     const timeActive=(state.timePowerTime??0)>0,bossRate=s.empStunTime>0?0:!timeActive?1:state.timePower==='freeze'?0:state.timePower==='slow'?.5:state.timePower==='haste'?1.35:1;const bossDelta=delta*bossRate;this.bossClock+=bossDelta;this.bossSpin+=bossDelta*(s.bossAction==='windup'?51:30);
     const live=s.phase==='run'||s.phase==='boss',powered=live&&((state.powerTime??0)>0||state.weaponPermanent===true);
     this.cannons.visible=powered&&state.weaponPower==='cannons';this.guided.visible=powered&&state.weaponPower==='guided';this.rail.visible=powered&&state.weaponPower==='railburst';
+    const finite=s;
+    this.lance.visible=live&&['tempest','arcstorm'].includes(finite.combatPower)&&(finite.combatPowerTime??0)>0;this.storm.visible=live&&finite.combatPower==='arcstorm'&&(finite.combatPowerTime??0)>0;
+    if(live&&finite.combatPower==='salvo'&&(finite.combatPowerTime??0)>0)this.guided.visible=true;
+    const lanceRay=finite.friendlyBeams?.[0];if(this.lance.visible&&lanceRay){this.hero.updateWorldMatrix(true,false);this.lance.position.copy(this.hero.worldToLocal(new T.Vector3(lanceRay.x,lanceRay.y,-lanceRay.z)));this.lance.rotation.x=Math.atan2(lanceRay.endY-lanceRay.y,Math.max(.001,lanceRay.endZ-lanceRay.z));this.lance.rotation.y=Math.PI;}
+    if(this.lance.visible&&!lanceRay){this.hero.updateWorldMatrix(true,false);this.lance.position.copy(this.hero.worldToLocal(new T.Vector3(s.x,1.42,-1.32)));this.lance.rotation.set(0,Math.PI,0);}
+    this.lanceTip.material instanceof T.MeshBasicMaterial&&this.lanceTip.material.color.set(finite.combatPower==='arcstorm'?0xcaabff:0x65e8ff);this.lanceTip.scale.setScalar(.85+Math.sin(this.clock*20)*.10);
+    this.storm.rotation.z=Math.sin(this.clock*14)*.035;
     this.heroRig.visible=live;
     const nearShot=s.shots.filter(p=>p.owner!=='troop'&&p.z<2.2).sort((a,b)=>a.z-b.z)[0];
     const firing=live&&!!nearShot;this.spin+=delta*(firing?34:3);
@@ -146,6 +160,9 @@ export class ArsenalVisuals {
     for(const hand of this.hands){hand.rotor.rotation.z=this.spin;hand.group.position.z=-.22+this.recoil*.17;hand.group.rotation.y=Math.PI+T.MathUtils.clamp(aimOffset,-.3,.3);hand.group.rotation.x=-bossAim+this.recoil*.065;hand.flash.visible=firing&&this.recoil>.3;hand.flash.scale.set(1+this.recoil*.4,1+this.recoil*.4,1.8+this.recoil);}
     this.rail.position.z=-.40+this.recoil*.20;this.rail.rotation.x=actualElevation!==undefined?-actualElevation:s.phase==='boss'?-Math.atan2(s.bossY+4.31-1.8,Math.max(1,s.bossZ-.85-.4)):0;
     for(const rack of this.guided.children)rack.rotation.x=actualElevation!==undefined?-actualElevation:s.phase==='boss'?-Math.atan2(s.bossY+4.31-2.08,Math.max(1,s.bossZ-.85-.4)):0;
+    // Salvo's committed 3D origins are the physical rack tips, including elevation.
+    const salvoLive=live&&finite.combatPower==='salvo'&&(finite.combatPowerTime??0)>0;
+    for(const [i,rack] of this.guided.children.entries()){if(salvoLive){rack.rotation.x=actualElevation??0;rack.position.set(i===0?-.68:.68,2.11,-.92);rack.position.sub(new T.Vector3(0,.03,.86).applyQuaternion(rack.quaternion));}else rack.position.set(i===0?-.68:.68,2.08,.18);}
     this.railFlash.visible=firing&&this.recoil>.4;this.powerGlow.forEach((g,i)=>g.scale.setScalar(1+Math.sin(this.clock*12+i)*.15));
     const inBoss=s.phase==='boss',down=(s.phase as string)==='lastStand';
     const battleizer=inBoss&&((state.bossPhase??1)>=2||(state.bossRevives??0)>0||state.bossPattern==='heavy'&&(s.bossAction==='windup'||s.bossAction==='fire'));
@@ -163,12 +180,16 @@ export class ArsenalVisuals {
     this.boss.updateWorldMatrix(true,true);const position=this.boss.getWorldPosition(new T.Vector3());
     const vx=this.hasBossPosition&&delta>0?(position.x-this.previousBoss.x)/delta:0,vz=this.hasBossPosition&&delta>0?(position.z-this.previousBoss.z)/delta:0;
     const flying=inBoss&&(state.bossY??0)>.12&&(mask&12)!==12;const attitude=flightAttitude(vx,vz,this.previousVelocityZ,delta,flying);
-    this.previousBoss.copy(position);this.previousVelocityZ=vz;this.hasBossPosition=true;
-    for(const booster of this.boosters)for(let i=0;i<booster.plumes.length;i++){const plume=booster.plumes[i];plume.visible=flying;const pulse=1+Math.sin(this.bossClock*(23+i*4)+i)*.055;plume.scale.set((1-i*.12)*pulse,([1.8,2.6,2.8][i]+attitude.thrust*.35)*pulse,1-i*.12);}
+    const evade=inBoss&&s.bossAction==='evade'&&(s.bossEvadeTime??0)>0,tell=evade&&(s.bossEvadeTell??0)>0,recovery=inBoss&&(s.bossFiringWindow??0)>0;
+    const boosterMode=tell?'tell':evade?'evade':recovery?'recovery':'idle';
+    // Thrust responds to published motion/timers, never moves or banks the actor itself.
+    if(bossDelta>0||boosterMode!==this.boosterMode)this.boosterThrust=attitude.thrust+(tell?.30:evade?.95:recovery?.05:0);
+    this.boosterMode=boosterMode;if(delta>0){this.previousBoss.copy(position);this.previousVelocityZ=vz;this.hasBossPosition=true;}
+    for(const booster of this.boosters)for(let i=0;i<booster.plumes.length;i++){const plume=booster.plumes[i];plume.visible=(flying||evade)&&!!this.sockets.position(booster.key);const pulse=1+Math.sin(this.bossClock*(23+i*4)+i)*.055;plume.scale.set((1-i*.12)*pulse,([1.8,2.6,2.8][i]+this.boosterThrust*.70)*pulse,1-i*.12);}
     for(const wing of this.wings){wing.hinge.position.x=wing.side*(.64+this.unfolded*.70);wing.hinge.position.y=3.15+this.unfolded*.24;wing.hinge.rotation.z=wing.side*(.12+this.unfolded*.95);wing.hinge.rotation.x=-this.unfolded*.28;wing.rotor.rotation.z=-this.bossSpin;wing.flash.visible=false;wing.jet.visible=false;}
 
   }
-  reset(){this.shotIDs.clear();this.flashTimes.clear();this.hasBossPosition=false;this.previousVelocityZ=0;this.socketCharges.forEach(c=>c.visible=false);this.socketFlashes.forEach(f=>f.visible=false);for(const booster of this.boosters)booster.plumes.forEach(p=>p.visible=false);this.faceRig.visible=false;this.clock=0;this.bossClock=0;this.bossSpin=0;this.spin=0;this.unfolded=0;this.previousFire=0;this.recoil=0;this.lastNearShotZ=undefined;this.heroRig.visible=false;this.bossRig.visible=false;this.bossCharge.visible=false;this.laserCharges.forEach(c=>c.visible=false);for(const hand of this.hands){hand.rotor.rotation.z=0;hand.group.rotation.x=0;hand.group.position.z=-.22;hand.flash.visible=false;}this.railFlash.visible=false;this.rail.position.z=-.40;this.rail.rotation.x=0;for(const rack of this.guided.children)rack.rotation.x=0;for(const wing of this.wings){wing.hinge.rotation.set(0,0,0);wing.flash.visible=false;wing.jet.visible=false;}}
+  reset(){this.boosterThrust=.45;this.boosterMode='idle';this.shotIDs.clear();this.flashTimes.clear();this.hasBossPosition=false;this.previousVelocityZ=0;this.socketCharges.forEach(c=>c.visible=false);this.socketFlashes.forEach(f=>f.visible=false);for(const booster of this.boosters)booster.plumes.forEach(p=>p.visible=false);this.faceRig.visible=false;this.clock=0;this.bossClock=0;this.bossSpin=0;this.spin=0;this.unfolded=0;this.previousFire=0;this.recoil=0;this.lastNearShotZ=undefined;this.heroRig.visible=false;this.bossRig.visible=false;this.bossCharge.visible=false;this.laserCharges.forEach(c=>c.visible=false);for(const hand of this.hands){hand.rotor.rotation.z=0;hand.group.rotation.x=0;hand.group.position.z=-.22;hand.flash.visible=false;}this.lance.visible=this.storm.visible=false;this.lance.position.set(0,1.42,-1.32);this.lance.rotation.set(0,Math.PI,0);this.railFlash.visible=false;this.rail.position.z=-.40;this.rail.rotation.x=0;for(const [i,rack] of this.guided.children.entries()){rack.rotation.x=0;rack.position.set(i===0?-.68:.68,2.08,.18);}for(const wing of this.wings){wing.hinge.rotation.set(0,0,0);wing.flash.visible=false;wing.jet.visible=false;}}
   dispose(){for(const mesh of [...this.socketCharges.values(),...this.socketFlashes.values()]){mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.removeFromParent();}for(const booster of this.boosters){disposeTree(booster.group);booster.group.removeFromParent();}this.sockets.dispose();disposeTree(this.heroRig);disposeTree(this.bossRig);disposeTree(this.faceRig);this.faceRig.removeFromParent();this.faceHead=undefined;this.hero.remove(this.heroRig);this.boss.remove(this.bossRig);}
 }
 
@@ -194,6 +215,13 @@ export function createPickup(kind:ArsenalPickupKind,shootable=false){
     for(const z of [-.35,-.07,.21])parts.push(paint(new T.TorusGeometry(.22,.037,4,12),color,0,0,z));
     parts.push(paint(new T.ConeGeometry(.13,.45,4),color,0,0,.72,Math.PI/2));
     icon.rotation.y=-.5;
+  }else if(kind==='tempest'){
+    parts.push(paint(new T.CylinderGeometry(.17,.22,.82,10),STEEL,0,0,-.14,Math.PI/2));for(const z of [-.4,-.15,.1])parts.push(paint(new T.TorusGeometry(.22,.035,5,18),color,0,0,z));
+    for(const side of [-1,1]){parts.push(paint(new T.BoxGeometry(.08,.32,.07),color,side*.15,.30,.4,0,0,side*.5),paint(new T.BoxGeometry(.075,.34,.07),IVORY,side*.10,.54,.4,0,0,-side*.6));}
+  }else if(kind==='arcstorm'){
+    for(const a of [0,Math.PI*2/3,Math.PI*4/3]){const x=Math.cos(a)*.43,y=Math.sin(a)*.43;parts.push(paint(new T.OctahedronGeometry(.18),IVORY,x,y,0),paint(new T.TorusGeometry(.25,.035,5,18),color,x,y,.03),paint(new T.BoxGeometry(.08,.38,.07),color,x*.5,y*.5,.03,0,0,a-Math.PI/2));}parts.push(paint(new T.OctahedronGeometry(.19),color));
+  }else if(kind==='salvo'){
+    for(const side of [-1,1]){parts.push(paint(new T.CylinderGeometry(.14,.14,.70,8),IVORY,side*.28,0,0,Math.PI/2),paint(new T.ConeGeometry(.14,.32,8),color,side*.28,0,.51,Math.PI/2));for(const r of [0,Math.PI/2])parts.push(paint(new T.BoxGeometry(.40,.045,.25),STEEL,side*.28,0,-.24,0,0,r));}parts.push(paint(new T.BoxGeometry(.77,.14,.20),BRONZE,0,-.39,-.23));
   }else if(kind==='escort'){
     for(const side of [-1,1]){parts.push(paint(new T.OctahedronGeometry(.22),STEEL,side*.37,0,0),paint(new T.TorusGeometry(.30,.055,6,6),color,side*.37,0,.03));}
     parts.push(paint(new T.BoxGeometry(.48,.08,.08),IVORY,0,0,0),paint(new T.TorusGeometry(.56,.027,5,24,Math.PI*1.4),color,0,0,-.08));

@@ -3,8 +3,8 @@
 static mech::assault::Battle Battle;
 static float Formation[24*3];
 static float LaserData[2*7];
-static float State[79],Targets[256*19],Shots[256*13],EnemyShots[96*13],Pickups[24*6],Effects[192*11];
-API("abi_version") int Version(){return 3;}
+static float State[84],Targets[256*19],Shots[256*13],EnemyShots[96*13],Pickups[24*7],Effects[192*15];
+API("abi_version") int Version(){return 4;}
 API("start_run") void Start(int Relic,int Level,int Rank) { Battle.Start(static_cast<mech::assault::Relic>(std::clamp(Relic,0,2)),Level,Rank); }
 API("level_name") const char* LevelName() { return Battle.LevelName(); }
 API("step") void Step(double Dt,double X) { Battle.Advance(Dt,X); }
@@ -32,7 +32,7 @@ API("state") float* GetState()
     State[49]=int(Battle.starterWeapon); State[50]=Battle.powerTime<=0 && Battle.starterWeapon!=mech::assault::WeaponPower::None && Battle.weaponPower==Battle.starterWeapon;
     State[51]=Battle.CanHeal(); State[52]=Battle.healUsesRemaining; State[53]=Battle.reviveUsed; State[54]=Battle.CanRevive();
     State[55]=Battle.bossPartsMask; State[56]=Battle.BossPart(); State[57]=Battle.BossPartHp(); State[58]=Battle.BossPartMax();
-    State[59]=20; State[60]=std::min(25.,std::max(0.,Battle.commanderMaxHp-Battle.commanderHp)); State[61]=30; State[62]=50; State[63]=Battle.reviveProtection; State[64]=Battle.empPulseTime; State[65]=Battle.empStunTime; State[66]=Battle.escortShield; State[67]=30; State[68]=Battle.safetyAdmitted; State[69]=Battle.safetyDeferred; State[70]=Battle.safetyUnsupported; State[71]=Battle.safetyExistingUnsafe; State[72]=Battle.safetyCapacity; State[73]=Battle.safetyAuthoredRockets; State[74]=Battle.safetyHorizon;State[75]=Battle.guardHp;State[76]=Battle.guardMax;State[77]=Battle.bossEpoch;State[78]=Battle.sweepUnresolved; return State;
+    State[59]=20; State[60]=std::min(25.,std::max(0.,Battle.commanderMaxHp-Battle.commanderHp)); State[61]=30; State[62]=50; State[63]=Battle.reviveProtection; State[64]=Battle.empPulseTime; State[65]=Battle.empStunTime; State[66]=Battle.escortShield; State[67]=30; State[68]=Battle.safetyAdmitted; State[69]=Battle.safetyDeferred; State[70]=Battle.safetyUnsupported; State[71]=Battle.safetyExistingUnsafe; State[72]=Battle.safetyCapacity; State[73]=Battle.safetyAuthoredRockets; State[74]=Battle.safetyHorizon;State[75]=Battle.guardHp;State[76]=Battle.guardMax;State[77]=Battle.bossEpoch;State[78]=Battle.sweepUnresolved;State[79]=int(Battle.combatPower);State[80]=Battle.combatPowerTime;State[81]=Battle.bossEvadeTime;State[82]=Battle.bossEvadeTell;State[83]=Battle.bossFiringWindow; return State;
 }
 API("target_count") int TargetCount() { return Battle.TargetCount(); }
 API("targets") float* GetTargets()
@@ -58,7 +58,7 @@ API("pickup_count") int PickupCount() { return Battle.PickupCount(); }
 API("pickups") float* GetPickups()
 {
     int N=0; for(const auto& P:Battle.pickups) if(P.active)
-    { float* O=Pickups+N++*6; O[0]=P.id; O[1]=int(P.kind); O[2]=P.x; O[3]=P.z; O[4]=P.radius; O[5]=P.choiceGroup; }
+    { float* O=Pickups+N++*7; O[0]=P.id; O[1]=int(P.kind); O[2]=P.x; O[3]=P.z; O[4]=P.radius; O[5]=P.choiceGroup;O[6]=P.bonusTroops; }
     return Pickups;
 }
 API("enemy_shot_count") int EnemyShotCount() { return Battle.EnemyShotCount(); }
@@ -76,9 +76,9 @@ API("drain_effects") float* EffectsOnce()
 {
     for(int I=0;I<Battle.effectCount;++I)
     {
-        const auto& E=Battle.effects[I]; float* O=Effects+I*11;
+        const auto& E=Battle.effects[I]; float* O=Effects+I*15;
         O[0]=E.id; O[1]=int(E.kind); O[2]=E.x; O[3]=E.z; O[4]=E.value;
-        O[5]=E.entityId; O[6]=E.variant; O[7]=E.size;O[8]=E.y;O[9]=E.hitRegion;O[10]=E.spatial;
+        O[5]=E.entityId; O[6]=E.variant; O[7]=E.size;O[8]=E.y;O[9]=E.hitRegion;O[10]=E.spatial;O[11]=E.endX;O[12]=E.endY;O[13]=E.endZ;O[14]=E.endpoint;
     }
     Battle.ConsumeEffects(); return Effects;
 }
@@ -97,3 +97,7 @@ static float PoseData[17],RegionData[7*15],ComponentData[11*14];
 API("boss_pose") float* GetPose(){const auto& P=Battle.bossFrame.pose;PoseData[0]=P.position.x;PoseData[1]=P.position.y;PoseData[2]=P.position.z;PoseData[3]=P.rootEuler.x;PoseData[4]=P.rootEuler.y;PoseData[5]=P.rootEuler.z;PoseData[6]=P.clock;for(int I=0;I<2;++I){PoseData[7+I*2]=P.armPitch[I];PoseData[8+I*2]=P.armRoll[I];PoseData[11+I]=P.legPitch[I];PoseData[13+I]=P.kneePitch[I];PoseData[15+I]=P.barrelSpin[I];}return PoseData;}
 API("boss_regions") float* GetRegions(){for(int I=0;I<7;++I){const auto& R=Battle.bossFrame.regions[I];const auto& V=Battle.bossFrame.volumes[R.first];float* O=RegionData+I*15;O[0]=I;O[1]=R.aimCenter.x;O[2]=R.aimCenter.y;O[3]=-R.aimCenter.z;O[4]=V.half.x;O[5]=V.half.y;O[6]=V.half.z;O[7]=V.rotation.x;O[8]=V.rotation.y;O[9]=V.rotation.z;O[10]=V.rotation.w;O[11]=Battle.RegionHp(I);O[12]=Battle.RegionMax(I);O[13]=Battle.RegionVulnerable(I);O[14]=R.active;}return RegionData;}
 API("boss_components") float* GetComponents(){for(int I=0;I<11;++I){const auto& V=Battle.bossFrame.volumes[I];float* O=ComponentData+I*14;O[0]=I;O[1]=int(V.region);O[2]=V.center.x;O[3]=V.center.y;O[4]=-V.center.z;O[5]=V.half.x;O[6]=V.half.y;O[7]=V.half.z;O[8]=V.rotation.x;O[9]=V.rotation.y;O[10]=V.rotation.z;O[11]=V.rotation.w;O[12]=V.shape==mech::boss_pose::Shape::Ellipsoid;O[13]=V.active;}return ComponentData;}
+
+static float BeamData[9];
+API("friendly_beam_count") int FriendlyBeamCount(){return Battle.friendlyBeam.time>0?1:0;}
+API("friendly_beams") float* FriendlyBeams(){const auto& B=Battle.friendlyBeam;BeamData[0]=B.id;BeamData[1]=B.x;BeamData[2]=B.y;BeamData[3]=B.z;BeamData[4]=B.endX;BeamData[5]=B.endY;BeamData[6]=B.endZ;BeamData[7]=B.width;BeamData[8]=B.time;return BeamData;}

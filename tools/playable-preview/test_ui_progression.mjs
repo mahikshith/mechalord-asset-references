@@ -22,7 +22,7 @@ await build({entryPoints:[path.join(here,'main.ts')],bundle:true,platform:'node'
     export class AssaultCore {
       constructor(){globalThis.testCore=this;this.steps=0;this.calls=[];}async load(){}
       start(relic,level=0,rank=0){
-        this.calls.push({relic,level,rank});this.s={phase:'run',time:0,duration:40,level,levelName:['Reactor Siege','Roller Foundry','Citadel Breach'][level],rank,rankReward:1,
+        this.calls.push({relic,level,rank});this.s={phase:'run',time:0,duration:40,level,levelName:['Reactor Siege','Roller Foundry','Citadel Breach','Storm Pass','Forge Core'][level],rank,rankReward:1,
         weaponPower:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',starterWeapon:rank===3?'railburst':rank===2?'guided':rank===1?'cannons':'none',weaponPermanent:rank>0,powerTime:0,timePower:'none',timePowerTime:0,x:0,army:8+rank*2,commanderHp:100+rank*5,commanderMaxHp:100+rank*5,energy:30,ability:0,relic,weapon:1,weaponXP:0,weaponNeed:40,kills:0,
         canHeal:false,healCost:20,healAmount:25,healUsesRemaining:2,reviveAvailable:false,reviveCost:30,reviveHp:50,reviveUsed:false,lasers:[],bossPartsMask:0,bossPart:'cannon',bossPartHp:100,bossPartMax:100,bossHp:100,bossMax:100,bossArmor:100,bossArmorMax:100,bossCoreHp:40,bossCoreMax:40,bossCoreTime:0,bossState:'armored',bossRevives:0,bossAttack:0,bossLane:0,bossX:0,bossZ:20,bossY:0,bossPhase:1,bossPattern:'heavy',bossAction:'strafe',deathProgress:0,travelDistance:0,travelGoal:100,
         engagement:false,frontline:2.6,score:100,targets:[],shots:[],enemyShots:[],pickups:[],effects:[]};
@@ -50,7 +50,7 @@ globalThis.AudioContext=class {
 let session=0;
 async function harness(savedText=null,unavailable=false){
   const elements=new Map(ids.map(id=>[id,new Element()]));
-  const levels=[0,1,2].map(level=>Object.assign(new Element(),{dataset:{level:String(level)}}));
+  const levels=[0,1,2,3,4].map(level=>Object.assign(new Element(),{dataset:{level:String(level)}}));
   const relics=[0,1,2].map(relic=>Object.assign(new Element(),{dataset:{relic:String(relic)}}));
   globalThis.document={getElementById:id=>elements.get(id),querySelectorAll:s=>s==='[data-level]'?levels:relics,body:{classList:new Classes()},addEventListener(){},hidden:false};
   globalThis.window={addEventListener(){},speechSynthesis:{getVoices:()=>[{lang:'en-US',localService:true}],addEventListener(){},removeEventListener(){},speak(s){s.onend?.();},cancel(){}}};
@@ -79,7 +79,7 @@ e.get('retry').click();assert.equal(testCore.calls.at(-1).rank,3);assert.equal(t
 const steps=testCore.steps;e.get('pause').click();frame();assert.equal(testCore.steps,steps);assert.equal(e.get('paused').hidden,false);
 e.get('resume').click();frame();assert.equal(testCore.steps,steps+1);
 testCore.s.phase='destroying';frame();assert.equal(e.get('phase-label').textContent,'TYRANT DESTROYED');assert.equal(e.get('abilities').hidden,true);assert.equal(e.get('result').hidden,true);assert.equal(testCore.steps,steps+2);
-testCore.s.phase='won';frame();assert.equal(e.get('result').hidden,false);assert.equal(saved().commanderXP,510);e.get('back').click();assert.equal(e.get('starter-troops').textContent,'14');assert.equal(saved().schema,2);
+testCore.s.phase='won';frame();assert.equal(e.get('result').hidden,false);assert.equal(saved().commanderXP,510);e.get('back').click();assert.equal(e.get('starter-troops').textContent,'14');assert.equal(saved().schema,3);
 console.log('PASS: earned XP, exactly-once rewards, ranks 1–4, next-stage/retry carry, distinct power/relic HUD, pause and destruction transition.');
 
 const upgradeUI=await harness();upgradeUI.elements.get('start').click();upgradeUI.frame();assert.equal(testWeaponResponses.length,0,'No scene upgrade confirmation on initial load');testCore.s.weapon=2;upgradeUI.frame();assert.deepEqual(testWeaponResponses,[[1,2]]);upgradeUI.frame();assert.equal(testWeaponResponses.length,1,'Observed tier only confirms once');upgradeUI.elements.get('pause').click();upgradeUI.frame();assert.equal(testWeaponResponses.length,1);upgradeUI.elements.get('resume').click();upgradeUI.frame();assert.equal(testWeaponResponses.length,1);testCore.s.weapon=3;testCore.s.effects=[{id:1001,kind:'pickup',value:2}];upgradeUI.frame();assert.equal(testWeaponResponses.length,1,'Pickup plus upgrade already has one scene response');testCore.s.effects=[];upgradeUI.frame();assert.equal(testWeaponResponses.length,1);upgradeUI.elements.get('back').click();upgradeUI.elements.get('start').click();upgradeUI.frame();assert.equal(testWeaponResponses.length,1,'Retry starts quietly');upgradeUI.elements.get('back').click();
@@ -131,18 +131,18 @@ console.log('PASS: optional heal costs, explicit one-use revival choice, frozen 
 for(const value of ['{broken',JSON.stringify({schema:2,cleared:['true',false,0],best:['bad',null,-20],lastLevel:'2',commanderXP:'450'}),JSON.stringify({schema:2,commanderXP:-100,lastLevel:99})]){
   const x=await harness(value);x.elements.get('start').click();assert.equal(testCore.calls.at(-1).rank,0);assert.equal(testCore.s.army,8);x.elements.get('back').click();
 }
-const free=await harness();for(let i=0;i<3;i++){free.levels[i].click();free.elements.get('start').click();assert.equal(testCore.calls.at(-1).level,i,'All preview stages remain free without wins');free.elements.get('pause-levels').click();}
+const free=await harness();for(let i=0;i<5;i++){free.levels[i].click();free.elements.get('start').click();assert.equal(testCore.calls.at(-1).level,i,'All preview stages remain free without wins');free.elements.get('pause-levels').click();}
 const missing=await harness(null,true);missing.elements.get('start').click();missing.win();missing.elements.get('next-level').click();assert.equal(testCore.calls.at(-1).rank,1,'Session progression survives unavailable storage');missing.elements.get('pause-levels').click();
 const reload=await harness(JSON.stringify({schema:2,commanderXP:475,lastLevel:2,cleared:[true,true,true],best:[1,2,3]}));reload.elements.get('start').click();assert.deepEqual(testCore.calls.at(-1),{relic:0,level:2,rank:3});reload.elements.get('pause-levels').click();
 for(const cleared of [[false,false,false],[true,false,false],[true,true,true]]){
   const legacy=await harness(JSON.stringify({schema:1,cleared,best:[90,110,130],lastLevel:1,gateHint:true}));
-  assert.equal(legacy.saved().schema,2);assert.equal(legacy.saved().commanderXP,cleared.filter(Boolean).length*100);
-  assert.deepEqual(legacy.saved().best,[90,110,130]);assert.equal(legacy.saved().gateHint,true);
+  assert.equal(legacy.saved().schema,3);assert.equal(legacy.saved().commanderXP,cleared.filter(Boolean).length*100);
+  assert.deepEqual(legacy.saved().best,[90,110,130,0,0]);assert.equal(legacy.saved().gateHint,true);
   legacy.elements.get('start').click();assert.equal(testCore.calls.at(-1).rank,cleared[2]?2:cleared[0]?1:0);
   legacy.elements.get('pause-levels').click();
 }
 const intermediate=await harness(JSON.stringify({schema:2,commanderXP:0,cleared:[true,true,true],best:[90,110,130],lastLevel:2}));
-assert.equal(intermediate.saved().commanderXP,300);assert.deepEqual(intermediate.saved().best,[90,110,130]);
+assert.equal(intermediate.saved().commanderXP,300);assert.deepEqual(intermediate.saved().best,[90,110,130,0,0]);
 intermediate.elements.get('start').click();assert.equal(testCore.calls.at(-1).rank,2);intermediate.elements.get('pause-levels').click();
 const genuine=await harness(JSON.stringify({schema:2,commanderXP:35,cleared:[true,true,true],best:[90,110,130]}));
 assert.equal(genuine.saved().commanderXP,35,'Existing nonzero schema-2 XP must not be replaced');
@@ -151,14 +151,31 @@ console.log('PASS: malformed storage, free stage selection, blocked-storage fall
 
 const escortCase=await harness();escortCase.elements.get('start').click();testCore.s.weaponPower='escort';testCore.s.powerTime=10;testCore.s.escortShield=17;testCore.s.escortMax=30;escortCase.frame();assert.equal(escortCase.elements.get('power-name').textContent,'ESCORT GUARD');assert.equal(escortCase.elements.get('power-time').textContent,'17/30 · 10.0s');assert.equal(escortCase.elements.get('power-mode').textContent,'FINITE DEFENSE');escortCase.elements.get('pause-levels').click();console.log('PASS: finite escort budget is distinct from relic activation and weapon rank.');
 
+const newChapters=await harness(JSON.stringify({schema:2,commanderXP:475,lastLevel:2,cleared:[true,true,true],best:[4935,5465,6016]}));
+assert.deepEqual(newChapters.saved().best,[4935,5465,6016,0,0]);assert.deepEqual(newChapters.saved().cleared,[true,true,true,false,false]);assert.equal(newChapters.saved().commanderXP,475);
+newChapters.levels[3].click();newChapters.elements.get('start').click();assert.equal(testCore.calls.at(-1).level,3);newChapters.win();assert.equal(newChapters.elements.get('next-level').hidden,false);newChapters.elements.get('next-level').click();assert.equal(testCore.calls.at(-1).level,4);newChapters.win();assert.equal(newChapters.elements.get('next-level').hidden,true);assert.equal(newChapters.saved().cleared.length,5);assert.equal(newChapters.saved().schema,3);newChapters.elements.get('back').click();
+const reloadFive=await harness(JSON.stringify({schema:3,commanderXP:675,lastLevel:4,cleared:[true,true,true,true,true],best:[4935,5465,6016,7110,8500]}));reloadFive.elements.get('start').click();assert.equal(testCore.calls.at(-1).level,4);assert.equal(testCore.calls.at(-1).rank,3);assert.equal(reloadFive.saved().best[4],8500);reloadFive.elements.get('back').click();
+console.log('PASS: five chapters, unchanged legacy scores/XP, additive save migration, chapter transitions and final-chapter completion.');
+
+const specialCase=await harness(JSON.stringify({schema:3,commanderXP:475}));specialCase.elements.get('start').click();
+for(const [kind,name]of [['tempest','TEMPEST LANCE'],['arcstorm','ARC STORM'],['salvo','SIEGE SALVO']]){
+ testCore.s.combatPower=kind;testCore.s.combatPowerTime=.6;testCore.s.timePower='freeze';testCore.s.timePowerTime=2;specialCase.frame();
+ assert.equal(specialCase.elements.get('combat-power').hidden,false);assert.equal(specialCase.elements.get('combat-power-name').textContent,name);assert.equal(specialCase.elements.get('combat-power-time').textContent,'0.6s');assert.equal(specialCase.elements.get('time-power').hidden,false);assert.equal(specialCase.elements.get('power-name').textContent,'RAIL BURST','New burst must not replace earned weapon');
+}
+testCore.s.combatPowerTime=0;specialCase.frame();assert.equal(specialCase.elements.get('combat-power').hidden,true);testCore.s.phase='boss';testCore.s.bossEvadeTell=.2;specialCase.frame();assert.equal(specialCase.elements.get('objective').textContent,'BOOSTERS CHARGING');testCore.s.bossEvadeTell=0;testCore.s.bossAction='evade';specialCase.frame();assert.equal(specialCase.elements.get('objective').textContent,'BOOSTER DODGE');testCore.s.bossAction='strafe';testCore.s.bossFiringWindow=1;specialCase.frame();assert.equal(specialCase.elements.get('objective').textContent,'BOOSTERS COOLING');specialCase.elements.get('pause-levels').click();assert.equal(specialCase.elements.get('combat-power').hidden,true);
+console.log('PASS: separate burst/weapon/time-power readouts, truthful expiry and telegraph/dodge/recovery cues.');
+
 await build({entryPoints:[path.join(here,'audio.ts')],bundle:true,format:'esm',platform:'node',outfile:path.join(root,'builds/audio-check.mjs')});
 const {BattleAudio}=await import(pathToFileURL(path.join(root,'builds/audio-check.mjs')).href),audio=new BattleAudio();await audio.unlock();
-assert.equal(audio.buffers.size,22);
+assert.equal(audio.buffers.size,25);
 const relicSamples=['shield','emp','overdrive'].map(k=>audio.buffers.get(k).getChannelData(0));
+const specialSamples=['tempest','arcstorm','salvo'].map(k=>audio.buffers.get(k).getChannelData(0));
+assert.equal(new Set(specialSamples.map(s=>s.length)).size,3,'Each finite power has its own sound duration');
+for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)assert.notDeepEqual(specialSamples[i].slice(0,500),specialSamples[j].slice(0,500),'New power cues are distinct waveforms');
 assert.equal(new Set(relicSamples.map(s=>s.length)).size,3,'Relic cues have distinct bounded lengths');
 for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)assert.notDeepEqual(relicSamples[i].slice(0,100),relicSamples[j].slice(0,100),'Relic sounds must be audibly distinct waveforms');
 for(const [,buffer]of audio.buffers){const values=buffer.getChannelData(0);assert(values.every(Number.isFinite));assert(values.some(value=>Math.abs(value)>.01));assert(values.every(value=>Math.abs(value)<=.96));}
 assert(audio.speak('intro','The front is mine.',true));assert(!audio.speak('intro','The front is mine.',true));
 for(let i=0;i<50;i++)audio.play('hit');assert.equal(audio.active.size,24);audio.silence();assert.equal(audio.active.size,0);
 audio.setEnabled(false);audio.play('win');assert.equal(audio.active.size,0);audio.setEnabled(true);audio.reset();assert(audio.speak('intro','Again.',true));audio.dispose();assert.equal(audio.active.size,0);
-console.log('PASS: 22 cached finite audible waveforms including distinct relic cues, bounded sources, local-voice deduplication, mute/reset/disposal.');
+console.log('PASS: 25 cached finite audible waveforms including distinct relic cues, bounded sources, local-voice deduplication, mute/reset/disposal.');

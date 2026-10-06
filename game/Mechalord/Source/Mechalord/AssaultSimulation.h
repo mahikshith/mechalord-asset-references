@@ -12,16 +12,17 @@ namespace mech::assault
 enum class Phase { Ready, Run, Boss, Destroying, Won, Lost, LastStand };
 enum class Kind { Enemy, Crate, Gate, Hazard, Orb };
 enum class Relic { Shield, EMP, Overdrive };
-enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire, EmpPulse, EmpClear, EmpStun, ShieldHit, EscortBlock };
+enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire, EmpPulse, EmpClear, EmpStun, ShieldHit, EscortBlock, CombatPower, ChainHit };
 enum class ProjectileKind { Shell, Rocket, Orb };
 enum class WeaponEmitter { Gunner, ArmL, ArmR, ShoulderL, ShoulderR, Core };
-enum class FriendlyKind { Pulse, Arc, Rail, Missile, Cannon };
+enum class FriendlyKind { Pulse, Arc, Rail, Missile, Cannon, Salvo };
 enum class WeaponPower { None, Guided, Cannons, Railburst, Escort };
+enum class CombatPower { None, Tempest, ArcStorm, Salvo };
 enum class TimePower { None, Freeze, Slow, Haste };
-enum class PickupKind { Guided=1, Cannons, Railburst, Freeze, Slow, Haste, Escort };
+enum class PickupKind { Guided=1, Cannons, Railburst, Freeze, Slow, Haste, Escort, Tempest, ArcStorm, Salvo };
 enum class BossState { Armored, Exposed, Rebuilding, Destroying, Guarded };
 enum class BossPattern { Heavy, Sweep, Rockets, Laser };
-enum class BossAction { Strafe, Advance, Retreat, Windup, Fire, Dying };
+enum class BossAction { Strafe, Advance, Retreat, Windup, Fire, Dying, Evade };
 enum class FireState { Idle, Tracking, Locked, Fire, Reload };
 struct Target
 {
@@ -29,7 +30,7 @@ struct Target
     double x=0,z=0,hp=0,maxHp=0,size=.3,hit=0;
     int value=0,op=0,variant=0; bool active=false;
     double originX=0,motion=0,motionRate=1,fireClock=0,motionPhase=0,depth=.3;
-    FireState fireState=FireState::Idle; double aimX=0,charge=0,fireDelay=0; int role=0,burst=0,dropPower=0;
+    FireState fireState=FireState::Idle; double aimX=0,charge=0,fireDelay=0; int role=0,burst=0,dropPower=0,dropAlternate=0;
     double stunTime=0,ventClock=0,ventTime=0; bool ventOpen=false;
 };
 struct Shot
@@ -46,11 +47,12 @@ struct EnemyShot
     WeaponEmitter emitter=WeaponEmitter::Gunner; double launchX=0,launchZ=0,launchY=1.65;
 };
 struct Laser { int id=0; double x=0,z=0,endX=0,endZ=-5,width=.36,time=0,tick=0; bool active=false; };
-struct Pickup { int id=0; PickupKind kind=PickupKind::Guided; double x=0,z=0,radius=1.05; bool active=false; int choiceGroup=0; };
+struct FriendlyBeam { int id=0; double x=0,y=1.42,z=1.32,endX=0,endY=1.42,endZ=40,width=.28,time=0; };
+struct Pickup { int id=0; PickupKind kind=PickupKind::Guided; double x=0,z=0,radius=1.05; bool active=false; int choiceGroup=0,bonusTroops=0; };
 struct Effect
 {
     int id=0; EffectKind kind=EffectKind::Hit; double x=0,z=0; int value=0,entityId=0,variant=0; double size=.3;
-    double y=0; int hitRegion=-1; bool spatial=false;
+    double y=0; int hitRegion=-1; bool spatial=false; double endX=0,endY=0,endZ=0; bool endpoint=false;
 };
 class Battle
 {
@@ -58,6 +60,7 @@ public:
     static constexpr int MaxTargets=256,MaxShots=256,MaxEnemyShots=96,MaxEffects=192,MaxPickups=24;
     static constexpr double Frontline=2.6;
     Phase phase=Phase::Ready; Relic relic=Relic::Shield; BossAction bossAction=BossAction::Strafe;
+    CombatPower combatPower=CombatPower::None; double combatPowerTime=0,bossEvadeTime=0,bossEvadeTell=0,bossFiringWindow=0; FriendlyBeam friendlyBeam{};
     TimePower timePower=TimePower::None; BossState bossState=BossState::Armored;
     WeaponPower starterWeapon=WeaponPower::None;
     WeaponPower weaponPower=WeaponPower::None; BossPattern bossPattern=BossPattern::Heavy;
@@ -87,6 +90,7 @@ public:
     std::array<Laser,2> lasers{};
     std::array<bool,24> formationAlive{};
     int formationSpan=7;
+    bool UsesSpatialBoss() const { return level==0 || level>=3; }
     void Start(Relic Equipped,int Level=0,int Rank=0);
     void Advance(double Seconds,double DesiredX);
     bool Activate();
@@ -117,6 +121,10 @@ private:
     double committedAttackBoost=1;
     boss_pose::PoseDriver poseDriver{};
     int nextShotId=1; double collapseTime=0,collapseStartY=0;
+    int combatPulses=0,combatEpoch=0,evades=0; double combatClock=0,beamSlope=0,nextEvade=7,evadeTarget=0;
+    void BeginCombatPower(PickupKind Power);
+    void CombatStep(double Dt);
+    void GroundSalvo();
     double GroundY() const;
     void UpdatePose(double Dt);
     void SyncPosePosition();
@@ -155,7 +163,7 @@ private:
     void MoveShots(double Dt);
     void MoveTargets(double Dt,double TravelDelta);
     void MoveEnemyShots(double Dt);
-    void DropPickup(double X,double Z,PickupKind Power,int Source,int ChoiceGroup=0);
+    void DropPickup(double X,double Z,PickupKind Power,int Source,int ChoiceGroup=0,int BonusTroops=0);
     void MovePickups(double Dt);
     void SpawnEnemyShot(double OriginX,double OriginZ,double AimX,double Speed,double Radius,int Damage,ProjectileKind Type,bool Boss,int Source=0,WeaponEmitter Emitter=WeaponEmitter::Gunner,double LaunchHeight=1.65);
     void BossProjectile(WeaponEmitter Emitter,double AimX,double Speed,double Radius,int Damage,ProjectileKind Type);

@@ -1,0 +1,13 @@
+{
+  "scope": "CPU geometry/resource/placement checks, not rendered visual acceptance or device fps",
+  "chapters": 5,
+  "updates": 12000,
+  "allocatedBatches": 156,
+  "maxVisibleBatches": 39,
+  "maxVisibleTriangles": 41748,
+  "geometryBytes": 3393548,
+  "textures": 3,
+  "ambienceCapacity": 24,
+  "pausedMatricesStable": true,
+  "timestamp": "2026-10-06T03:25:57.447Z"
+}

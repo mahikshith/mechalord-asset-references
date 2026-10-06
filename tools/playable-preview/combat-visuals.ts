@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import type {Snapshot, Shot, EnemyShot, Target, Effect, FormationUnit} from './contract';
+import type {Snapshot, Shot, EnemyShot, Target, Effect, FormationUnit, FriendlyBeam} from './contract';
 
 /** These classes render combat already decided by the simulation. They never deal damage. */
 function standard(color:number){return new T.MeshStandardMaterial({color,roughness:.67,metalness:.36});}
@@ -132,6 +132,7 @@ export class CombatVisuals {
     for(let i=0;i<3;i++)this.puff(x+(this.random()-.5)*.4,y,worldZ+(this.random()-.5)*.4,'fire',(.16+this.random()*.19)*Math.min(strength,2),.22+this.random()*.3,i%2?0xff9c24:0xff4820);
     for(let i=0;i<2;i++)this.puff(x,y,worldZ,'smoke',(.18+this.random()*.16)*Math.min(strength,2),.65+this.random()*.45,0x47515a);
   }
+  energyImpact(x:number,y:number,worldZ:number,color=0x9feaff){this.puff(x,y,worldZ,'flash',.25,.10,color);for(let i=0;i<7;i++)this.spark(x,y,worldZ,1.2,color);}
   muzzle(x:number,y:number,worldZ:number,hostile=false){this.puff(x,y,worldZ,'flash',.22,.07,hostile?0xff6b20:0xffd46d);}
   /** Break authoritative named source parts, preserving their world pose and original geometry. */
   bossPartBreak(root:T.Object3D,part:'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'){
@@ -238,9 +239,9 @@ export class CombatVisuals {
     if(positions.length)this.powerAcquire(root,'guided');
   }
   /** Compact pickup transformation; only four simultaneous pulses, shared geometry/materials. */
-  powerAcquire(root:T.Object3D,kind:'guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort'){
+  powerAcquire(root:T.Object3D,kind:'guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort'|'tempest'|'arcstorm'|'salvo'){
     root.updateWorldMatrix(true,true);const bounds=new T.Box3().setFromObject(root),size=bounds.getSize(new T.Vector3());
-    const colors={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x7de5e9};
+    const colors={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x7de5e9,tempest:0x50e5ff,arcstorm:0xba8cff,salvo:0xff7148};
     if(this.acquisitions.length>=4)this.acquisitions.shift();
     this.acquisitions.push({root,age:0,radius:T.MathUtils.clamp(Math.max(size.x,size.z)*.45,.5,1.4),height:T.MathUtils.clamp(size.y,1.5,3.5),color:new T.Color(colors[kind])});
     const position=root.getWorldPosition(new T.Vector3());for(let i=0;i<3;i++)this.puff(position.x,1.3+i*.3,position.z,'flash',.13,.22,colors[kind]);
@@ -357,6 +358,53 @@ export class EnemyWeaponCues {
   dispose(){for(const mesh of [this.charges,this.locks]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 }
 
+export type PowerBeamView=FriendlyBeam;
+type ChainView={id:number;start:T.Vector3;end:T.Vector3;life:number;};
+/** Exact authoritative corridors and damage links; fixed pools, no proximity-inferred strikes. */
+export class CommanderPowerVisuals {
+  readonly root=new T.Group();readonly beamCapacity=4;readonly linkCapacity=24;readonly arcCapacity=512;
+  private clock=0;private disposed=false;private stamp=new T.Object3D();private a=new T.Vector3();private b=new T.Vector3();private dir=new T.Vector3();private up=new T.Vector3(0,0,1);
+  private shells:T.InstancedMesh;private cores:T.InstancedMesh;private arcs:T.InstancedMesh;private muzzles:T.InstancedMesh;private rings:T.InstancedMesh;
+  private links:ChainView[]=Array.from({length:24},()=>({id:-1,start:new T.Vector3(),end:new T.Vector3(),life:0}));private cursor=0;private seen=new Set<number>();private uniform={value:0};
+  constructor(private scene:T.Scene){
+    this.root.name='CommanderFinitePowers';scene.add(this.root);
+    const add=(geo:T.BufferGeometry,mat:T.Material,n:number)=>{const mesh=pool(scene,geo,mat,n);scene.remove(mesh);this.root.add(mesh);return mesh;};
+    const energy=(color:number,opacity:number)=>new T.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
+    const sheath=energy(0x168be9,.52);sheath.side=T.DoubleSide;sheath.onBeforeCompile=shader=>{shader.uniforms.uPowerTime=this.uniform;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 powerUv;').replace('#include <begin_vertex>','#include <begin_vertex>\npowerUv=uv;');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 powerUv;uniform float uPowerTime;').replace('#include <color_fragment>','#include <color_fragment>\nfloat bands=pow(.5+.5*sin(powerUv.y*110.-uPowerTime*38.+powerUv.x*18.85),3.);diffuseColor.rgb=mix(vec3(.035,.31,.85),vec3(.30,.95,1.),bands);diffuseColor.a*=.32+bands*.68;');};sheath.customProgramCacheKey=()=> 'commander-tempest-flow-v1';
+    this.shells=add(new T.CylinderGeometry(.5,.5,1,16,20,true).rotateX(Math.PI/2),sheath,4);this.shells.name='Tempest_ActualCorridor';
+    this.cores=add(new T.CylinderGeometry(.10,.10,1,10).rotateX(Math.PI/2),energy(0xcafaff,.98),4);this.cores.name='Tempest_StraightCore';
+    this.arcs=add(new T.CylinderGeometry(.5,.5,1,5).rotateX(Math.PI/2),energy(0xffffff,.92),512);this.arcs.name='TempestAndStorm_BranchingArcs';
+    this.muzzles=add(new T.SphereGeometry(1,12,8),energy(0x73eaff,.65),8);this.muzzles.name='Tempest_RealMuzzle';
+    this.rings=add(new T.TorusGeometry(1,.045,5,28),energy(0x65dbff,.8),4);this.rings.name='Tempest_MuzzleInduction';this.reset();
+  }
+  trigger(e:Effect){
+    if(this.disposed||e.kind!=='chainHit'||this.seen.has(e.id)||!([e.x,e.y,e.z,e.endX,e.endY,e.endZ].every(Number.isFinite)))return false;
+    this.seen.add(e.id);if(this.seen.size>256)this.seen.delete(this.seen.values().next().value!);
+    const link=this.links[this.cursor++%24];link.id=e.id;link.start.set(e.x,e.y!,-e.z);link.end.set(e.endX!,e.endY!,-e.endZ!);link.life=.26;return true;
+  }
+  update(beams:ReadonlyArray<PowerBeamView>,dt:number,visible=true){
+    if(this.disposed)return;const delta=Math.max(0,Math.min(.15,dt));this.clock+=delta;this.uniform.value=this.clock;for(const l of this.links)l.life=Math.max(0,l.life-delta);
+    let bc=0,ac=0,mc=0,rc=0;this.root.visible=visible;
+    const segment=(from:T.Vector3,to:T.Vector3,radius:number,color:number)=>{if(ac>=512)return;this.dir.subVectors(to,from);const len=this.dir.length();if(len<.001)return;this.stamp.position.copy(from).add(to).multiplyScalar(.5);this.stamp.quaternion.setFromUnitVectors(this.up,this.dir.multiplyScalar(1/len));this.stamp.scale.set(radius*2,radius*2,len);this.stamp.updateMatrix();this.arcs.setMatrixAt(ac,this.stamp.matrix);this.arcs.setColorAt(ac++,new T.Color(color));};
+    const branch=(from:T.Vector3,to:T.Vector3,id:number,width:number,parts:number,chain=false)=>{
+      // Main axis is untouched; peripheral forks are cosmetic and stay within the corridor.
+      const phase=this.clock*22+id*.73;for(let i=0;i<parts;i++){const t=i/parts,u=(i+1)/parts,offset=(v:number,axis:number)=>Math.sin(v*Math.PI)*(chain?.18:width*.32)*Math.sin(v*37+phase+axis*2.1);
+        this.a.copy(from).lerp(to,t);this.b.copy(from).lerp(to,u);this.a.x+=offset(t,0);this.a.y+=offset(t,1);this.b.x+=offset(u,0);this.b.y+=offset(u,1);segment(this.a,this.b,chain?.027:.041,chain?0xbc9aff:0x8befff);
+        if(i%3===1){const tip=this.b.clone();tip.x+=Math.sin(i*2+phase)*width*.19;tip.y+=Math.cos(i*3+phase)*width*.19;tip.z+=Math.sin(i+phase)*.18;segment(this.b,tip,.021,chain?0xe8d8ff:0xedffff);}}
+    };
+    for(const beam of beams){if(bc>=4||beam.time<=0||beam.width<=0||!([beam.x,beam.y,beam.z,beam.endX,beam.endY,beam.endZ,beam.width].every(Number.isFinite)))continue;
+      const from=new T.Vector3(beam.x,beam.y,-beam.z),to=new T.Vector3(beam.endX,beam.endY,-beam.endZ),d=new T.Vector3().subVectors(to,from),len=d.length();if(len<.01)continue;d.multiplyScalar(1/len);
+      this.stamp.position.copy(from).add(to).multiplyScalar(.5);this.stamp.quaternion.setFromUnitVectors(this.up,d);this.stamp.scale.set(beam.width,beam.width,len);this.stamp.updateMatrix();this.shells.setMatrixAt(bc,this.stamp.matrix);this.stamp.scale.set(1,1,len);this.stamp.updateMatrix();this.cores.setMatrixAt(bc++,this.stamp.matrix);
+      this.stamp.position.copy(from);this.stamp.scale.setScalar(.24+Math.sin(this.clock*31)*.018);this.stamp.updateMatrix();this.muzzles.setMatrixAt(mc,this.stamp.matrix);this.muzzles.setColorAt(mc++,new T.Color(0xb2f5ff));this.stamp.quaternion.setFromUnitVectors(this.up,d);this.stamp.scale.setScalar(.24);this.stamp.updateMatrix();this.rings.setMatrixAt(rc++,this.stamp.matrix);branch(from,to,beam.id,beam.width,36);
+    }
+    for(const link of this.links){if(link.life<=0)continue;branch(link.start,link.end,link.id,.65,10,true);if(mc<8){this.stamp.position.copy(link.start);this.stamp.quaternion.identity();this.stamp.scale.setScalar(.12*link.life/.26);this.stamp.updateMatrix();this.muzzles.setMatrixAt(mc,this.stamp.matrix);this.muzzles.setColorAt(mc++,new T.Color(0xc8a8ff));}}
+    changed(this.shells,bc);changed(this.cores,bc);changed(this.arcs,ac);changed(this.muzzles,mc);changed(this.rings,rc);
+  }
+  get stats(){return {beams:this.shells.count,arcs:this.arcs.count,links:this.links.filter(l=>l.life>0).length,clock:this.clock};}
+  reset(){this.clock=0;this.uniform.value=0;this.cursor=0;this.seen.clear();this.links.forEach(l=>l.life=0);for(const m of [this.shells,this.cores,this.arcs,this.muzzles,this.rings])changed(m,0);this.root.visible=false;}
+  dispose(){if(this.disposed)return;this.disposed=true;for(const m of [this.shells,this.cores,this.arcs,this.muzzles,this.rings]){m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}this.root.removeFromParent();}
+}
+
 export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;emitters?:Partial<Record<string,T.Vector3>>;bossCharging?:boolean;bossCharge?:number;hostileRate?:number;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
 type FriendlyPath={shot:Shot;originZ:number;launch:number;targetZ:number;targetHeight:number;targetId?:number;boss:boolean};
 /** Legacy 2.5D layouts use surface anchors; spatial shots bypass them entirely. */
@@ -371,7 +419,7 @@ export function combatImpactPoint(effect:Pick<Effect,'x'|'z'|'variant'|'entityId
     -(boss?effect.z-(options.bossSurfaceOffset??.85):effect.z-(target?Math.min(.85,Math.max(0,target.depth??0)*.8):0))*options.depthScale);
 }
 function acquirePath(shot:Shot,options:MissileOptions,delta:number):FriendlyPath{
-  const troop=shot.owner==='troop',launch=troop?.9:shot.kind==='missile'?2.08:shot.kind==='cannon'?1.42:shot.kind==='rail'?1.8:1.35;
+  const troop=shot.owner==='troop',launch=troop?.9:shot.kind==='missile'?2.08:shot.kind==='salvo'?2.11:shot.kind==='cannon'?1.42:shot.kind==='rail'?1.8:1.35;
   const source=troop?options.formation?.filter(p=>Math.abs(p.x-shot.x)<.18).sort((a,b)=>Math.abs(a.z-(shot.z-shot.dz*delta))-Math.abs(b.z-(shot.z-shot.dz*delta)))[0]:undefined;
   const originZ=source?.z??(troop?Math.min(-.75,shot.z-shot.dz*delta):.4);
   const path:FriendlyPath={shot:{...shot},originZ,launch,targetZ:10,targetHeight:1.25,boss:false};
@@ -453,15 +501,15 @@ export class CombatMissiles {
     for(const particle of this.trailParticles)particle.life=Math.max(0,particle.life-(particle.enemy?hostileDelta:delta));
     const write=(position:T.Vector3,direction:T.Vector3,scale:number,enemy=false,kind:string='pulse',owner:'commander'|'troop'='commander',dangerRadius=.2)=>{
       if(!enemy&&count+bulletCount>=this.capacity)return;if(enemy&&kind==='rocket'&&count>=this.capacity+96)return;this.dummy.position.copy(position);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction);this.dummy.scale.setScalar(scale);
-      const rocket=kind==='missile'||kind==='rocket';
+      const rocket=kind==='missile'||kind==='rocket'||kind==='salvo';if(kind==='salvo')this.dummy.scale.multiplyScalar(1.6);
       if(enemy&&!rocket){if(shellCount>=96)return;const width=Math.max(.7,dangerRadius/.12);this.dummy.scale.set(width,width,1.4+dangerRadius*2.4);this.dummy.updateMatrix();this.hostileShells.setMatrixAt(shellCount,this.dummy.matrix);this.hostileTips.setMatrixAt(shellCount,this.dummy.matrix);this.dummy.scale.set(width*.75,width*.75,.75+dangerRadius*.7);this.dummy.updateMatrix();this.shellStreaks.setMatrixAt(shellCount++,this.dummy.matrix);return;}
       if(!rocket){this.dummy.scale.multiplyScalar(kind==='cannon'?1.25:kind==='rail'?1.05:1);this.dummy.scale.z*=kind==='rail'?1.65:kind==='cannon'?1.2:1;this.dummy.updateMatrix();this.bullets.setMatrixAt(bulletCount,this.dummy.matrix);this.tips.setMatrixAt(bulletCount,this.dummy.matrix);
         this.bullets.setColorAt(bulletCount,this.color.set(enemy?0xd86d39:owner==='troop'?0x2c93cd:0xd3a54e));
         this.tips.setColorAt(bulletCount,this.color.set(enemy?0xffa12b:owner==='troop'?0x53c9ff:0xffca54));bulletCount++;
         if(!enemy){this.dummy.scale.z*=options.overdrive?1.6:.72;this.dummy.updateMatrix();this.wakes.setMatrixAt(wakeCount,this.dummy.matrix);this.wakes.setColorAt(wakeCount++,this.color.set(owner==='troop'?0x64dfff:options.overdrive?0xffe297:0xffbd55));}return;
       }
-      this.dummy.updateMatrix();this.bodies.setMatrixAt(count,this.dummy.matrix);this.bodies.setColorAt(count,this.color.set(enemy?0xff9262:owner==='troop'?0x69baff:0xffd18a));
-      const flutter=enemy?this.hostileClock:this.clock;this.dummy.scale.set(scale,scale,scale*(.85+.12*Math.sin(flutter*55+position.x*2)));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(enemy?0xff6024:owner==='troop'?0x59bcff:0xffc064));count++;
+      this.dummy.updateMatrix();this.bodies.setMatrixAt(count,this.dummy.matrix);this.bodies.setColorAt(count,this.color.set(kind==='salvo'?0xff9f68:enemy?0xff9262:owner==='troop'?0x69baff:0xffd18a));
+      const flutter=enemy?this.hostileClock:this.clock;this.dummy.scale.set(scale,scale,scale*(.85+.12*Math.sin(flutter*55+position.x*2)));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(kind==='salvo'?0xff6c32:enemy?0xff6024:owner==='troop'?0x59bcff:0xffc064));count++;
     };
     this.previousTime=options.simulationTime;const used=new Set<FriendlyPath>(),paths:FriendlyPath[]=[];
     for(const p of friendly.slice(0,this.capacity)){
@@ -476,7 +524,7 @@ export class CombatMissiles {
       // Retain the prior aim plane if a target dies; surviving rail rounds never jump to another height.
       path.shot={...p};paths.push(path);const pose=presentPath(p,path,options);
       write(pose.position,pose.direction,p.kind==='missile'?1.45:p.heavy?1.20:1.0,false,p.kind??'pulse',p.owner??'commander');
-      const trail=path as FriendlyPath&{trailP?:T.Vector3;trailClock?:number};if(p.kind==='missile'){trail.trailClock=Math.min(.06,(trail.trailClock??0)+delta);if(!trail.trailP)trail.trailP=pose.position.clone();else if(delta>0&&trail.trailClock>=.025&&pose.position.distanceToSquared(trail.trailP)>.0064){trail.trailClock=0;trail.trailP.copy(pose.position);this.leaveTrail(pose.position,pose.direction,false,0xffce68);}}
+      const trail=path as FriendlyPath&{trailP?:T.Vector3;trailClock?:number};if(p.kind==='missile'||p.kind==='salvo'){trail.trailClock=Math.min(.06,(trail.trailClock??0)+delta);if(!trail.trailP)trail.trailP=pose.position.clone();else if(delta>0&&trail.trailClock>=.025&&pose.position.distanceToSquared(trail.trailP)>.0064){trail.trailClock=0;trail.trailP.copy(pose.position);this.leaveTrail(pose.position,pose.direction,false,p.kind==='salvo'?0xff8648:0xffce68);}}
     }this.friendlyPaths=paths;
     const live=new Set<number>();
     for(const p of hostile){if(live.size>=96)break;live.add(p.id);

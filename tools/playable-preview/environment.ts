@@ -7,7 +7,7 @@ export interface EnvironmentSectionPlan {section:number;stage:number;left:number
 const RHYTHM = [0,1,4,2,0,5,3,4,1,5,2,3];
 /** Seeded, reproducible art direction: a deliberate rhythm with a new rotation every twelve sections. */
 export function planEnvironmentSection(section:number,stage:number):EnvironmentSectionPlan {
-  const index = Math.max(0, Math.floor(Number.isFinite(section) ? section : 0)), level = Math.max(0, Math.min(2, Math.floor(Number.isFinite(stage) ? stage : 0)));
+  const index = Math.max(0, Math.floor(Number.isFinite(section) ? section : 0)), level = Math.max(0, Math.min(4, Math.floor(Number.isFinite(stage) ? stage : 0)));
   let seed = (Math.imul(Math.floor(index / 12) + 1, 0x45d9f3b) ^ Math.imul(level + 1, 0x119de1f3)) >>> 0;
   seed = Math.imul(seed ^ seed >>> 16, 0x45d9f3b) >>> 0; seed ^= seed >>> 16;
   const rotation = (seed >>> 0) % 6;
@@ -17,6 +17,8 @@ export const ENVIRONMENT_PALETTES = [
   { sky: 0xb5ccd0, deck: 0x2f4354, tile: 0x354957, stone: 0x2d4252, edge: 0x5c7184, steel: 0x496b72, dark: 0x223442, accent: 0x348fa0, light: 0x8ae5db, earth: 0x506461 },
   { sky: 0xc4b6a6, deck: 0x343f4c, tile: 0x3c4854, stone: 0x273744, edge: 0x65717a, steel: 0x4d6065, dark: 0x26333f, accent: 0xb57646, light: 0xffbb61, earth: 0x514e48 },
   { sky: 0xadbdd3, deck: 0x283b51, tile: 0x30435b, stone: 0x25394e, edge: 0x586d86, steel: 0x425976, dark: 0x233348, accent: 0x717ba8, light: 0x89def4, earth: 0x49596c },
+  { sky: 0x879ead, deck: 0x304957, tile: 0x365260, stone: 0x2b4454, edge: 0x668494, steel: 0x467c86, dark: 0x203540, accent: 0x358798, light: 0x8ceaff, earth: 0x405d64 },
+  { sky: 0xc1a899, deck: 0x364451, tile: 0x3d4d58, stone: 0x31404b, edge: 0x798084, steel: 0x646d72, dark: 0x29343e, accent: 0xa46b44, light: 0xffa34b, earth: 0x665749 },
 ] as const;
 
 /** A render-only, bounded causeway. Surface y=0; decorative structures stay outside the lanes. */
@@ -30,11 +32,12 @@ export class BattleEnvironment {
   private readonly cache = new Map<string, T.BufferGeometry>();
   private readonly textures: T.Texture[] = [];
   private readonly common: T.InstancedMesh[] = [];
-  private readonly banks: T.InstancedMesh[][][] = [[], [], []];
+  private readonly banks: T.InstancedMesh[][][] = [[], [], [], [], []];
   private readonly plans: EnvironmentSectionPlan[] = [];
   private readonly counts = new Int16Array(6);
   private readonly dummy = new T.Object3D();
   private readonly animated: T.InstancedMesh[] = [];
+  private readonly chapterMotes:T.InstancedMesh;
   private readonly beamFrom = new T.Vector3();
   private readonly beamTo = new T.Vector3();
   private readonly direction = new T.Vector3();
@@ -78,7 +81,7 @@ export class BattleEnvironment {
       }
       this.box(parts,'earth',36,.95,8,0,-5.70,0,.10);
     },this.segmentCount);
-    for(let stage=0;stage<3;stage++)for(let variant=0;variant<6;variant++){
+    for(let stage=0;stage<5;stage++)for(let variant=0;variant<6;variant++){
       const meshes:T.InstancedMesh[]=[];this.banks[stage].push(meshes);
       this.build(meshes,parts=>this.sideModule(parts,stage,variant),this.segmentCount*2);
       for(const mesh of meshes){mesh.count=0;mesh.visible=false;mesh.name=`Industrial_${stage}_${variant}`;}
@@ -95,6 +98,8 @@ export class BattleEnvironment {
       [fanGeometry,'steel',24],
     ];
     for(const [geometry,role,capacity]of specs){const mesh=new T.InstancedMesh(geometry,this.materials.get(role)!,capacity);mesh.count=0;mesh.frustumCulled=false;mesh.castShadow=role!=='light';mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);this.animated.push(mesh);this.root.add(mesh);}
+    this.chapterMotes=new T.InstancedMesh(this.keep(new T.SphereGeometry(.04,5,3)),this.materials.get('light')!,24);
+    this.chapterMotes.count=0;this.chapterMotes.frustumCulled=false;this.chapterMotes.instanceMatrix.setUsage(T.DynamicDrawUsage);this.root.add(this.chapterMotes);
     scene.add(this.root);this.update(0,0,0);
   }
 
@@ -114,6 +119,7 @@ export class BattleEnvironment {
       this.cylinder(parts,'dark',.10,.13,.61,-.83,.26,z);
       this.cylinder(parts,'edge',.112,.112,.10,-.83,.45,z);
     }
+    if(stage>=3){this.chapterBay(parts,stage,variant);return;}
     if(variant===0){ // Supply bay: differing stacks, cable coils, low silhouettes.
       this.crate(parts,-.25,.46,-1.5,1.05);this.crate(parts,.7,.31,.15,.76);
       if(stage!==1)this.crate(parts,-.25,1.25,-1.5,.65);
@@ -173,6 +179,80 @@ export class BattleEnvironment {
       }
       this.box(parts,'edge',1.4,.25,2.65,.42,2.42,-.6,.045);
       this.box(parts,'dark',.83,.46,1.18,.42,2.62,1.15,.02);
+    }
+  }
+  /** Chapter-specific silhouettes; all geometry stays on the outside service ledges. */
+  private chapterBay(parts:Parts,stage:number,variant:number):void {
+    if(stage===3){
+      // Coolant, arc insulators and wind-facing relays distinguish the storm route.
+      if(variant===0||variant===4){
+        this.box(parts,'dark',1.72,.46,4.6,.22,.22,0,.035);
+        this.box(parts,'accent',1.49,.045,4.25,.22,.46,0,.008);
+        for(const z of[-1.65,1.65]){
+          this.cylinder(parts,'steel',.46,.54,1.75,.42,1.33,z,0,0,0,10);
+          for(const y of[.64,1.68])this.cylinder(parts,'edge',.56,.56,.12,.42,y,z,0,0,0,10);
+          this.box(parts,'light',.07,1.0,.06,-.11,1.2,z,.004);
+        }
+        this.conduit(parts,-.3,.57,0,5.1);
+      }else if(variant===1||variant===5){
+        for(const z of[-1.55,1.55]){
+          this.box(parts,'stone',.70,3.20,.77,.45,1.60,z,.035);
+          this.box(parts,'steel',.85,.20,.90,.45,3.25,z,.015);
+          this.box(parts,'light',.065,2.42,.055,.04,1.65,z+.405,.004);
+          for(const y of[2.36,2.68,3.02])this.cylinder(parts,'edge',.31,.31,.13,.45,y,z,0,0,0,10);
+          this.part(parts,'accent',this.keep(new T.TorusGeometry(.42,.045,5,12)),.45,3.52,z,Math.PI/2);
+        }
+        this.box(parts,'dark',.48,.34,3.5,.45,3.20,0,.025);
+        this.box(parts,'accent',.55,1.00,.56,-.23,.50,0,.025);
+      }else if(variant===2){
+        this.box(parts,'dark',1.3,2.6,2.15,.28,1.28,-1.2,.055);
+        this.cylinder(parts,'steel',.60,.60,.25,-.25,1.05,-1.2,0,0,Math.PI/2,12);
+        this.part(parts,'accent',this.keep(new T.TorusGeometry(.49,.065,6,16)),-.4,1.05,-1.2,0,Math.PI/2);
+        for(const z of[-.38,.06,.50])this.box(parts,'light',.05,.82,.09,-.4,1.85,z-.75,.004);
+        this.conduit(parts,.3,.17,2.25,1.2);
+      }else{
+        for(const z of[-1.8,1.5]){
+          this.box(parts,'steel',.28,4.0,.35,.72,1.95,z,.02,0,0,-.08);
+          this.box(parts,'edge',1.14,.30,.54,.64,3.95,z,.03);
+          for(const y of[2.85,3.16,3.48])this.cylinder(parts,'accent',.19,.19,.13,.3,y,z,0,0,Math.PI/2,10);
+        }
+        this.conduit(parts,-.3,.18,0,4.1);this.coil(parts,.53,.63,-.8,.65);
+      }
+    }else{
+      // Furnace bays and contained molten runs sit beside the cool readable deck.
+      if(variant===0||variant===4){
+        this.box(parts,'dark',1.85,.52,5.2,.20,.25,0,.035);
+        this.box(parts,'accent',1.50,.09,4.8,.20,.51,0,.012);
+        this.box(parts,'light',.53,.027,4.45,.12,.57,0,.005);
+        for(const z of[-1.9,1.9]){
+          this.box(parts,'steel',1.83,.24,.30,.20,.61,z,.02);
+          this.box(parts,'dark',.42,1.45,.48,.91,1.15,z,.025);
+        }
+        if(variant===4){this.cylinder(parts,'steel',.43,.50,2.1,.67,1.47,0,0,0,0,12);this.cylinder(parts,'accent',.52,.52,.14,.67,2.42,0,0,0,0,12);}
+      }else if(variant===1||variant===5){
+        this.box(parts,'dark',1.85,2.5,2.6,.32,1.22,-.7,.055);
+        this.box(parts,'steel',.18,1.91,2.24,-.65,1.25,-.7,.02);
+        for(const z of[-1.50,-1.0,-.5,0]){
+          this.box(parts,'light',.055,.70,.19,-.755,.86,z,.005);
+          this.box(parts,'accent',.095,1.1,.08,-.78,1.01,z+.16,.007);
+        }
+        this.cylinder(parts,'steel',.35,.40,1.30,.6,3.14,-1.1,0,0,0,10);
+        this.cylinder(parts,'dark',.47,.47,.14,.6,3.77,-1.1,0,0,0,10);
+        this.box(parts,'stone',1.28,.43,1.11,.38,.20,2.45,.03);
+      }else if(variant===2){
+        this.box(parts,'dark',1.48,1.86,1.73,.3,.90,-1.2,.045);
+        this.cylinder(parts,'steel',.61,.61,.25,-.25,1.05,-1.2,0,0,Math.PI/2,12);
+        this.part(parts,'accent',this.keep(new T.TorusGeometry(.49,.07,6,16)),-.40,1.05,-1.2,0,Math.PI/2);
+        for(const z of[.8,1.5,2.2])this.box(parts,'light',.60,.035,.22,.40,.30,z,.004);
+        this.conduit(parts,.72,.40,1.50,2.4);
+      }else{
+        for(const z of[-1.6,1.6])this.box(parts,'steel',.32,3.50,.44,.52,1.72,z,.025);
+        this.box(parts,'dark',1.91,.45,3.96,.54,3.54,0,.04);
+        this.box(parts,'accent',.42,.92,1.30,.54,2.86,0,.025);
+        this.box(parts,'steel',1.28,.36,1.15,.54,2.33,0,.025);
+        this.box(parts,'light',.61,.08,.06,-.14,2.52,.53,.006);
+        this.crate(parts,-.18,.60,0,1.22);
+      }
     }
   }
   private crate(parts:Parts,x:number,y:number,z:number,size:number):void {
@@ -264,12 +344,12 @@ export class BattleEnvironment {
   }
   update(travel:number,level:number,dt:number):void {
     if(this.disposed)return;
-    const stage=Number.isFinite(level)?Math.max(0,Math.min(2,Math.floor(level))):0;
+    const stage=Number.isFinite(level)?Math.max(0,Math.min(4,Math.floor(level))):0;
     const distance=Math.max(0,Number.isFinite(travel)?travel:0),anchor=Math.floor(distance/this.segmentLength),scroll=distance%this.segmentLength;
     if(stage!==this.level){
       this.level=stage;const palette=ENVIRONMENT_PALETTES[stage];
       for(const [role,material]of this.materials){material.color.setHex(palette[role]);if(role==='light')material.emissive.setHex(palette.light);}
-      for(let l=0;l<3;l++)for(let v=0;v<6;v++)for(const mesh of this.banks[l][v]){mesh.visible=false;mesh.count=0;}
+      for(let l=0;l<5;l++)for(let v=0;v<6;v++)for(const mesh of this.banks[l][v]){mesh.visible=false;mesh.count=0;}
       this.anchor=-1;
     }
     // Plans are generated at spawn/recycling only. No random sampling or geometry allocation per frame.
@@ -284,7 +364,7 @@ export class BattleEnvironment {
         const side=sideIndex===0?-1:1,variant=sideIndex===0?plan.left:plan.right,index=this.counts[variant]++;
         this.dummy.position.set(side*6.3,0,z);this.dummy.rotation.set(0,side===-1?Math.PI:0,0);this.dummy.scale.set(1,1,1);this.dummy.updateMatrix();
         for(const mesh of this.banks[stage][variant])mesh.setMatrixAt(index,this.dummy.matrix);
-        if(variant===1){
+        if(variant===1&&stage<3){
           const phase=plan.phase+sideIndex*1.17,sway=Math.sin(this.age*.67+phase),workZ=z+side*1.2;
           this.beamFrom.set(side*6.6,.85,workZ);this.beamTo.set(side*(7.08+sway*.15),2.0+Math.sin(this.age*.83+phase)*.23,workZ+.12*Math.cos(this.age*.7+phase));
           this.beam(this.animated[0],armCount);
@@ -303,10 +383,17 @@ export class BattleEnvironment {
     for(let i=0;i<this.animated.length;i++){
       const mesh=this.animated[i];mesh.count=i===4?fanCount:i===2?armCount*2:armCount;mesh.visible=mesh.count>0;mesh.instanceMatrix.needsUpdate=true;
     }
+    this.chapterMotes.count=stage>=3?24:0;this.chapterMotes.visible=stage>=3;
+    if(stage>=3){for(let i=0;i<24;i++){
+      const side=i%2?1:-1,phase=i*.73,z=10-Math.floor(i/2)*this.segmentLength+scroll;
+      this.dummy.position.set(side*(6.0+.30*Math.sin(this.age*.7+phase)),stage===3?.45+1.3*(1+Math.sin(this.age*.9+phase)):.7+((this.age*.6+phase)%2.1),z+.5*Math.cos(this.age*.5+phase));
+      this.dummy.rotation.set(0,0,0);this.dummy.scale.set(stage===3?.45:.9,stage===3?2.5:.9,stage===3?.45:.9);this.dummy.updateMatrix();this.chapterMotes.setMatrixAt(i,this.dummy.matrix);
+    }this.chapterMotes.instanceMatrix.needsUpdate=true;}
   }
   dispose():void {
     if(this.disposed)return;this.disposed=true;this.scene.remove(this.root);
     for(const mesh of this.common)mesh.dispose();for(const stage of this.banks)for(const bay of stage)for(const mesh of bay)mesh.dispose();for(const mesh of this.animated)mesh.dispose();
+    this.chapterMotes.dispose();
     for(const geometry of this.geometries)geometry.dispose();for(const material of this.materials.values())material.dispose();for(const texture of this.textures)texture.dispose();
     this.root.clear();this.textures.length=0;this.cache.clear();this.geometries.clear();this.materials.clear();this.plans.length=0;
     this.common.length=0;this.animated.length=0;for(const stage of this.banks){for(const bay of stage)bay.length=0;stage.length=0;}this.counts.fill(0);

@@ -10,6 +10,8 @@ const core=new AssaultCore(),world=new Battlefield(canvas);
 let state:Snapshot,paused=false,previous=performance.now(),speed=1;
 let seekPower:PickupPower|undefined,missCore=false;
 let autoRelic=true;
+let seekMiss='';
+const soakCases=[...[0,3,4].flatMap(level=>[0,1,2].map(relic=>({level,relic,rank:0}))),...([0,3,4].map((level,relic)=>({level,relic,rank:3})))];
 let chosenBossRegion:string|undefined;
 let soak:{remaining:number;results:unknown[];frames:number;longFrames:number;peakCalls:number;peakTriangles:number;peakGeometries:number;peakTextures:number;started:number}|undefined;
 const status=document.querySelector('output')!;
@@ -29,7 +31,8 @@ function aim(s:Snapshot){
   const regions=s.bossZ<28?(s as Snapshot&{bossRegions?:AuthoritativeBossRegion[]}).bossRegions?.filter(r=>r.vulnerable&&r.hp>0):undefined;
   let region=regions?.find(r=>r.id===chosenBossRegion);
   if(!region&&regions?.length){region=[...regions].sort((a,b)=>Math.abs(a.x-s.x)-Math.abs(b.x-s.x))[0];chosenBossRegion=region.id;}
-  const desired=Math.max(-3,Math.min(3,region?.x??s.bossX));
+  const reward=s.pickups.filter(p=>p.z<5&&p.z>0).sort((a,b)=>a.z-b.z)[0];
+  const desired=Math.max(-3,Math.min(3,reward?.x??region?.x??s.bossX));
   const shots=s.enemyShots.filter(p=>p.z<5.5&&p.dz<-.01).map(p=>({x:p.x-p.dx*p.z/p.dz,size:p.radius+.5}));
   if(s.bossPattern==='laser'&&s.bossAction==='windup'&&s.bossAttack>.6)return s.bossLane>0?-2.8:2.8;
   if(s.lasers.length)return s.lasers[0].endX>0?-2.8:2.8;
@@ -37,13 +40,13 @@ function aim(s:Snapshot){
  }
  if(seekPower){const selected=s.pickups.filter(p=>p.kind===seekPower&&p.z<24).sort((a,b)=>a.z-b.z)[0];if(selected)return selected.x;const orb=s.targets.find(t=>t.kind==='orb'&&powerKind(t.value)===seekPower&&t.z<29);if(orb)return orb.x;}
  const pickup=s.pickups.filter(p=>p.z<6).sort((a,b)=>a.z-b.z)[0];
- const goals=s.targets.filter(t=>t.z>1&&t.z<29&&(t.kind==='crate'||t.kind==='gate'||t.kind==='orb'||t.kind==='enemy'&&t.variant>0&&t.z<14)).sort((a,b)=>a.z-b.z);
+ const goals=s.targets.filter(t=>t.z>1&&t.z<29&&(t.kind==='crate'||t.kind==='gate'||t.kind==='orb'||t.kind==='enemy'&&t.variant>0&&(t.z<14||(s.level===0||s.level>=3)&&['gunner','battery','carrier'].includes(t.role)&&t.z<25))).sort((a,b)=>a.z-b.z);
  let desired=pickup?.x??goals[0]?.x??0;
  function choice(first:Snapshot['targets'][number]){const pair=s.targets.filter(t=>t.kind==='gate'&&Math.abs(t.z-first.z)<.02);pair.sort((a,b)=>(b.op?s.army*(b.value-1):b.value)-(a.op?s.army*(a.value-1):a.value));return pair[0]?.x??desired;}
  if(goals[0]?.kind==='gate')desired=choice(goals[0]);
  const close=s.targets.filter(t=>t.kind==='gate'&&t.z>0&&t.z<3.5).sort((a,b)=>a.z-b.z)[0];if(close)desired=choice(close);
  const hazard=s.targets.find(t=>t.kind==='hazard'&&t.z<3&&Math.abs(t.x-desired)<t.size+.5);if(hazard)desired=hazard.x>0?-3:3;
- if(s.level!==0)return desired;
+ if(s.level===1||s.level===2)return desired;
  // This review route sees the same published attack cues as the rendered game.
  // It is an automated visual-QA aid, not evidence of human difficulty or aim.
  const half=Math.max(.4,...s.formation.map(unit=>Math.abs(unit.x-s.x)+.36));
@@ -64,7 +67,7 @@ function tick(dt:number,render=true,draw=true){
  core.step(dt,aim(state));state=core.snapshot();
  if(render){for(const event of state.effects)world.trigger(event,state);if(state.weapon>previousWeapon)world.weaponUpgrade(previousWeapon,state.weapon);world.update(state,dt,'play',draw);if(soak)observeGeometry();}
 }
-function start(){autoRelic=true;seekPower=undefined;missCore=false;chosenBossRegion=undefined;core.start(Number((document.querySelector('#relic') as HTMLSelectElement).value) as 0|1|2,Number((document.querySelector('#level') as HTMLSelectElement).value),Number((document.querySelector('#rank') as HTMLSelectElement).value));state=core.snapshot();world.reset();paused=false;}
+function start(){seekMiss='';autoRelic=true;seekPower=undefined;missCore=false;chosenBossRegion=undefined;core.start(Number((document.querySelector('#relic') as HTMLSelectElement).value) as 0|1|2,Number((document.querySelector('#level') as HTMLSelectElement).value),Number((document.querySelector('#rank') as HTMLSelectElement).value));state=core.snapshot();world.reset();paused=false;}
 document.querySelector('#start')!.addEventListener('click',()=>{soak=undefined;clearGeometryHistory();autoRelic=true;start();});
 document.querySelector('#pause')!.addEventListener('click',()=>{paused=!paused;});
 document.querySelector('#step')!.addEventListener('click',()=>{paused=true;tick(1/30);});
@@ -88,6 +91,7 @@ document.querySelector('#defeat')!.addEventListener('click',()=>{
 function replayUntil(predicate:(s:Snapshot)=>boolean){
  let preceding=state;
  for(let i=0;i<18000&&['run','boss'].includes(state.phase)&&!predicate(state);i++){preceding=state;tick(1/60,false);}
+ if(!predicate(state))seekMiss=`REPLAY TARGET NOT REACHED (${state.phase})`;
  world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event,state);if(state.weapon>preceding.weapon)world.weaponUpgrade(preceding.weapon,state.weapon);world.update(state,.12,'play');paused=true;
 }
 document.querySelector('#core')!.addEventListener('click',()=>{start();replayUntil(s=>s.bossState==='exposed');});
@@ -97,6 +101,8 @@ document.querySelector('#guard')!.addEventListener('click',()=>{start();missCore
 document.querySelector('#revive')!.addEventListener('click',()=>{start();missCore=true;replayUntil(s=>s.bossState==='rebuilding');missCore=false;});
 document.querySelector('#collect')!.addEventListener('click',()=>{start();seekPower=(document.querySelector('#pickup') as HTMLSelectElement).value as PickupPower;replayUntil(s=>s.effects.some(e=>e.kind==='pickup'&&powerKind(e.value)===seekPower));seekPower=undefined;});
 document.querySelector('#part')!.addEventListener('click',()=>{start();replayUntil(s=>s.effects.some(e=>e.kind==='bossPartBreak'));});
+document.querySelector('#evade')!.addEventListener('click',()=>{start();replayUntil(s=>s.bossAction==='evade');});
+document.querySelector('#recovery')!.addEventListener('click',()=>{start();replayUntil(s=>(s.bossFiringWindow??0)>0);});
 document.querySelector('#part-hit')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.bossZ<18&&s.effects.some(e=>e.kind==='hit'&&e.value>0&&typeof(e as typeof e&{hitRegion?:string}).hitRegion==='string'));});
 document.querySelector('#laser')!.addEventListener('click',()=>{start();replayUntil(s=>s.lasers.length>0);});
 document.querySelector('#arrival')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.bossZ<22&&s.bossZ>13);});
@@ -112,8 +118,10 @@ document.querySelector('#carrier-open')!.addEventListener('click',()=>{start();r
 document.querySelector('#shield-impact')!.addEventListener('click',()=>{(document.querySelector('#relic') as HTMLSelectElement).value='0';start();replayUntil(s=>s.effects.some(e=>e.kind==='shieldHit'));});
 document.querySelector('#soak')!.addEventListener('click',()=>{
  clearGeometryHistory();autoRelic=true;speed=4;(document.querySelector('#speed') as HTMLSelectElement).value='4';
+ selectSoakCase(0);
  soak={remaining:12,results:[],frames:0,longFrames:0,peakCalls:0,peakTriangles:0,peakGeometries:0,peakTextures:0,started:performance.now()};soakReport.textContent='Running 12 real-render repeats…';start();
 });
+function selectSoakCase(index:number){const entry=soakCases[index];(document.querySelector('#level') as HTMLSelectElement).value=String(entry.level);(document.querySelector('#relic') as HTMLSelectElement).value=String(entry.relic);(document.querySelector('#rank') as HTMLSelectElement).value=String(entry.rank);}
 document.querySelector('#stand')!.addEventListener('click',()=>{
  start();for(let i=0;i<18000&&state.phase==='run';i++)tick(1/60,false);let preceding=state;
  for(let i=0;i<18000&&state.phase==='boss';i++){preceding=state;core.step(1/60,0);state=core.snapshot();}
@@ -128,6 +136,8 @@ function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=n
  if(!paused){const steps=Math.max(1,Math.ceil(speed));for(let i=0;i<steps;i++)tick(dt*speed/steps,true,i===steps-1);}else world.update(state,0,'paused');
  status.textContent=`${state.phase} · ${state.time.toFixed(1)}s · army ${state.army} (${state.formation.length} visible) · Marshal ${state.commanderHp.toFixed(0)}HP · kills ${state.kills} · weapon ${state.weapon} · ${state.weaponPower} ${state.weaponPermanent?'full run':state.powerTime.toFixed(1)+'s'} · ${state.timePower} ${state.timePowerTime.toFixed(1)}s · ${state.bossState} ${state.bossCoreTime.toFixed(1)}s · armor ${state.bossArmor.toFixed(0)} · core ${state.bossCoreHp.toFixed(0)} · broken mask ${state.bossPartsMask} · next ${state.bossPart} · beams ${state.lasers.length} · heal ${state.canHeal} · revive ${state.reviveAvailable} · revives ${state.bossRevives} · phase ${state.bossPhase} ${state.bossPattern}`;
  status.textContent+=` · relic active ${state.ability.toFixed(1)}s · energy ${state.energy.toFixed(0)}`;
+ status.textContent+=` · combat power ${state.combatPower??'none'} ${(state.combatPowerTime??0).toFixed(2)}s · friendly beams ${state.friendlyBeams?.length??0} · dodge tell ${(state.bossEvadeTell??0).toFixed(2)}s · evade ${(state.bossEvadeTime??0).toFixed(2)}s · recovery ${(state.bossFiringWindow??0).toFixed(2)}s`;
+ if(seekMiss)status.textContent+=` · ${seekMiss}`;
  status.textContent+=` · EMP stun ${(state.empStunTime??0).toFixed(1)}s · escort ${state.escortShield??0}/${state.escortMax??30} · carrier ${state.targets.filter(t=>t.role==='carrier').map(t=>t.ventOpen?'OPEN':'armored').join(',')||'absent'}`;
  status.textContent+=` · airborne ${state.bossY.toFixed(2)}m · enemy rounds ${state.enemyShots.length} · ${[...new Set(state.enemyShots.map(shot=>shot.emitter??'legacy'))].join(', ')}`;
  status.textContent+=` · attack admission ${state.safetyAdmitted??0} / deferred ${state.safetyDeferred??0} / unsupported ${state.safetyUnsupported??0} / capacity ${state.safetyCapacity??0}`;
@@ -136,9 +146,9 @@ function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=n
  const info=world.renderer.info;status.textContent+=` · draw calls ${info.render.calls} · triangles ${info.render.triangles} · geometries ${info.memory.geometries} · textures ${info.memory.textures}`;
  if(soak){soak.frames++;if(dt>.034)soak.longFrames++;soak.peakCalls=Math.max(soak.peakCalls,info.render.calls);soak.peakTriangles=Math.max(soak.peakTriangles,info.render.triangles);soak.peakGeometries=Math.max(soak.peakGeometries,info.memory.geometries);soak.peakTextures=Math.max(soak.peakTextures,info.memory.textures);
   if(['won','lost','lastStand'].includes(state.phase)||state.time>=240){
-   soak.results.push({result:state.time>=240?'timeout':state.phase,seconds:state.time,rank:Number((document.querySelector('#rank') as HTMLSelectElement).value),relic:state.relic,geometries:info.memory.geometries,textures:info.memory.textures,boss:{partsMask:state.bossPartsMask,coreHp:state.bossCoreHp,sweepUnresolved:state.sweepUnresolved??0},attackAdmission:{admitted:state.safetyAdmitted,deferred:state.safetyDeferred,unsupported:state.safetyUnsupported,existingUnsafe:state.safetyExistingUnsafe,capacity:state.safetyCapacity,authoredRockets:state.safetyAuthoredRockets,horizon:state.safetyHorizon},orphanGeometry:observeGeometry()});soak.remaining--;
+   soak.results.push({result:state.time>=240?'timeout':state.phase,level:state.level,seconds:state.time,rank:Number((document.querySelector('#rank') as HTMLSelectElement).value),relic:state.relic,geometries:info.memory.geometries,textures:info.memory.textures,boss:{partsMask:state.bossPartsMask,coreHp:state.bossCoreHp,sweepUnresolved:state.sweepUnresolved??0},attackAdmission:{admitted:state.safetyAdmitted,deferred:state.safetyDeferred,unsupported:state.safetyUnsupported,existingUnsafe:state.safetyExistingUnsafe,capacity:state.safetyCapacity,authoredRockets:state.safetyAuthoredRockets,horizon:state.safetyHorizon},orphanGeometry:observeGeometry()});soak.remaining--;
    soakReport.textContent=JSON.stringify({scope:'Desktop real WebGL replay, 4x simulation speed. Not mobile FPS.',completed:soak.results.length,remaining:soak.remaining,wallSeconds:(performance.now()-soak.started)/1000,frames:soak.frames,framesAbove34ms:soak.longFrames,peakCalls:soak.peakCalls,peakTriangles:soak.peakTriangles,peakGeometries:soak.peakGeometries,peakTextures:soak.peakTextures,runs:soak.results},null,2);
-   if(soak.remaining){(document.querySelector('#relic') as HTMLSelectElement).value=String(soak.results.length%3);start();}else{paused=true;soak=undefined;clearGeometryHistory();}
+   if(soak.remaining){selectSoakCase(soak.results.length);start();}else{paused=true;soak=undefined;clearGeometryHistory();}
   }
  }
  canvas.dataset.phase=state.phase;requestAnimationFrame(frame);

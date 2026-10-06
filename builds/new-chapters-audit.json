@@ -1,0 +1,1695 @@
+{
+  "scope": "Actual ABI4 WASM approach footprints, fixed choice opportunities, gate conservation and snapshot separation; not full boss balance, rendering, human or phone validation",
+  "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
+  "sha256": "7cf83ed15c19ea3abbecffb5de6e4c95035d2697cc95b62ef388adf222a5cf60",
+  "timestamp": "2026-10-06T03:44:53.730Z",
+  "sampleCount": 4642780,
+  "overlaps": 0,
+  "runs": [
+    {
+      "level": 3,
+      "rank": 0,
+      "relic": 0,
+      "phase": "boss",
+      "duration": 96,
+      "time": 96,
+      "spawnSteps": 22,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 12,
+      "rollers": 3,
+      "carriers": 3,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ]
+      ]
+    },
+    {
+      "level": 3,
+      "rank": 0,
+      "relic": 1,
+      "phase": "boss",
+      "duration": 96,
+      "time": 96,
+      "spawnSteps": 22,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 12,
+      "rollers": 3,
+      "carriers": 3,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ]
+      ]
+    },
+    {
+      "level": 3,
+      "rank": 0,
+      "relic": 2,
+      "phase": "boss",
+      "duration": 96,
+      "time": 96,
+      "spawnSteps": 22,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 11,
+      "rollers": 3,
+      "carriers": 3,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ]
+      ]
+    },
+    {
+      "level": 3,
+      "rank": 3,
+      "relic": 0,
+      "phase": "boss",
+      "duration": 96,
+      "time": 96,
+      "spawnSteps": 22,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 9,
+      "rollers": 3,
+      "carriers": 3,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ]
+      ]
+    },
+    {
+      "level": 3,
+      "rank": 3,
+      "relic": 1,
+      "phase": "boss",
+      "duration": 96,
+      "time": 96,
+      "spawnSteps": 22,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 9,
+      "rollers": 3,
+      "carriers": 3,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ]
+      ]
+    },
+    {
+      "level": 3,
+      "rank": 3,
+      "relic": 2,
+      "phase": "boss",
+      "duration": 96,
+      "time": 96,
+      "spawnSteps": 22,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 9,
+      "rollers": 3,
+      "carriers": 3,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ],
+        [
+          "arcstorm",
+          "freeze"
+        ]
+      ]
+    },
+    {
+      "level": 4,
+      "rank": 0,
+      "relic": 0,
+      "phase": "boss",
+      "duration": 102,
+      "time": 102,
+      "spawnSteps": 23,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 12,
+      "rollers": 2,
+      "carriers": 4,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ]
+      ]
+    },
+    {
+      "level": 4,
+      "rank": 0,
+      "relic": 1,
+      "phase": "boss",
+      "duration": 102,
+      "time": 102,
+      "spawnSteps": 23,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 12,
+      "rollers": 2,
+      "carriers": 4,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ]
+      ]
+    },
+    {
+      "level": 4,
+      "rank": 0,
+      "relic": 2,
+      "phase": "boss",
+      "duration": 102,
+      "time": 102,
+      "spawnSteps": 23,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 12,
+      "rollers": 2,
+      "carriers": 4,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ]
+      ]
+    },
+    {
+      "level": 4,
+      "rank": 3,
+      "relic": 0,
+      "phase": "boss",
+      "duration": 102,
+      "time": 102,
+      "spawnSteps": 23,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 9,
+      "rollers": 2,
+      "carriers": 4,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ]
+      ]
+    },
+    {
+      "level": 4,
+      "rank": 3,
+      "relic": 1,
+      "phase": "boss",
+      "duration": 102,
+      "time": 102,
+      "spawnSteps": 23,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 9,
+      "rollers": 2,
+      "carriers": 4,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ]
+      ]
+    },
+    {
+      "level": 4,
+      "rank": 3,
+      "relic": 2,
+      "phase": "boss",
+      "duration": 102,
+      "time": 102,
+      "spawnSteps": 23,
+      "minBirthZ": 39.938331604003906,
+      "hostileLaunches": 9,
+      "rollers": 2,
+      "carriers": 4,
+      "gateBirths": 6,
+      "appliedGates": 3,
+      "duplicateGate": 0,
+      "duplicateChoice": 0,
+      "siblingNotClosed": 0,
+      "maxTargetPool": 16,
+      "choicePairs": [
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ],
+        [
+          "salvo",
+          "tempest"
+        ]
+      ]
+    }
+  ],
+  "footprints": {
+    "3": [
+      {
+        "traversalSecond": 1,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": -1.8,
+            "hp": 57.5,
+            "value": 4
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 12.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 12.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 12.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 12.5,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "traversalSecond": 4,
+        "targets": [
+          {
+            "kind": "crate",
+            "role": "grunt",
+            "x": -1.8,
+            "hp": 30,
+            "value": 45
+          }
+        ]
+      },
+      {
+        "traversalSecond": 8,
+        "targets": [
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": -1.8,
+            "hp": 0,
+            "value": 12
+          },
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 0,
+            "value": 8
+          }
+        ]
+      },
+      {
+        "traversalSecond": 13,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "gunner",
+            "x": 2.6,
+            "hp": 59.79999923706055,
+            "value": 7
+          }
+        ]
+      },
+      {
+        "traversalSecond": 16,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "gunner",
+            "x": -2.6,
+            "hp": 69,
+            "value": 7
+          }
+        ]
+      },
+      {
+        "traversalSecond": 19,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "carrier",
+            "x": -1.8,
+            "hp": 103.5,
+            "value": 5
+          }
+        ]
+      },
+      {
+        "traversalSecond": 23,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": 1.8,
+            "hp": 69,
+            "value": 4
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 15,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 15,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "traversalSecond": 28,
+        "targets": [
+          {
+            "kind": "hazard",
+            "role": "grunt",
+            "x": -2.2,
+            "hp": 0,
+            "value": 16
+          }
+        ]
+      },
+      {
+        "traversalSecond": 39,
+        "targets": [
+          {
+            "kind": "crate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 60,
+            "value": 65
+          }
+        ]
+      },
+      {
+        "traversalSecond": 42,
+        "targets": [
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": -1.8,
+            "hp": 0,
+            "value": 10
+          },
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 0,
+            "value": 14
+          }
+        ]
+      },
+      {
+        "traversalSecond": 47,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "battery",
+            "x": -2.6,
+            "hp": 109.25,
+            "value": 8
+          }
+        ]
+      },
+      {
+        "traversalSecond": 51,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": -1.8,
+            "hp": 80.5,
+            "value": 4
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 17.5,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "traversalSecond": 55,
+        "targets": [
+          {
+            "kind": "hazard",
+            "role": "grunt",
+            "x": 1.1,
+            "hp": 0,
+            "value": 18
+          }
+        ]
+      },
+      {
+        "traversalSecond": 59,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "carrier",
+            "x": 1.8,
+            "hp": 138,
+            "value": 5
+          }
+        ]
+      },
+      {
+        "traversalSecond": 66,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "gunner",
+            "x": 2.6,
+            "hp": 89.69999694824219,
+            "value": 7
+          }
+        ]
+      },
+      {
+        "traversalSecond": 70,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": 0,
+            "hp": 92,
+            "value": 4
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 20,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 20,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "traversalSecond": 73,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "gunner",
+            "x": -2.6,
+            "hp": 101.19999694824219,
+            "value": 7
+          }
+        ]
+      },
+      {
+        "traversalSecond": 75,
+        "targets": [
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": -1.8,
+            "hp": 0,
+            "value": 12
+          },
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 0,
+            "value": 8
+          }
+        ]
+      },
+      {
+        "traversalSecond": 77,
+        "targets": [
+          {
+            "kind": "crate",
+            "role": "grunt",
+            "x": 0,
+            "hp": 90,
+            "value": 90
+          }
+        ]
+      },
+      {
+        "traversalSecond": 79,
+        "targets": [
+          {
+            "kind": "hazard",
+            "role": "grunt",
+            "x": -2.2,
+            "hp": 0,
+            "value": 16
+          }
+        ]
+      },
+      {
+        "traversalSecond": 81,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 17.5,
+            "value": 2
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": 1.8,
+            "hp": 80.5,
+            "value": 4
+          }
+        ]
+      },
+      {
+        "traversalSecond": 83,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "carrier",
+            "x": 1.8,
+            "hp": 126.5,
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "4": [
+      {
+        "traversalSecond": 1,
+        "targets": [
+          {
+            "kind": "crate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 35,
+            "value": 45
+          }
+        ]
+      },
+      {
+        "traversalSecond": 5,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 15,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 15,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 15,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 15,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": 1.8,
+            "hp": 69,
+            "value": 5
+          }
+        ]
+      },
+      {
+        "traversalSecond": 10,
+        "targets": [
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": -1.8,
+            "hp": 0,
+            "value": 10
+          },
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 0,
+            "value": 14
+          }
+        ]
+      },
+      {
+        "traversalSecond": 15,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "battery",
+            "x": -2.6,
+            "hp": 97.75,
+            "value": 8
+          }
+        ]
+      },
+      {
+        "traversalSecond": 19,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "battery",
+            "x": 2.6,
+            "hp": 103.5,
+            "value": 8
+          }
+        ]
+      },
+      {
+        "traversalSecond": 23,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "carrier",
+            "x": -1.8,
+            "hp": 126.5,
+            "value": 5
+          }
+        ]
+      },
+      {
+        "traversalSecond": 27,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": 0,
+            "hp": 80.5,
+            "value": 5
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 17.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 17.5,
+            "value": 3
+          }
+        ]
+      },
+      {
+        "traversalSecond": 31,
+        "targets": [
+          {
+            "kind": "crate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 70,
+            "value": 75
+          }
+        ]
+      },
+      {
+        "traversalSecond": 34,
+        "targets": [
+          {
+            "kind": "hazard",
+            "role": "grunt",
+            "x": -0.2,
+            "hp": 0,
+            "value": 20
+          }
+        ]
+      },
+      {
+        "traversalSecond": 45,
+        "targets": [
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": -1.8,
+            "hp": 0,
+            "value": 16
+          },
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 0,
+            "value": 12
+          }
+        ]
+      },
+      {
+        "traversalSecond": 49,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "battery",
+            "x": 2.6,
+            "hp": 132.25,
+            "value": 8
+          }
+        ]
+      },
+      {
+        "traversalSecond": 53,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": -1.8,
+            "hp": 92,
+            "value": 5
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 20,
+            "value": 3
+          }
+        ]
+      },
+      {
+        "traversalSecond": 57,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "carrier",
+            "x": 1.8,
+            "hp": 161,
+            "value": 5
+          }
+        ]
+      },
+      {
+        "traversalSecond": 61,
+        "targets": [
+          {
+            "kind": "crate",
+            "role": "grunt",
+            "x": -1.8,
+            "hp": 95,
+            "value": 90
+          }
+        ]
+      },
+      {
+        "traversalSecond": 65,
+        "targets": [
+          {
+            "kind": "hazard",
+            "role": "grunt",
+            "x": -2.2,
+            "hp": 0,
+            "value": 22
+          }
+        ]
+      },
+      {
+        "traversalSecond": 72,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "battery",
+            "x": -2.6,
+            "hp": 143.75,
+            "value": 8
+          }
+        ]
+      },
+      {
+        "traversalSecond": 76,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -1.4,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -0.5,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 0.5,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 1.4,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": 1.8,
+            "hp": 103.5,
+            "value": 5
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 22.5,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 22.5,
+            "value": 3
+          }
+        ]
+      },
+      {
+        "traversalSecond": 80,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "carrier",
+            "x": 1.8,
+            "hp": 172.5,
+            "value": 5
+          }
+        ]
+      },
+      {
+        "traversalSecond": 83,
+        "targets": [
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": -1.8,
+            "hp": 0,
+            "value": 10
+          },
+          {
+            "kind": "gate",
+            "role": "grunt",
+            "x": 1.8,
+            "hp": 0,
+            "value": 14
+          }
+        ]
+      },
+      {
+        "traversalSecond": 85,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "battery",
+            "x": 2.6,
+            "hp": 155.25,
+            "value": 8
+          }
+        ]
+      },
+      {
+        "traversalSecond": 87,
+        "targets": [
+          {
+            "kind": "crate",
+            "role": "grunt",
+            "x": 0,
+            "hp": 110,
+            "value": 100
+          }
+        ]
+      },
+      {
+        "traversalSecond": 88,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -3.3,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": -2.4,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "elite",
+            "x": 0,
+            "hp": 92,
+            "value": 5
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 2.4,
+            "hp": 20,
+            "value": 3
+          },
+          {
+            "kind": "enemy",
+            "role": "grunt",
+            "x": 3.3,
+            "hp": 20,
+            "value": 3
+          }
+        ]
+      },
+      {
+        "traversalSecond": 89,
+        "targets": [
+          {
+            "kind": "enemy",
+            "role": "carrier",
+            "x": -1.8,
+            "hp": 149.5,
+            "value": 5
+          }
+        ]
+      }
+    ]
+  },
+  "tests": 14,
+  "passed": 14,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "chapter3 rank0 relic0: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter3 rank0 relic1: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter3 rank0 relic2: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter3 rank3 relic0: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter3 rank3 relic1: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter3 rank3 relic2: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter4 rank0 relic0: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter4 rank0 relic1: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter4 rank0 relic2: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter4 rank3 relic0: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter4 rank3 relic1: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "chapter4 rank3 relic2: authored pressure and conserved choices",
+      "status": "pass"
+    },
+    {
+      "name": "Storm Pass and Forge Core are distinct encounter fingerprints",
+      "status": "pass"
+    },
+    {
+      "name": "approaching bodies and rollers never silently occupy live formation",
+      "status": "pass"
+    }
+  ]
+}
