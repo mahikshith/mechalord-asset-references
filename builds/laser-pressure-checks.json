@@ -1,0 +1,36 @@
+{
+  "scope": "CPU real geometry and authoritative endpoint/pressure/pooling checks. Normal gameplay GPU captures required separately.",
+  "passed": 7,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "hostile core and shell honor published source and elevated clip despite a different animated socket",
+      "pass": true
+    },
+    {
+      "name": "tapered beam vertices keep physical radius inside the actual corridor and maintain exact axial length",
+      "pass": true
+    },
+    {
+      "name": "two separated warm electrical paths meet both exact endpoints and remain inside the small decorative halo",
+      "pass": true
+    },
+    {
+      "name": "hero has the same spatial thickness and exact shared contact, in contrasting blue",
+      "pass": true
+    },
+    {
+      "name": "real progress reverses pressure-ring drift and changes rendered color without moving contact",
+      "pass": true
+    },
+    {
+      "name": "live contact tracking and zero-delta freeze preserve all contact geometry and uniforms",
+      "pass": true
+    },
+    {
+      "name": "clash has fixed geometry across retries, malformed input clears it, and disposal is exact",
+      "pass": true
+    }
+  ],
+  "generatedAt": "2026-10-06T20:34:10.537Z"
+}

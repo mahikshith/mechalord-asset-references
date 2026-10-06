@@ -27,7 +27,11 @@ test('real progress reverses pressure-ring drift and changes rendered color with
  const axis=new T.Vector3(state.enemyX-state.heroX,state.enemyY-state.heroY,-state.enemyZ+state.heroZ).normalize(),contact=new T.Vector3(state.x,state.y,-state.z);
  clash.update({...state,progress:.1},.07);const warm=new T.Color();clash.rings.getColorAt(1,warm);const retreat=pos(clash.rings,1).sub(contact).dot(axis),a=clash.root.getObjectByName('Clash_ThinPressureFront');near(a.position,contact);assert(a.geometry.type==='RingGeometry');
  clash.update({...state,progress:.9},0);const blue=new T.Color();clash.rings.getColorAt(1,blue);const advance=pos(clash.rings,1).sub(contact).dot(axis);near(a.position,contact);assert(retreat<-.10&&advance>.10);assert(warm.r>blue.r&&blue.b>warm.b);assert(Math.abs(a.material.uniforms.pressure.value-.8)<1e-6);
- assert.equal(clash.arcs.count,12);assert.equal(clash.sparks.count,16);assert.equal(clash.rings.count,2);for(let i=0;i<clash.sparks.count;i++)assert(pos(clash.sparks,i).distanceTo(contact)<1.2);
+ assert.equal(clash.arcs.count,12);assert.equal(clash.sparks.count,16);assert.equal(clash.rings.count,2);for(let i=0;i<clash.sparks.count;i++)assert(pos(clash.sparks,i).distanceTo(contact)<1.6);
+ // The actual front remains open but has measurable depth; forks are thick enough for portrait rendering.
+ assert(a.scale.x>.94&&a.scale.x<1.05);assert(a.geometry.boundingBox.getSize(new T.Vector3()).z>.35);
+ assert(new T.Vector3().setFromMatrixScale(matrix(clash.arcs)).x>.05);
+ const forkEnd=ends(clash.arcs,1)[1];assert(Math.abs(forkEnd.clone().sub(contact).dot(axis))>.10);
 });
 test('live contact tracking and zero-delta freeze preserve all contact geometry and uniforms',()=>{
  const moved={...state,x:1.5,y:3.8,z:8.4,progress:.72};clash.update(moved,.05);const before=[...clash.arcs.instanceMatrix.array,...clash.sparks.instanceMatrix.array,...clash.rings.instanceMatrix.array],clock=clash.stats.clock;for(let i=0;i<50;i++)clash.update(moved,0);assert.deepEqual([...clash.arcs.instanceMatrix.array,...clash.sparks.instanceMatrix.array,...clash.rings.instanceMatrix.array],before);assert.equal(clash.stats.clock,clock);assert.deepEqual(clash.stats.contact,[1.5,3.8,-8.4]);

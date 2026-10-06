@@ -24,7 +24,7 @@ export class BossRigAdapter {
  private highlightClock=0;
  private cueColor=new T.Color();
  private flashes=new Map<BossRegionID,number>();
- private regionMaterials=new Map<BossRegionID,{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];colors:T.Color[];intensities:number[]}[]>();
+ private regionMaterials=new Map<BossRegionID,{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];colors:T.Color[];intensities:number[];hit:T.IUniform[]}[]>();
  private disposed=false;
  constructor(private root:T.Object3D,private scene:T.Scene){
   for(const name of ['Arm_L','Arm_R','Leg_L','Leg_R','Knee_L','Knee_R','Barrel_L','Barrel_R']){const node=root.getObjectByName(name);if(node)this.joints.set(name,{node,rest:node.quaternion.clone()});}
@@ -45,8 +45,11 @@ export class BossRigAdapter {
   // It never creates a new reactor housing, ring, wheel, or persistent target surface.
   this.reactorFlash=new T.Mesh(new T.CircleGeometry(1,64),new T.MeshBasicMaterial({color:0xffefc8,transparent:true,opacity:0,side:T.DoubleSide,depthWrite:false,depthTest:true,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,toneMapped:false}));this.reactorFlash.name='MeasuredOvalReactor_ConfirmedDamageFlash';this.reactorFlash.visible=false;this.reactorFlash.renderOrder=8;scene.add(this.reactorFlash);
   for(const [id,name] of [['cannonL','Arm_L'],['cannonR','Arm_R'],['jetL','Pod_L'],['jetR','Pod_R'],['legL','Leg_L'],['legR','Leg_R']] as [BossRegionID,string][]){
-   const items:{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];colors:T.Color[];intensities:number[]}[]=[];
-   root.getObjectByName(name)?.traverse(o=>{if(!(o as T.Mesh).isMesh)return;const mesh=o as T.Mesh,original=mesh.material,materials=(Array.isArray(original)?original:[original]).map(m=>m.clone() as T.MeshStandardMaterial);mesh.material=Array.isArray(original)?materials:materials[0];items.push({mesh,original,materials,base:materials.map(m=>m.emissive?.clone()??new T.Color()),colors:materials.map(m=>m.color?.clone()??new T.Color()),intensities:materials.map(m=>m.emissiveIntensity??0)});});
+   const items:{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];colors:T.Color[];intensities:number[];hit:T.IUniform[]}[]=[];
+   root.getObjectByName(name)?.traverse(o=>{if(!(o as T.Mesh).isMesh)return;const mesh=o as T.Mesh,original=mesh.material,materials=(Array.isArray(original)?original:[original]).map(m=>m.clone() as T.MeshStandardMaterial);mesh.material=Array.isArray(original)?materials:materials[0];items.push({mesh,original,materials,base:materials.map(m=>m.emissive?.clone()??new T.Color()),colors:materials.map(m=>m.color?.clone()??new T.Color()),intensities:materials.map(m=>m.emissiveIntensity??0),hit:materials.map(m=>{
+    // The painted emissive atlas can be dark. A confirmed-hit wash must survive that texture.
+    const hit={value:0};m.onBeforeCompile=shader=>{shader.uniforms.mechPartHit=hit;shader.fragmentShader='uniform float mechPartHit;\n'+shader.fragmentShader.replace('#include <opaque_fragment>','outgoingLight = mix(outgoingLight, vec3(4.0), mechPartHit * 0.86);\n#include <opaque_fragment>');};m.customProgramCacheKey=()=> 'mech-confirmed-part-hit-v1';return hit;
+   })});});
    this.regionMaterials.set(id,items);
   }
  }
@@ -69,7 +72,7 @@ export class BossRigAdapter {
   for(const [id,items] of this.regionMaterials){
    const r=regions?.find(r=>r.id===id),flash=Math.max(0,(this.flashes.get(id)??0)-Math.max(0,dt));this.flashes.set(id,flash);
    const valid=visible&&r&&r.hp>0&&r.vulnerable,amount=visible&&r&&r.hp>0&&flash>0?flash/.24:valid?id===focus?.20+Math.sin(this.highlightClock*5)*.055:.045:0;
-   for(const item of items)for(let i=0;i<item.materials.length;i++){const m=item.materials[i];m.color?.copy(item.colors[i]);if(!m.emissive)continue;m.emissive.copy(item.base[i]);m.emissiveIntensity=item.intensities[i];if(amount>0){m.emissive.setHex(flash>0?0xffffff:0x68d6e8);m.emissiveIntensity=amount*(flash>0?2.8:1);if(flash>0)m.color?.lerp(new T.Color(0xffffff),Math.min(.82,amount*.82));}}
+   for(const item of items)for(let i=0;i<item.materials.length;i++){const m=item.materials[i];item.hit[i].value=visible&&r&&r.hp>0&&flash>0?Math.min(1,flash/.24):0;m.color?.copy(item.colors[i]);if(!m.emissive)continue;m.emissive.copy(item.base[i]);m.emissiveIntensity=item.intensities[i];if(amount>0){m.emissive.setHex(flash>0?0xffffff:0x68d6e8);m.emissiveIntensity=amount*(flash>0?2.8:1);if(flash>0)m.color?.lerp(new T.Color(0xffffff),Math.min(.82,amount*.82));}}
   }
   this.flashes.set('core',Math.max(0,(this.flashes.get('core')??0)-Math.max(0,dt)));
   if(visible)for(const r of regions??[]){

@@ -114,6 +114,7 @@ document.querySelector('#collect')!.addEventListener('click',()=>{start();seekPo
 document.querySelector('#part')!.addEventListener('click',()=>{start();replayUntil(s=>s.effects.some(e=>e.kind==='bossPartBreak'));});
 document.querySelector('#evade')!.addEventListener('click',()=>{start();replayUntil(s=>s.bossAction==='evade');});
 document.querySelector('#recovery')!.addEventListener('click',()=>{start();replayUntil(s=>(s.bossFiringWindow??0)>0);});
+document.querySelector('#grounded')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&(s.bossPartsMask&12)===12&&(s.bossPartsMask&48)!==48&&!!s.bossPose&&Math.abs(s.bossPose.leg[0])+Math.abs(s.bossPose.leg[1])>.14);});
 document.querySelector('#part-hit')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.bossZ<18&&s.effects.some(e=>e.kind==='hit'&&e.value>0&&typeof(e as typeof e&{hitRegion?:string}).hitRegion==='string'));});
 document.querySelector('#laser')!.addEventListener('click',()=>{start();replayUntil(s=>s.lasers.length>0);});
 document.querySelector('#arrival')!.addEventListener('click',()=>{start();replayUntil(s=>s.phase==='boss'&&s.bossZ<22&&s.bossZ>13);});

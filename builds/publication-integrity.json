@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-10-06T20:44:09.900915+00:00",
+  "scope": "File integrity of final browser build and saved WebGL captures. Captions distinguish partial normal play and internal replay. Not mobile performance or human acceptance.",
+  "coreSha256": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46",
+  "verifiedBuildFiles": 25,
+  "buildFilesMatch": true,
+  "totalManifestBytes": 12340593,
+  "proof": [
+    {
+      "file": "normal-zone-boundary.jpg",
+      "bytes": 32371,
+      "sha256": "f748bbecfcb50e56d67522d7d86a88591bc44961561084f0a74075c5bbd012c1"
+    },
+    {
+      "file": "review-barrage.jpg",
+      "bytes": 39403,
+      "sha256": "b088b8faec8bf3c560f55c905d721036bcbe198226aec0554ebfd5311d7e469c"
+    },
+    {
+      "file": "review-citadel.jpg",
+      "bytes": 34689,
+      "sha256": "6da93c268f03937b20d6a5456b63be77f4ce160ce469cfb38394d52f11463aa6"
+    },
+    {
+      "file": "review-clash-even.jpg",
+      "bytes": 20978,
+      "sha256": "7c2573d2110c755e376b8ace38e07e4c22f8639f118937e6a90f82a8170f7a04"
+    },
+    {
+      "file": "review-clash-pressure.jpg",
+      "bytes": 21103,
+      "sha256": "7fe5c4b9ff8d46f11885c2740d4146c359e84dd51fee1701a97ec8d678719578"
+    },
+    {
+      "file": "review-grounded-stride.jpg",
+      "bytes": 18776,
+      "sha256": "f603e0daf0c148ca2ec27def8f77e3c2465599ddcea661a54fa0deb020b4df9d"
+    },
+    {
+      "file": "review-part-hit.jpg",
+      "bytes": 22539,
+      "sha256": "d376534cf9e3df7831af6005cb94dc71167038a97736f1bb2867edc9dad18330"
+    },
+    {
+      "file": "review-trench.jpg",
+      "bytes": 34455,
+      "sha256": "9c8063d873fc1c0f27a6075525f824fafb48c2aa3841f2422c06449f58cce268"
+    }
+  ],
+  "receiptCoreClaims": {
+    "single-siege-native": "native-source-receipt",
+    "unbroken-campaign-audit": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46",
+    "player-target-route-audit": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46",
+    "rebuild-test-results": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46"
+  }
+}

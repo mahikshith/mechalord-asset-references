@@ -15,6 +15,7 @@ assets/**/meshy_output/**
 *.keystore
 *.jks
 tools/vendor/
+delivery/reference-hosting/
 tools/asset-viewer/node_modules/
 *.blend1
 *.blend2

@@ -1,0 +1,145 @@
+{
+  "timestamp": "2026-10-06T03:22:08.2430863Z",
+  "scope": "Read-only standard local toolchain discovery. Does not launch Unreal, compile, install, update SDKs, or validate a device.",
+  "engineRoot": "C:\\Program Files\\Epic Games\\UE_5.8",
+  "engineVersion": {
+    "MajorVersion": 5,
+    "MinorVersion": 8,
+    "PatchVersion": 3,
+    "Changelist": 58210709,
+    "CompatibleChangelist": 55116800,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.8"
+  },
+  "editorExists": true,
+  "engineWindowsRequirements": {
+    "MainVersion": "10.0.22621.0",
+    "MinVersion": "10.0.19041.0",
+    "MaxVersion": "10.9.99999.0",
+    "MinSoftwareVersion": "10.0.19041.0",
+    "PreferredClangVersions": [
+      "20.1.8-20.999",
+      "20.1.0-20.1.7",
+      "19.1.0-19.999",
+      "18.1.8-18.999"
+    ],
+    "MinimumClangVersion": "18.1.8",
+    "//01.1": "this is a strange format, but instead of a version range, this maps min clang version for each MSVC version",
+    "//01.2": "14.44 = VS2022 17.14.x -> clang 19",
+    "//01.3": "14.42 = VS2022 17.12.x -> clang 18",
+    "//01.4": "14.40 = VS2022 17.10.x -> clang 17",
+    "//01.5": "14.37 = VS2022 17.7.x-17.9.x -> clang 16",
+    "MinimumRequiredClangVersion": [
+      "14.44-19",
+      "14.42-18",
+      "14.40-17",
+      "14.37-16"
+    ],
+    "//02.1": "Version number is the MSVC family, which is the version in the Visual Studio folder",
+    "//02.2": "14.50.35717-14.50.99999 = VS2026 18.0",
+    "//02.3": "14.44.35207-14.44.99999 = VS2022 17.14",
+    "PreferredVisualCppVersions": [
+      "14.50.35717-14.50.99999",
+      "14.44.35207-14.44.99999"
+    ],
+    "//03.1": "14.50.35717 -- VS2026 18.0.0 - 18.2.0: Internal compiler errors. Resolved with 14.50.35723",
+    "//03.2": "14.44.35207 -- VS2022 17.14.0 - 17.4.3: Template compile error. Resolved with 14.44.35211",
+    "//03.3": "14.40.x -- VS2022 17.10.0: Codegen issue causes runtime crash for AVX/2/512. 17.10.x: PGO optimize issue causes runtime crash",
+    "//03.4": "14.39.x -- VS2022 17.9.0 - 17.9.3: Internal compiler errors. 17.9.x: Codegen issue causes runtime crash for AVX/2/512",
+    "BannedVisualCppVersions": [
+      "14.50.0-14.50.35722",
+      "14.44.0-14.44.35210",
+      "14.40.0-14.43.99999",
+      "14.39.0-14.39.99999"
+    ],
+    "MinimumVisualCppVersion": "14.38.33130",
+    "PreferredIntelOneApiVersions": [
+      "2026.0.0-2026.0.9999"
+    ],
+    "MinimumIntelOneApiVersion": "2026.0.0",
+    "VisualStudioSuggestedComponents": [
+      "Microsoft.Net.Component.4.6.2.TargetingPack",
+      "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+      "Microsoft.VisualStudio.Component.Windows11SDK.22621",
+      "Microsoft.VisualStudio.Component.VC.Llvm.Clang",
+      "Microsoft.VisualStudio.Workload.CoreEditor",
+      "Microsoft.VisualStudio.Workload.ManagedDesktop",
+      "Microsoft.VisualStudio.Workload.NativeDesktop",
+      "Microsoft.VisualStudio.Workload.NativeGame",
+      "Component.Unreal.Ide",
+      "Component.Unreal.Debugger"
+    ],
+    "VisualStudioSuggestedLinuxComponents": [
+      "Microsoft.VisualStudio.Workload.NativeCrossPlat"
+    ],
+    "//04.1": "Microsoft.VisualStudio.Component.VC.14.44.17.14.x86.x64 -- Only LTSC versions of MSVC should be suggested",
+    "//04.2": "Microsoft.VisualStudio.Component.VC.14.44.17.14.ATL -- Match version of MSVC",
+    "VisualStudio2022SuggestedComponents": [
+      "Microsoft.VisualStudio.Component.VC.14.44.17.14.x86.x64",
+      "Microsoft.VisualStudio.Component.VC.14.44.17.14.ATL"
+    ],
+    "//05.1": "Microsoft.VisualStudio.Component.VC.14.50.18.0.x86.x64 -- Only LTSC versions of MSVC should be suggested",
+    "//05.2": "Microsoft.VisualStudio.Component.VC.14.50.18.0.ATL -- Match version of MSVC",
+    "VisualStudio2026SuggestedComponents": [
+      "Microsoft.VisualStudio.Component.VC.14.50.18.0.x86.x64",
+      "Microsoft.VisualStudio.Component.VC.14.50.18.0.ATL"
+    ],
+    "MinimumVisualStudio2022Version": "17.8",
+    "MinimumVisualStudio2026Version": "18.0",
+    "//06.1": "X64 -- 0xA00 = Win10",
+    "//06.2": "Arm64 -- 0xA00 = Win10",
+    "MinimumWindowsX64TargetVersion": "0xA00",
+    "MinimumWindowsArm64TargetVersion": "0xA00",
+    "IncludeSDKFile": "$(EngineDir)/Config/Microsoft/GDK_SDK.json"
+  },
+  "engineAndroidRequirements": {
+    "MainVersion": "r27c",
+    "MinVersion": "r27c",
+    "MaxVersion": "r29",
+    "AutoSDKDirectory": "-28",
+    "platforms": "android-36",
+    "build-tools": "36.0.0",
+    "cmake": "3.22.1",
+    "ndk": "27.2.12479018"
+  },
+  "visualStudioDiscovery": [],
+  "visualStudioStandardDirs": [],
+  "windowsSdkIncludes": [],
+  "windowsSdkLibs": [],
+  "androidSdkRoot": "C:\\Users\\mahik\\AppData\\Local\\Android\\Sdk",
+  "androidPlatforms": [
+    "android-36"
+  ],
+  "androidBuildTools": [
+    "36.0.0"
+  ],
+  "androidNdkVersions": [],
+  "androidCommandLineTools": [
+    "19.0"
+  ],
+  "adbExists": true,
+  "commands": [],
+  "environment": {
+    "ANDROID_HOME": null,
+    "JAVA_HOME": null,
+    "UE_SDKS_ROOT": null,
+    "ANDROID_SDK_ROOT": null
+  },
+  "nativeModuleDlls": [],
+  "nativeMaps": [],
+  "workshopMaps": [
+    "C:\\Users\\mahik\\Desktop\\mechalord\\game\\MechalordArtLab\\Content\\MechalordArtLab\\Maps\\L_ForgeWorkshop.umap",
+    "C:\\Users\\mahik\\Desktop\\mechalord\\game\\MechalordArtLab\\Content\\MechalordArtLab\\Recovery\\L_ForgeWorkshop_BeforeAnimation_20261004_204334_332530.umap",
+    "C:\\Users\\mahik\\Desktop\\mechalord\\game\\MechalordArtLab\\Content\\MechalordArtLab\\Recovery\\L_ForgeWorkshop_BeforeBeamRefine_20261004_205903_937082.umap",
+    "C:\\Users\\mahik\\Desktop\\mechalord\\game\\MechalordArtLab\\Content\\MechalordArtLab\\Recovery\\L_ForgeWorkshop_BeforeBeamRefine_20261004_210426_043629.umap",
+    "C:\\Users\\mahik\\Desktop\\mechalord\\game\\MechalordArtLab\\Content\\MechalordReforged\\Maps\\L_CoreCitadel.umap",
+    "C:\\Users\\mahik\\Desktop\\mechalord\\game\\MechalordArtLab\\Content\\MechalordReforged\\Maps\\L_ReactorTrench.umap",
+    "C:\\Users\\mahik\\Desktop\\mechalord\\game\\MechalordArtLab\\Content\\MechalordReforged\\Maps\\L_ReforgedAtelier.umap",
+    "C:\\Users\\mahik\\Desktop\\mechalord\\game\\MechalordArtLab\\Content\\MechalordReforged\\Maps\\L_SkyforgeViaduct.umap"
+  ],
+  "limitations": [
+    "Nonstandard compiler installations may need explicit discovery. A successful real target build remains definitive.",
+    "No native adapter, Android package or performance acceptance is inferred from these paths."
+  ]
+}

@@ -14,7 +14,7 @@ The user prefers established Iron Front characters/combat over the Reforged repl
 | Verify target part highlights | Confirmed positive-damage event flashes its exact whole component white, independently of the quieter next-vulnerable-part cue. Core flash fits its oval face. | `boss-rig-adapter.ts`, `world.ts` |
 | One nonrepetitive level / one boss | One 51-event, 198-second approach with seamless viaduct/trench/citadel zones, then one Tyrant and one reward. Upcoming scenery appears before boundaries. | `CampaignEncounters.h`, `continuous-route-environment.ts`, `main.ts` |
 
-These are implementation facts. Automated checks do not establish user aesthetic acceptance, addictive play or commercial readiness.
+These are implementation facts. Automated checks do not establish user aesthetic acceptance, addictive play or commercial readiness. Live capture exposed a pause visibility bug: the world previously hid hero beams, the clash front and part cues on pause. The final renderer now preserves them with zero elapsed effect time. The clash annulus also gained shallow depth and thicker separated discharges after the first phone-scale capture showed poor readability.
 
 ## Exact combat and route contract
 
@@ -22,7 +22,7 @@ Campaign index 5 is the default Iron March; indices 0–4 remain standalone prac
 
 Zone markers preserve enemies, shots, pickups, formation, health, weapon progress and relic timers. `actStart` is a cue, never a world reset. HUD progress is global `travelDistance / travelGoal`; `actProgress` is only the local zone fraction. Only final core destruction opens the single absorption choice. Choosing one Laser / Vitality / Endurance imprint saves a replacement benefit for the next assault and ends the run; no further boss is spawned.
 
-The final Tyrant has base armor 3,200 and core HP 900. Parts determine available attacks and mobility. Grounded speed limits with two legs: 2.7 lateral / 2.16 depth units per second; one leg: 1.45 / 1.16. It plants during locked attacks. Broken boosters do not regain booster evasion. Whole-part flashes require a real positive hit; targeting guidance does not make other vulnerable parts invulnerable.
+The final Tyrant has base armor 3,200 and core HP 900. Parts determine available attacks and mobility. Grounded speed limits with two legs: 2.7 lateral / 2.16 depth units per second; one leg: 1.45 / 1.16. It plants during locked attacks. Broken boosters do not regain booster evasion. Whole-part flashes use a texture-independent shader wash so the painted emissive atlas cannot mute them; no per-hit shader recompilation is required. Whole-part flashes require a real positive hit; targeting guidance does not make other vulnerable parts invulnerable.
 
 **Barrage**, relic slot 2, immediately fires a pair and then pairs every 0.56 seconds. Base budget is 18 rockets over five seconds; Endurance extends to 5.75 seconds / 22 rockets. Slot/ABI remains stable; C++ `Overdrive` is only an enum alias. Ordinary bullets keep their existing damage and cadence. The independent six-rocket Salvo pickup remains.
 
@@ -81,7 +81,7 @@ Current asset: `assault.281386d8b075f499.wasm`. Consult the manifest for exact H
 
 Native focused fixture: 130 assertions for timeline ordering/distinctness, seamless zones, one reward, real rockets, no legacy multipliers, immutable targeting, pause/retry, grounded gait and frame-rate agreement. Shield/finite-beam regression: 41 checks. Shipping-adapter routes/checks use the canonical SHA above, recorded in `builds/unbroken-campaign-audit.json`, `player-target-route-audit.json` and assault receipt.
 
-CPU renderer checks include 16 relic groups, 7 beam-pressure groups, 19 combat-presentation groups, 11 commander-power groups, 64 combat-visual groups, 10 unbroken-render groups, 9 boss-adapter groups and 12 unbroken-presentation groups. They inspect real geometry/transforms/lifecycle but do not establish rendered appearance. The 16 UI groups use a mocked core; they check controls, menu, save/reward/retry and global route progress, not actual damage. Environment checks inspect 6.1 million transformed vertices and 3,000 bounded updates, clearance, pause and disposal.
+CPU renderer checks include 16 relic groups, 7 beam-pressure groups, 19 combat-presentation groups, 11 commander-power groups, 64 combat-visual groups, 11 unbroken-render groups, 9 boss-adapter groups and 12 unbroken-presentation groups. They inspect real geometry/transforms/lifecycle but do not establish rendered appearance. The 16 UI groups use a mocked core; they check controls, menu, save/reward/retry and global route progress, not actual damage. Environment checks inspect 6.1 million transformed vertices and 3,000 bounded updates, clearance, pause and disposal.
 
 Self-bundling visual/UI tests can run directly, for example:
 
