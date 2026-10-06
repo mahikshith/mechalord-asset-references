@@ -1,5 +1,5 @@
 {
-  "sha256": "80b87ff77cc580cd0ee2b483179bd504b30a944530885e9b1c055df70a492209",
+  "sha256": "25372dd2fce936a11272e2aacea1d88d1ce60510e2e2ecc755b559278f84b6da",
   "abi": 5,
   "checks": [
     {
@@ -108,9 +108,9 @@
       "rank": 0,
       "strategy": "endurance and late sacrifice",
       "phase": "won",
-      "seconds": 574.3666381835938,
+      "seconds": 553.8666381835938,
       "act": 2,
-      "hp": 100,
+      "hp": 80,
       "army": 1,
       "acts": [
         {
@@ -129,9 +129,9 @@
         },
         {
           "act": 2,
-          "time": 574.3666381835938,
-          "bossSeconds": 119.9166259765625,
-          "hp": 100,
+          "time": 553.8666381835938,
+          "bossSeconds": 99.4166259765625,
+          "hp": 80,
           "army": 1
         }
       ],
@@ -147,7 +147,7 @@
         4
       ],
       "maxTargets": 22,
-      "frames": 34463,
+      "frames": 33233,
       "roles": {
         "1": {
           "births": 6,
@@ -162,7 +162,7 @@
         "2": {
           "births": 3,
           "minZ": 2.0958333015441895,
-          "tells": 216,
+          "tells": 234,
           "skillFrames": 120,
           "fires": 0,
           "contacts": 0,
@@ -196,10 +196,10 @@
       "rank": 3,
       "strategy": "vitality and pickup recovery",
       "phase": "won",
-      "seconds": 438.8500061035156,
+      "seconds": 427.1833190917969,
       "act": 2,
       "hp": 115,
-      "army": 15,
+      "army": 1,
       "acts": [
         {
           "act": 0,
@@ -210,17 +210,17 @@
         },
         {
           "act": 1,
-          "time": 267.95001220703125,
-          "bossSeconds": 59.38334655761719,
+          "time": 267.1166687011719,
+          "bossSeconds": 58.55000305175781,
           "hp": 110,
           "army": 31
         },
         {
           "act": 2,
-          "time": 438.8500061035156,
-          "bossSeconds": 68.89999389648438,
+          "time": 427.1833190917969,
+          "bossSeconds": 58.066650390625,
           "hp": 115,
-          "army": 15
+          "army": 1
         }
       ],
       "clashes": 2,
@@ -235,11 +235,11 @@
         4
       ],
       "maxTargets": 20,
-      "frames": 26332,
+      "frames": 25632,
       "roles": {
         "1": {
           "births": 6,
-          "minZ": 4.474999904632568,
+          "minZ": 7.503333568572998,
           "tells": 0,
           "skillFrames": 0,
           "fires": 0,
@@ -260,9 +260,9 @@
         "3": {
           "births": 3,
           "minZ": 8.968125343322754,
-          "tells": 99,
-          "skillFrames": 22,
-          "fires": 3,
+          "tells": 156,
+          "skillFrames": 44,
+          "fires": 6,
           "contacts": 0,
           "supports": 0,
           "shieldBreaks": 0
@@ -284,10 +284,10 @@
       "rank": 3,
       "strategy": "endurance and late sacrifice",
       "phase": "won",
-      "seconds": 462.5333251953125,
+      "seconds": 405.29998779296875,
       "act": 2,
-      "hp": 115,
-      "army": 9,
+      "hp": 107,
+      "army": 30,
       "acts": [
         {
           "act": 0,
@@ -298,22 +298,22 @@
         },
         {
           "act": 1,
-          "time": 267.95001220703125,
-          "bossSeconds": 59.38334655761719,
+          "time": 267.1166687011719,
+          "bossSeconds": 58.55000305175781,
           "hp": 110,
           "army": 31
         },
         {
           "act": 2,
-          "time": 462.5333251953125,
-          "bossSeconds": 92.58331298828125,
-          "hp": 115,
-          "army": 9
+          "time": 405.29998779296875,
+          "bossSeconds": 36.183319091796875,
+          "hp": 107,
+          "army": 30
         }
       ],
       "clashes": 2,
       "wins": 2,
-      "heals": 14,
+      "heals": 15,
       "shieldBreaks": 22,
       "revives": 0,
       "archetypes": [
@@ -323,11 +323,11 @@
         4
       ],
       "maxTargets": 20,
-      "frames": 27753,
+      "frames": 24319,
       "roles": {
         "1": {
           "births": 6,
-          "minZ": 4.474999904632568,
+          "minZ": 7.503333568572998,
           "tells": 0,
           "skillFrames": 0,
           "fires": 0,
@@ -348,9 +348,9 @@
         "3": {
           "births": 3,
           "minZ": 8.968125343322754,
-          "tells": 117,
-          "skillFrames": 22,
-          "fires": 3,
+          "tells": 156,
+          "skillFrames": 44,
+          "fires": 6,
           "contacts": 0,
           "supports": 0,
           "shieldBreaks": 0
@@ -358,8 +358,8 @@
         "4": {
           "births": 3,
           "minZ": 10.74233341217041,
-          "tells": 222,
-          "skillFrames": 4,
+          "tells": 350,
+          "skillFrames": 3,
           "fires": 12,
           "contacts": 0,
           "supports": 1,

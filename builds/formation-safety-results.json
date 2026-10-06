@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T20:25:49.309Z",
+  "timestamp": "2026-10-06T19:36:10.450Z",
   "scope": "Standalone C++ admission helper; not yet integrated into Battle",
   "exitCode": 0,
   "tests": [
@@ -28,8 +28,8 @@
     "PASS independent swept physical oracle\r"
   ],
   "metrics": [
-    "METRIC workspace_bytes=81928 maximum_query_ms=5.462 bins=720\r",
-    "METRIC saturated_query_ms=2.656 pair_checks=65536\r",
+    "METRIC workspace_bytes=81928 maximum_query_ms=1.357 bins=720\r",
+    "METRIC saturated_query_ms=0.670 pair_checks=65536\r",
     "METRIC independently_checked_stationary_certificates=42\r"
   ],
   "summary": "RESULT 23/23 passed"

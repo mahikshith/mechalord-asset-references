@@ -1,11 +1,11 @@
 {
-  "verifiedAt": "2026-10-06T18:31:21.150Z",
+  "verifiedAt": "2026-10-06T19:54:24.260Z",
   "status": "passed",
-  "groups": 15,
+  "groups": 16,
   "scope": "Actual main.ts and audio.ts modules; deterministic DOM/storage/audio doubles and simulated combat boundary. Does not measure rendered graphics, native combat balance or a physical phone.",
   "sourceHashes": {
-    "main.ts": "5bd8fcd6768c12881a470d2a3ec12e7d7007e813fe6b5f0e9da83578461825ed",
-    "audio.ts": "140df1a1f2d19c586820d84131a03c8ebf6f889f83bb39b94b662abeec60e625",
+    "main.ts": "5541a1eb29b7eaef86ab019f0701ca4a93bb98c0fdd5193f710a4e893eb69402",
+    "audio.ts": "44404ba23653873bb38f28764d1795027fedd65b4eeac3b979ad7726dbff433c",
     "index.html": "64c83efe6fb8cd2dfe4382eb95ed47a36bdc50353e0416af1de17f1b0a955376",
     "style.css": "55d39c79c7c23d9265d94384560ef6e48628c25db9d09ff5ca920b5da7fcd9ae",
     "chapter-catalog.ts": "1f15f65ee36540e7c6c5806a61a99292afbda18610adba51aedf663621e25f80"
@@ -21,6 +21,7 @@
     "five practice fronts plus continuous campaign",
     "finite power and boss evasion cues",
     "all relics, laser clash inputs, pause, reward continuation, revival and aim side",
+    "delayed absorption commit, pause/cancel, visible clash timing and fixed gates",
     "menu announcement cleanup without save mutation",
     "practice selector and campaign versus equipped relic availability",
     "one final legacy imprint, persistence, replace semantics and practice isolation",

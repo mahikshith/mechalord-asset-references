@@ -2,15 +2,15 @@
   "schema": 4,
   "scope": "Actual continuous-travel Assault browser adapter/current WASM. Automated normal controls; no Unreal, physical-device or first-time-player validation.",
   "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
-  "bytes": 1881269,
-  "sha256": "80b87ff77cc580cd0ee2b483179bd504b30a944530885e9b1c055df70a492209",
+  "bytes": 1891734,
+  "sha256": "3b16f22bf4dcfdabe9d9c9fed078ab4abc0632d891ec76ed933ec437c0d7eb0a",
   "memoryBytes": 1376256,
-  "testedAt": "2026-10-06T18:32:49.070Z",
+  "testedAt": "2026-10-06T19:54:49.088Z",
   "winningRuns": [
     {
       "level": 0,
       "relic": 0,
-      "time": 174.78334045410156,
+      "time": 174.5,
       "army": 1,
       "weapon": 4,
       "kills": 72,
@@ -70,7 +70,7 @@
     {
       "level": 1,
       "relic": 0,
-      "time": 106.18333435058594,
+      "time": 105.91666412353516,
       "army": 112,
       "weapon": 4,
       "kills": 109,
@@ -121,8 +121,8 @@
     {
       "level": 2,
       "relic": 0,
-      "time": 119.36666870117188,
-      "army": 136,
+      "time": 118.8499984741211,
+      "army": 148,
       "weapon": 4,
       "kills": 123,
       "commanderHp": 100,
@@ -182,9 +182,9 @@
       "firstDangerousVolley": 13.333333015441895,
       "maxRunnerShotGap": 15.933330535888672,
       "runnerShots": 22,
-      "bossShots": 33,
-      "actualDamageEvents": 22,
-      "time": 174.78334045410156,
+      "bossShots": 31,
+      "actualDamageEvents": 21,
+      "time": 174.5,
       "admitted": 25,
       "deferred": 84,
       "unsupported": 3,
@@ -324,7 +324,7 @@
       "status": "pass"
     },
     {
-      "name": "Shield absorption has its own exact actual-hit events and EMP does not impersonate them",
+      "name": "Shield absorption has exact plate or body-contact events and EMP does not impersonate them",
       "status": "pass"
     },
     {

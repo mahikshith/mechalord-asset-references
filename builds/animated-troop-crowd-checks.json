@@ -1,0 +1,82 @@
+{
+  "scope": "CPU verification on exact retained troop and commander GLBs: transferred skin weights, baked real Run/Idle deformation, shader injection, shadows, pooling, casualty counts, pause, ownership. Normal playable WebGL validation remains mandatory and is not proven by these checks.",
+  "passed": 12,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "accepted troop topology, UVs, and source assets are preserved; weights match the retained commander surface",
+      "pass": true
+    },
+    {
+      "name": "real retained skin gait moves legs and arms independently, not a rigid mesh bob",
+      "pass": true
+    },
+    {
+      "name": "left and right gait banks contain different actual leg placement, not merely a rotated forward Run",
+      "pass": true
+    },
+    {
+      "name": "marching enables pose deformation on all real units with staggered phases",
+      "pass": true
+    },
+    {
+      "name": "sideways movement independently triggers real gait; stationarity blends into armed Idle",
+      "pass": true
+    },
+    {
+      "name": "pause freezes every per-instance matrix and pose frame",
+      "pass": true
+    },
+    {
+      "name": "held clashes, rewards and revival freeze gait frames, blends and stance despite elapsed render time",
+      "pass": true
+    },
+    {
+      "name": "casualties remove real displayed slots and retain survivor animation without cosmetic respawning",
+      "pass": true
+    },
+    {
+      "name": "shadow and lit shaders read the same real animation atlas; normals deform with the surface",
+      "pass": true
+    },
+    {
+      "name": "baked foot surfaces never sink beneath the road and remain inside published camera bounds",
+      "pass": true
+    },
+    {
+      "name": "3000 updates/retries retain one fixed instanced geometry, two pose textures, and bounded slots",
+      "pass": true
+    },
+    {
+      "name": "cleanup releases only owned crowd resources and leaves original troop assets untouched",
+      "pass": true
+    }
+  ],
+  "transfer": {
+    "maxDistance": 0.03120781162255002,
+    "meanDistance": 0.005464485659600738,
+    "vertices": 4582,
+    "sourceVertices": 14793
+  },
+  "stats": {
+    "visible": 0,
+    "poses": 0,
+    "capacity": 64,
+    "drawBatches": 1,
+    "vertices": 4582,
+    "triangles": 3980,
+    "frames": 84,
+    "atlasBytes": 6193152,
+    "transfer": {
+      "maxDistance": 0.03120781162255002,
+      "meanDistance": 0.005464485659600738,
+      "vertices": 4582,
+      "sourceVertices": 14793
+    }
+  },
+  "bakeMilliseconds": 485.76160000000004,
+  "legMotionMetres": 0.6933332955465904,
+  "armMotionMetres": 0.2637429600720735,
+  "lateralLegMotionMetres": 0.399169921875,
+  "generatedAt": "2026-10-06T19:32:18.345Z"
+}

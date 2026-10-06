@@ -1,0 +1,141 @@
+{
+  "sourceCheckpoint": "89d971a",
+  "url": "http://127.0.0.1:8077/playable/index.html",
+  "finalBuild": {
+    "builtAt": "2026-10-06T19:54:14.924Z",
+    "coreAsset": "assault.3b16f22bf4dcfdab.wasm",
+    "coreSha256": "3b16f22bf4dcfdabe9d9c9fed078ab4abc0632d891ec76ed933ec437c0d7eb0a",
+    "files": {
+      "assault.3b16f22bf4dcfdab.wasm": {
+        "bytes": 1891734,
+        "sha256": "3b16f22bf4dcfdabe9d9c9fed078ab4abc0632d891ec76ed933ec437c0d7eb0a"
+      },
+      "game.js": {
+        "bytes": 865825,
+        "sha256": "3e3b5295bf853295134035531c91d6c3c2aaed6987f760c917265758604cc798"
+      },
+      "review.js": {
+        "bytes": 843100,
+        "sha256": "436b350fa4213ab4ea79700c6054d1929efec2c7d8917eff9902fedcf9d169ef"
+      },
+      "index.html": {
+        "bytes": 9425,
+        "sha256": "402c1de0b6b4e39cfb38e034a81a5fa2fb95ced355dc7d73580d2e95bb1b6819"
+      },
+      "review.html": {
+        "bytes": 5101,
+        "sha256": "3f9905eaf37a579afb26663e73fda2fb180dfad53d5b6b3bbeee6ffdd29357c8"
+      },
+      "style.css": {
+        "bytes": 30396,
+        "sha256": "55d39c79c7c23d9265d94384560ef6e48628c25db9d09ff5ca920b5da7fcd9ae"
+      },
+      "commander.glb": {
+        "bytes": 2383864,
+        "sha256": "cc91ac91ceb2459e7080d5e5b9c52fd6cf9a695f0d4ccf611ba4c956e2d1102b"
+      },
+      "troop.glb": {
+        "bytes": 1642908,
+        "sha256": "60e40de578ae3b385ed3902ab53b69a96ce7063d25d076a487d46278e1677ff8"
+      },
+      "crawler.glb": {
+        "bytes": 894576,
+        "sha256": "ee4b7d37cc7fd84d9ed7c3e8f976d0ccb97e9643c81829144b9140d9dbc5a340"
+      },
+      "cinder-reaver.glb": {
+        "bytes": 692172,
+        "sha256": "f1034ad79d3d9ec13990963d3ecb496a616da1d7b10287eb8e4e183eddc4ee8d"
+      },
+      "forge-tyrant.glb": {
+        "bytes": 1041540,
+        "sha256": "1d158ca4de14fbec5e2ba2eb53bdf3f8e787be30937fba90d7b70c03b0f7e73b"
+      },
+      "environment/CoolingStack.glb": {
+        "bytes": 108380,
+        "sha256": "ddb52830dca176b25a9588f9a7b221980720fa43f417bd708144462b2fa53ba4"
+      },
+      "environment/ReactorBank.glb": {
+        "bytes": 100884,
+        "sha256": "4cc8b87c9c24329739f8c3a271bb3710fc348ddbe96957d50e6fcbe225f5d1a7"
+      },
+      "environment/ArticulatedServiceArm.glb": {
+        "bytes": 177776,
+        "sha256": "37046d56e7849d4a63146db071b3f6cb746c4752b87b05f04288f833256122c4"
+      },
+      "environment/CitadelSpire.glb": {
+        "bytes": 18112,
+        "sha256": "0c9049047c0f30b4df6c7049ca44c4e977804842576984a94b37ec62cc518019"
+      },
+      "environment/DistantFoundryWorks.glb": {
+        "bytes": 206492,
+        "sha256": "fe9a992735341a5a569ef485aaaf8529d508ae1ad1f696cc9a5b632ba748f388"
+      },
+      "environment/DistantTransferGallery.glb": {
+        "bytes": 87444,
+        "sha256": "13c0e8556d26498ecaa258d06243a331f07773e2365689b965e8ecbfeb169387"
+      }
+    }
+  },
+  "earlierFollowupCoreSha256": "25372dd2fce936a11272e2aacea1d88d1ce60510e2e2ecc755b559278f84b6da",
+  "scope": "CUA screenshots from normal index.html using ordinary input. No review-controller or hidden-state injection. Captures are sampled observations, not a complete manually controlled campaign.",
+  "serverMatchesFinalManifest": true,
+  "remainingLiveChecks": [
+    "Controlled reward choice and 1.2-second transfer",
+    "Player-triggered clash victory",
+    "Full normal campaign, final imprint and reload",
+    "Real audible mix",
+    "Nothing Phone (3)"
+  ],
+  "captures": {
+    "normal-live-walking.gif": {
+      "caption": "24 unmodified normal-game frames over 850ms; final build. Actual marching, not a performance benchmark.",
+      "bytes": 3134878,
+      "sha256": "226b60b58255ab8ce9e5e4aaa1be288d46fd406a12eab562861f393ddb0907c1"
+    },
+    "final-shield-live.jpg": {
+      "caption": "Final build. Normal Shield button activation with army 34. Does not establish a live beam-versus-shield collision.",
+      "bytes": 37492,
+      "sha256": "7e3644cf66011bbc23526c11513c54d35d936ad1dfb3b4fc183ac40c8bde80f8"
+    },
+    "normal-shield.jpg": {
+      "caption": "Earlier follow-up build. Normal Shield activation, army 38.",
+      "bytes": 39829,
+      "sha256": "e6d0104da9f2892bfceac7ae1ec1e32e334f18070642a73415096cee03216ae2"
+    },
+    "normal-emp.jpg": {
+      "caption": "Earlier follow-up build. Normal EMP activation, army 56.",
+      "bytes": 36932,
+      "sha256": "60f876054e653580f060b4ffda22bca4179cce665cf8ea23a8f541d3a702d7ea"
+    },
+    "normal-revive-choice.jpg": {
+      "caption": "Earlier follow-up build. Explicit revival offer at zero commander HP, army 54.",
+      "bytes": 30287,
+      "sha256": "404687484be68c9451dd8c7c2501cea5f7ac4e1abc3c39a53cc2e4f219cf3c01"
+    },
+    "normal-revival.jpg": {
+      "caption": "Earlier follow-up build. Normal UI-triggered reboot, army reduced to 42.",
+      "bytes": 33765,
+      "sha256": "bfee76a2c5ea4075a3133fab888fc00bf649f99e16fff6706fc5fa321129fe9d"
+    },
+    "normal-walking-01.jpg": {
+      "caption": "Earlier follow-up build. Normal marching, 14 troops.",
+      "bytes": 28528,
+      "sha256": "177d28fda416d69153f7ecc894ee9572d58a6524a0cbd9a8b7b23a7ac35c8c7c"
+    },
+    "normal-walking-02.jpg": {
+      "caption": "Earlier follow-up build. Normal marching and casualties/recruitment, 21 troops.",
+      "bytes": 34342,
+      "sha256": "5d23a55b8d887b8e7de09af21ff56d6d366bce2e703b6b0730395f3419d20403"
+    },
+    "normal-act2-after-transfer.jpg": {
+      "caption": "Earlier follow-up build. Act two after actual manual life transfer; not a boss core or reward-choice screenshot.",
+      "bytes": 33749,
+      "sha256": "8bb5b6e19b595902ad283dc7ee6544d2ee0c0bc38ba5689309f5d3a515a3688d"
+    },
+    "normal-act3-live.jpg": {
+      "caption": "Earlier follow-up build. Act three, commander HP 102/135. Does not capture reward choice or absorption.",
+      "bytes": 28645,
+      "sha256": "6f3b52cd083c00173ada4cc89e61374082e3e0865b5fdf44630736c747dccb8e"
+    }
+  }
+}

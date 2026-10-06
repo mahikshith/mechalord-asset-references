@@ -1,0 +1,11 @@
+{
+  "scope": "Focused production-method projectile and beam interception, finite-beam clash, and EMP duration fixtures",
+  "checks": 41,
+  "result": "passed",
+  "sourceSha256": "860e4ebb8162ae2cc18fc786bbc6b74a6934d8a80381ba14a2ed8dda0646468d",
+  "headerSha256": "0735547bbd0f29d0fd55dbb24828660887c0af7c6a757d8ff7850b8223d4de09",
+  "verification": "Native production-source fixtures; final canonical WASM rebuilt from unchanged checked source and passed 71 combat checks plus two first-target public routes. Browser beam-contact capture remains open.",
+  "command": "tools/vendor/zig-x86_64-windows-0.17.0/zig.exe c++ -std=c++17 -O2 -Igame/Mechalord/Source/Mechalord game/Mechalord/Source/Mechalord/AssaultSimulation.cpp tools/playable-preview/test_shield_interception.cpp -o builds/shield-interception-test.exe",
+  "output": "41 focused shield / EMP checks passed.",
+  "canonicalCoreSha256": "3b16f22bf4dcfdabe9d9c9fed078ab4abc0632d891ec76ed933ec437c0d7eb0a"
+}

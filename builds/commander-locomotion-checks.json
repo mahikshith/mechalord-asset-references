@@ -1,0 +1,63 @@
+{
+  "scope": "Actual retained commander GLB skin vertex regression for ordinary locomotion adapter. CPU checks are not proof of normal-game WebGL appearance.",
+  "passed": 6,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "ordinary locomotion drives the actual retained skin rather than merely changing the parent transform",
+      "pass": true
+    },
+    {
+      "name": "left and right commands alter real leg placement with identical camera and root transforms",
+      "pass": true
+    },
+    {
+      "name": "zero dt freezes actual skin matrices, pose phase and blend even when controls change",
+      "pass": true
+    },
+    {
+      "name": "held combat settles without accumulating additive rotations and idle remains bounded",
+      "pass": true
+    },
+    {
+      "name": "repeated reset restores the same actual Idle skin and does not compound old recoil or strafing",
+      "pass": true
+    },
+    {
+      "name": "full Run, left/right side gait and maximum recoil remain inside the published camera envelope",
+      "pass": true
+    }
+  ],
+  "measurements": {
+    "legMotion": 0.3782279374996397,
+    "armMotion": 0.1763510372120043,
+    "lateralLegMotion": 0.2641606889138326,
+    "heldIdleDrift": 0,
+    "envelopeOverflowMetres": 0
+  },
+  "observedBounds": {
+    "min": [
+      -0.8527373671531677,
+      -0.07327642291784286,
+      -0.6253743767738342
+    ],
+    "max": [
+      0.8631342053413391,
+      1.9006924629211426,
+      0.5969348549842834
+    ]
+  },
+  "publishedEnvelope": {
+    "min": [
+      -0.888855192185811,
+      -0.09355466327227926,
+      -0.6647091204165669
+    ],
+    "max": [
+      0.8989580896428685,
+      1.940030654849151,
+      0.6364647609956025
+    ]
+  },
+  "generatedAt": "2026-10-06T19:32:17.234Z"
+}

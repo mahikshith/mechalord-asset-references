@@ -13,24 +13,24 @@ Shared simulation fields are agreed before dependent integration. Presentation c
 
 ## Requested changes and acceptance
 
-Checked items below mean implemented and covered by the recorded prototype checks. They do not replace the user's visual acceptance, first-time-player observations or physical-phone validation. See `unbroken-campaign-results.md` for results and remaining limits.
+Status below distinguishes technical implementation from acceptance. This plan previously marked every item checked; that overstated completion. See `gameplay-truth-audit.md` for the normal-player versus review-harness distinction and `unbroken-campaign-results.md` for preserved historical evidence.
 
-- [x] 1. Replace curved shield bubble with deployed metal plates protecting the legion.
-- [x] 2. Identify vulnerable boss components and flash the entire struck component.
-- [x] 3–4, 8. Replace orb dots and cap-shaped ammunition; visible metal bodies, fins, rear flame and bounded smoke.
-- [x] 5. Broader boss beam and real hero/boss laser clash; capped tap contribution, clear outcome, matching audio.
-- [x] 6. Main three-act continuous campaign with rising pressure; all three relics in a compact icon pane; preserve old practice stages/saves.
-- [x] 7, 10. Platform-wide electrical EMP and substantial branching chain-lightning and other power effects.
-- [x] 9. Shielded enemies block three attacks before breakage and health damage.
-- [x] 11. Actual healing pickups with a green rising + on collection.
-- [x] 12. Moving threats, attack tells, recoveries and authored escalation create urgency without indefinite enemy-clear stops.
-- [x] 13. Four distinct articulated enemies: Bulwark, Volt Hound, Mortar Wasp and Arc Engineer, each tied to a different gameplay behavior.
-- [x] 14. Bring brighter teal/copper/ivory environment cues from Reforged into accepted industrial materials and silhouettes.
-- [x] 15. Original industrial music and differentiated combat/power sound cues; gesture unlock, mute/pause support.
-- [x] 16. Commander and troop strafe animation responds to actual horizontal motion.
-- [x] 17. Incoming damage follows actual commander/troop contact, preserving meaningful heal/revival choices.
-- [x] 18. Protected, short revival scene visibly rebuilds/re-energizes the commander.
-- [x] 19. After each campaign boss, choose laser power, vitality or relic endurance; actual bonuses carry into the next act.
+| Requests | Technical status | Remaining acceptance / integration |
+|---|---|---|
+| 1–2 | Plated shield and boss target mapping implemented. | Plate appearance and first-time target comprehension unverified; shield remains a timed legion-wide effect. |
+| 3–4, 8 | Revised energy rounds, shaped missiles, flame and smoke implemented. | Requested visual finish and readability in dense normal play unverified. |
+| 5 | Wider beam and authoritative clash implemented. Normal counter guidance and stricter 3D intersection receive follow-up fixes. | Final normal-player clash entry and full audio/visual interaction need rechecking. |
+| 6 | Continuous three-act campaign, three campaign relics, compatible practice and saves implemented. | Complete normal-player run through every modal and save transition remains unrecorded. |
+| 7, 10 | EMP and branching power effects implemented. | Effect range is the combat area; requested final visual quality is not yet accepted. |
+| 9, 11 | Three-hit guards and actual healing drops implemented. | Inspect retained shield visuals after breakage and health-drop clarity in normal play. |
+| 12 | Moving threats, tells, recovery windows and escalation authored. | Felt urgency, fair challenge and replay motivation unverified with humans. |
+| 13 | Four enemy archetypes with different behavior and procedural articulated models implemented. | Art/motion acceptance and phone cost unverified; these are enemy types, not selectable heroes. |
+| 14 | Selected brighter colors and industrial exterior dressing integrated. | Partial environment transfer; existing route geometry remains reused. |
+| 15 | Original synthesized music and combat cues implemented. Pause-clash resume and source-budget corner corrected in follow-up. | Listen to actual normal-game mix; review replay runs do not load audio. |
+| 16 | Partial: commander Run/Idle plus root lean; allied crowd at checkpoint only bob/yaw/roll. | Articulated locomotion is follow-up work. Do not check complete based on static camera containment tests. |
+| 17–18 | Physical damage recipient and protected revival state implemented. Controlled revival replay recorded. | Complete normal UI → real core → render revival observation remains open. |
+| 19 | Reward choice, carried stats and one replaceable legacy imprint implemented. | Actual absorption animation missing at checkpoint; follow-up normal UI now holds award until world animation finishes. Final real-browser check remains open. |
+
 
 ## Review gates
 
