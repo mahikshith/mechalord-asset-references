@@ -1,0 +1,27 @@
+{
+  "reviewedAt": "2026-10-06",
+  "commit": "c312e9d",
+  "coreSha256": "7cf83ed15c19ea3abbecffb5de6e4c95035d2697cc95b62ef388adf222a5cf60",
+  "scope": "Normal player UI using browser controls and visible page state; desktop portrait review, not physical-device performance.",
+  "url": "http://127.0.0.1:8077/playable/index.html",
+  "viewportOverride": { "width": 420, "height": 933 },
+  "verified": [
+    "Five chapter controls present with distinct names and descriptions",
+    "Storm Pass selection changes the selected chapter and description",
+    "Play begins Storm Pass with saved starting troops and rail burst",
+    "Forge Core selection launches the correct chapter with saved troop/weapon/health values",
+    "Restart from the Forge Core pause menu starts a fresh run",
+    "Pause, resume and return to level select work",
+    "Rank, troop count, previous scores and cleared states survive this flow",
+    "Both new chapters remain uncleared; review did not award test progress"
+  ],
+  "preservedVisibleProgress": {
+    "rank": 4,
+    "startingTroops": 14,
+    "weapon": "RAIL BURST · FULL RUN",
+    "bestScores": [4935, 5465, 6016],
+    "clearedStages": [0, 1, 2]
+  },
+  "browserWarningsAndErrors": [],
+  "screenshot": "delivery/storm-arsenal-proof/five-chapter-menu.jpg"
+}

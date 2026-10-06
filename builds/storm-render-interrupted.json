@@ -1,0 +1,166 @@
+{
+  "scope": "Desktop real WebGL replay, 4x simulation speed. Not mobile FPS.",
+  "completed": 5,
+  "remaining": 7,
+  "wallSeconds": 219.96369999999553,
+  "frames": 13185,
+  "framesAbove34ms": 2,
+  "peakCalls": 162,
+  "peakTriangles": 237643,
+  "peakGeometries": 295,
+  "peakTextures": 27,
+  "runs": [
+    {
+      "result": "won",
+      "level": 0,
+      "seconds": 218.23333740234375,
+      "rank": 0,
+      "relic": 0,
+      "geometries": 187,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 36,
+        "deferred": 82,
+        "unsupported": 10,
+        "existingUnsafe": 27,
+        "capacity": 0,
+        "authoredRockets": 4,
+        "horizon": 1.9199999570846558
+      },
+      "orphanGeometry": [
+        {
+          "id": 1885,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "level": 0,
+      "seconds": 169.1666717529297,
+      "rank": 0,
+      "relic": 1,
+      "geometries": 191,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 23,
+        "deferred": 44,
+        "unsupported": 8,
+        "existingUnsafe": 17,
+        "capacity": 0,
+        "authoredRockets": 3,
+        "horizon": 3.312303304672241
+      },
+      "orphanGeometry": [
+        {
+          "id": 1885,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "level": 0,
+      "seconds": 132.73333740234375,
+      "rank": 0,
+      "relic": 2,
+      "geometries": 200,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 14,
+        "deferred": 17,
+        "unsupported": 0,
+        "existingUnsafe": 15,
+        "capacity": 2,
+        "authoredRockets": 1,
+        "horizon": 3.245847225189209
+      },
+      "orphanGeometry": [
+        {
+          "id": 1885,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "level": 3,
+      "seconds": 183.56666564941406,
+      "rank": 0,
+      "relic": 0,
+      "geometries": 232,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 18,
+        "deferred": 32,
+        "unsupported": 6,
+        "existingUnsafe": 5,
+        "capacity": 0,
+        "authoredRockets": 6,
+        "horizon": 1.9199999570846558
+      },
+      "orphanGeometry": [
+        {
+          "id": 1885,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    },
+    {
+      "result": "won",
+      "level": 3,
+      "seconds": 175.75,
+      "rank": 0,
+      "relic": 1,
+      "geometries": 232,
+      "textures": 13,
+      "boss": {
+        "partsMask": 63,
+        "coreHp": 0,
+        "sweepUnresolved": 0
+      },
+      "attackAdmission": {
+        "admitted": 16,
+        "deferred": 27,
+        "unsupported": 6,
+        "existingUnsafe": 0,
+        "capacity": 0,
+        "authoredRockets": 6,
+        "horizon": 3.302307367324829
+      },
+      "orphanGeometry": [
+        {
+          "id": 1885,
+          "owner": "Sprite",
+          "type": "BufferGeometry"
+        }
+      ]
+    }
+  ],
+  "status": "Interrupted when review tab became unavailable; only these five completed runs are verified",
+  "coreSha256": "76d35109510f76ee0dcc0a4ca742329504c61afa9b5e04a41f5601cf9d8065ad"
+}
