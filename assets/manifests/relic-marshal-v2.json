@@ -1,0 +1,40 @@
+{
+  "id": "relic-marshal",
+  "version": 2,
+  "route": "original local Blender modeling",
+  "paidServicesUsed": false,
+  "sourceTriangles": 8880,
+  "editablePartCount": 135,
+  "boneCount": 14,
+  "clips": [
+    "Idle",
+    "Run",
+    "Fire",
+    "Hit",
+    "Deploy"
+  ],
+  "bakedTextureSize": [
+    1024,
+    1024
+  ],
+  "exportMaterials": 1,
+  "lods": [
+    {
+      "name": "mobile",
+      "triangles": 3939,
+      "target": 4000,
+      "path": "assets/exports/relic-marshal-mobile-v2.glb"
+    },
+    {
+      "name": "lod1",
+      "triangles": 1874,
+      "target": 2000,
+      "path": "assets/exports/relic-marshal-lod1-v2.glb"
+    }
+  ],
+  "source": "assets/source/relic-marshal-v2.blend",
+  "preview": "assets/previews/relic-marshal-v2.png",
+  "productionAccepted": false,
+  "androidValidated": false,
+  "notes": "New detailed interpretation of authoritative concept. Awaiting visual review; engine and device validation pending."
+}

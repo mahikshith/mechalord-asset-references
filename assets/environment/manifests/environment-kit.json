@@ -1,0 +1,586 @@
+{
+  "schema": 1,
+  "route": "original locally authored Blender geometry",
+  "productionAccepted": false,
+  "status": "rendered and measured environment prototype; in-engine/device validation pending",
+  "authoringAxes": "X lateral / Y forward / Z up; Blender metres, Unreal centimetres",
+  "alignment": "Keep these world axes after import; test an 8m segment before assembling a course.",
+  "mobileMaterial": "One shared palette per module; replace with palette-based Unlit engine material.",
+  "modules": [
+    {
+      "id": "track-straight",
+      "triangles": 1756,
+      "vertices": 1016,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "near-edge centre at walking surface",
+      "footprintMetres": [
+        6,
+        8
+      ],
+      "boundsMin": [
+        -3.0,
+        0.0,
+        -0.43
+      ],
+      "boundsMax": [
+        3.0,
+        8.0,
+        0.05
+      ],
+      "collision": [
+        {
+          "kind": "box",
+          "centre": [
+            0,
+            4,
+            -0.2
+          ],
+          "size": [
+            6,
+            8,
+            0.4
+          ]
+        }
+      ],
+      "sockets": {
+        "exit": [
+          0,
+          8,
+          0
+        ]
+      },
+      "glb": "exports/track-straight.glb",
+      "fbx": "exports/track-straight.fbx"
+    },
+    {
+      "id": "track-narrow",
+      "triangles": 860,
+      "vertices": 472,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "near-edge centre; route narrowing is visual until runtime adds boundaries",
+      "footprintMetres": [
+        4.2,
+        8
+      ],
+      "boundsMin": [
+        -2.385,
+        0.0,
+        -0.43
+      ],
+      "boundsMax": [
+        2.385,
+        8.0,
+        0.34
+      ],
+      "collision": [
+        {
+          "kind": "box",
+          "centre": [
+            0,
+            4,
+            -0.2
+          ],
+          "size": [
+            4.2,
+            8,
+            0.4
+          ]
+        }
+      ],
+      "sockets": {
+        "exit": [
+          0,
+          8,
+          0
+        ]
+      },
+      "glb": "exports/track-narrow.glb",
+      "fbx": "exports/track-narrow.fbx"
+    },
+    {
+      "id": "gate-recruit",
+      "triangles": 808,
+      "vertices": 452,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "aperture centre on ground, crossing plane Y=0; usable aperture +/- .832m",
+      "footprintMetres": [
+        2.17,
+        0.66
+      ],
+      "boundsMin": [
+        -1.092,
+        -0.33,
+        0.0
+      ],
+      "boundsMax": [
+        1.092,
+        0.33,
+        3.23
+      ],
+      "collision": [],
+      "sockets": {
+        "numberLabel": [
+          0,
+          -0.32,
+          2.36
+        ]
+      },
+      "glb": "exports/gate-recruit.glb",
+      "fbx": "exports/gate-recruit.fbx"
+    },
+    {
+      "id": "gate-multiply",
+      "triangles": 844,
+      "vertices": 470,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "aperture centre on ground, crossing plane Y=0; usable aperture +/- .832m",
+      "footprintMetres": [
+        2.17,
+        0.66
+      ],
+      "boundsMin": [
+        -1.092,
+        -0.33,
+        0.0
+      ],
+      "boundsMax": [
+        1.092,
+        0.33,
+        3.23
+      ],
+      "collision": [],
+      "sockets": {
+        "numberLabel": [
+          0,
+          -0.32,
+          2.36
+        ]
+      },
+      "glb": "exports/gate-multiply.glb",
+      "fbx": "exports/gate-multiply.fbx"
+    },
+    {
+      "id": "gate-energy",
+      "triangles": 776,
+      "vertices": 434,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "aperture centre on ground, crossing plane Y=0; usable aperture +/- .832m",
+      "footprintMetres": [
+        2.17,
+        0.66
+      ],
+      "boundsMin": [
+        -1.092,
+        -0.33,
+        0.0
+      ],
+      "boundsMax": [
+        1.092,
+        0.33,
+        3.23
+      ],
+      "collision": [],
+      "sockets": {
+        "numberLabel": [
+          0,
+          -0.32,
+          2.36
+        ]
+      },
+      "glb": "exports/gate-energy.glb",
+      "fbx": "exports/gate-energy.fbx"
+    },
+    {
+      "id": "barricade",
+      "triangles": 272,
+      "vertices": 152,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "hazard footprint centre at ground",
+      "footprintMetres": [
+        1.45,
+        0.68
+      ],
+      "boundsMin": [
+        -0.725,
+        -0.34,
+        0.0
+      ],
+      "boundsMax": [
+        0.725,
+        0.34,
+        1.16
+      ],
+      "collision": [
+        {
+          "kind": "box",
+          "centre": [
+            0,
+            0,
+            0.55
+          ],
+          "size": [
+            1.45,
+            0.68,
+            1.1
+          ]
+        }
+      ],
+      "sockets": {},
+      "glb": "exports/barricade.glb",
+      "fbx": "exports/barricade.fbx"
+    },
+    {
+      "id": "energy-pickup",
+      "triangles": 160,
+      "vertices": 92,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "pickup ground anchor",
+      "footprintMetres": [
+        0.54,
+        0.54
+      ],
+      "boundsMin": [
+        -0.27,
+        -0.27,
+        0.0
+      ],
+      "boundsMax": [
+        0.27,
+        0.27,
+        0.794
+      ],
+      "collision": [],
+      "sockets": {
+        "effect": [
+          0,
+          0,
+          0.48
+        ]
+      },
+      "glb": "exports/energy-pickup.glb",
+      "fbx": "exports/energy-pickup.fbx"
+    },
+    {
+      "id": "relic-column",
+      "triangles": 260,
+      "vertices": 146,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "background column ground anchor",
+      "footprintMetres": [
+        1.3,
+        1.3
+      ],
+      "boundsMin": [
+        -0.65,
+        -0.65,
+        0.0
+      ],
+      "boundsMax": [
+        0.65,
+        0.65,
+        3.43
+      ],
+      "collision": [],
+      "sockets": {},
+      "glb": "exports/relic-column.glb",
+      "fbx": "exports/relic-column.fbx"
+    },
+    {
+      "id": "pipe-arch",
+      "triangles": 788,
+      "vertices": 432,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "track centre; overhead clearance greater than 4 metres",
+      "footprintMetres": [
+        8.45,
+        1.1
+      ],
+      "boundsMin": [
+        -4.225,
+        -0.55,
+        0.0
+      ],
+      "boundsMax": [
+        4.225,
+        0.55,
+        5.86
+      ],
+      "collision": [],
+      "sockets": {},
+      "glb": "exports/pipe-arch.glb",
+      "fbx": "exports/pipe-arch.fbx"
+    },
+    {
+      "id": "rail-section",
+      "triangles": 232,
+      "vertices": 128,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "near-edge rail ground anchor",
+      "footprintMetres": [
+        0.3,
+        4
+      ],
+      "boundsMin": [
+        -0.14,
+        0.0,
+        0.0
+      ],
+      "boundsMax": [
+        0.14,
+        4.0,
+        1.505
+      ],
+      "collision": [],
+      "sockets": {},
+      "glb": "exports/rail-section.glb",
+      "fbx": "exports/rail-section.fbx"
+    },
+    {
+      "id": "cliff-base",
+      "triangles": 372,
+      "vertices": 204,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "track-near anchor; cosmetic below walking surface",
+      "footprintMetres": [
+        7.6,
+        8.8
+      ],
+      "boundsMin": [
+        -3.3988,
+        0.2572,
+        -3.95
+      ],
+      "boundsMax": [
+        3.3988,
+        7.7428,
+        0.15
+      ],
+      "collision": [],
+      "sockets": {},
+      "glb": "exports/cliff-base.glb",
+      "fbx": "exports/cliff-base.fbx"
+    },
+    {
+      "id": "siege-platform",
+      "triangles": 1288,
+      "vertices": 704,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "near-edge centre at walking surface",
+      "footprintMetres": [
+        7.2,
+        6
+      ],
+      "boundsMin": [
+        -3.6,
+        0.0,
+        -0.8
+      ],
+      "boundsMax": [
+        3.6,
+        6.0,
+        1.275
+      ],
+      "collision": [
+        {
+          "kind": "box",
+          "centre": [
+            0,
+            3,
+            -0.36
+          ],
+          "size": [
+            7.2,
+            6,
+            0.72
+          ]
+        }
+      ],
+      "sockets": {
+        "launcher": [
+          0,
+          1.5,
+          0.085
+        ],
+        "exit": [
+          0,
+          6,
+          0
+        ]
+      },
+      "glb": "exports/siege-platform.glb",
+      "fbx": "exports/siege-platform.fbx"
+    },
+    {
+      "id": "defense-tower",
+      "triangles": 408,
+      "vertices": 228,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "enemy tower centre on ground; static preview gun",
+      "footprintMetres": [
+        1.8,
+        2.05
+      ],
+      "boundsMin": [
+        -0.89,
+        -1.0585,
+        0.0
+      ],
+      "boundsMax": [
+        0.89,
+        0.89,
+        2.72
+      ],
+      "collision": [
+        {
+          "kind": "cylinder",
+          "centre": [
+            0,
+            0,
+            1.3
+          ],
+          "radius": 0.8,
+          "height": 2.6
+        }
+      ],
+      "sockets": {
+        "muzzle": [
+          0,
+          -1.06,
+          2.3
+        ]
+      },
+      "glb": "exports/defense-tower.glb",
+      "fbx": "exports/defense-tower.fbx"
+    },
+    {
+      "id": "forge-core-plinth",
+      "triangles": 776,
+      "vertices": 432,
+      "materials": 1,
+      "textures": 1,
+      "textureSize": [
+        128,
+        128
+      ],
+      "units": "metres",
+      "axes": "X lateral / Y forward / Z up",
+      "pivot": "boss arena centre; plinth is scenery and does not substitute for Forge Colossus",
+      "footprintMetres": [
+        3.6,
+        3.6
+      ],
+      "boundsMin": [
+        -1.8,
+        -1.8,
+        0.0
+      ],
+      "boundsMax": [
+        1.8,
+        1.8,
+        2.195
+      ],
+      "collision": [],
+      "sockets": {
+        "boss": [
+          0,
+          0,
+          2.2
+        ]
+      },
+      "glb": "exports/forge-core-plinth.glb",
+      "fbx": "exports/forge-core-plinth.fbx"
+    }
+  ],
+  "totalSourceTriangles": 9600
+}

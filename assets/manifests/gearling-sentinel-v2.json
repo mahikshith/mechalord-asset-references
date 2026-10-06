@@ -1,0 +1,38 @@
+{
+  "id": "gearling-sentinel",
+  "version": 2,
+  "route": "original local Blender modeling",
+  "paidServicesUsed": false,
+  "sourceTriangles": 3604,
+  "editablePartCount": 55,
+  "boneCount": 5,
+  "clips": [
+    "Idle",
+    "Roll",
+    "Fire"
+  ],
+  "bakedTextureSize": [
+    512,
+    512
+  ],
+  "exportMaterials": 1,
+  "lods": [
+    {
+      "name": "mobile",
+      "triangles": 617,
+      "target": 700,
+      "path": "assets/exports/gearling-sentinel-mobile-v2.glb"
+    },
+    {
+      "name": "lod1",
+      "triangles": 269,
+      "target": 350,
+      "path": "assets/exports/gearling-sentinel-lod1-v2.glb"
+    }
+  ],
+  "source": "assets/source/gearling-sentinel-v2.blend",
+  "preview": "assets/previews/gearling-sentinel-v2.png",
+  "productionAccepted": false,
+  "androidValidated": false,
+  "notes": "New detailed interpretation of authoritative concept. Awaiting visual review; engine and device validation pending."
+}

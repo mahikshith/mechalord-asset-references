@@ -1,0 +1,23 @@
+{
+  "source": {
+    "path": "assets\\exports\\relic-marshal-hf-rigged-source.glb",
+    "triangles": 19537,
+    "bytes": 2383864
+  },
+  "mobile": {
+    "path": "assets\\exports\\relic-marshal-hf-rigged-mobile.glb",
+    "triangles": 3980,
+    "bytes": 1759564
+  },
+  "bones": 14,
+  "clips": [
+    "Idle",
+    "Run"
+  ],
+  "method": "Local Blender heat weights, constrained fallback for disconnected fragments, and FK animation; first pass",
+  "heatUnreachedSourceVertices": 425,
+  "unweightedVertices": 0,
+  "productionAccepted": false,
+  "androidValidated": false,
+  "limitations": "Fused reconstruction needs further joint cleanup and animation polish; no finger rig or combat clips yet."
+}

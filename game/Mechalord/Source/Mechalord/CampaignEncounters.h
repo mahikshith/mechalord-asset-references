@@ -71,27 +71,43 @@ inline constexpr std::array<Event,23> ForgeCore{{
 }};
 inline constexpr double Duration(int level){return level==3?96:level==4?102:0;}
 inline constexpr EventList Events(int level){return level==3?EventList{StormPass.data(),int(StormPass.size())}:level==4?EventList{ForgeCore.data(),int(ForgeCore.size())}:EventList{};}
-// Additional encounters use upper spawn bits so existing routes remain intact.
-// Type-specific silhouettes are introduced singly before the final combinations.
-inline constexpr std::array<Event,7> MarchFirst{{
- {20,Kind::Archetype,1.8,65,0,1}, {33,Kind::Health,-1.8},
- {44,Kind::Archetype,-1.8,55,0,2}, {53,Kind::Health,1.8},
- {62,Kind::Archetype,2.1,85,0,3}, {72,Kind::Health,0},
- {76,Kind::Archetype,-2.1,85,0,4},
+inline constexpr double MarchDuration=198;
+inline constexpr std::array<double,4> ZoneBounds{{0,62,128,MarchDuration}};
+// One route and one spawn ledger. These are three different encounter rhythms,
+// not standalone chapters joined by boss/reward resets. Times are global travel.
+inline constexpr std::array<Event,51> IronMarch{{
+ // Foundry: recruit, equip, then steer through alternating lateral rollers.
+ {0,Kind::Gate,-1.8,0,6}, {2,Kind::Wave,0,7,1,1},
+ {5,Kind::Crate,-1.8,30,45}, {10,Kind::Roller,1.5,0,8,0,0,0,1.05},
+ {13,Kind::Archetype,-1.8,70,0,1}, {17,Kind::Gate,1.8,0,6},
+ {21,Kind::Gunner,2.6,58,0,0,0,1.4}, {24,Kind::Carrier,-1.8,80,4,0,2},
+ {28,Kind::Roller,-1.3,0,10,0,0,0,1.6}, {32,Kind::Wave,0,9,2,2},
+ {36,Kind::Crate,1.8,55,55}, {39,Kind::Archetype,1.8,75,0,2},
+ {44,Kind::Health,-1.8}, {47,Kind::Gate,1.8,0,8},
+ {50,Kind::Roller,0,0,10,0,0,0,2.15}, {54,Kind::Carrier,-1.8,95,4,0,1},
+ {58,Kind::Wave,0,10,1,1},
+ // Storm: staggered crossfire, repair escorts and airborne mortar pressure.
+ {62,Kind::Archetype,-2.1,100,0,4}, {66,Kind::Gunner,2.6,78,0,0,0,2.4},
+ {70,Kind::Crate,0,75,70}, {73,Kind::Gate,-1.8,0,10},
+ {76,Kind::Archetype,2.1,115,0,3}, {80,Kind::Carrier,-1.8,120,4,0,9},
+ {84,Kind::Health,1.8}, {87,Kind::Gunner,-2.6,85},
+ {90,Kind::Gunner,2.6,95,0,0,0,3.3}, {94,Kind::Wave,0,12,2,0},
+ {97,Kind::Archetype,1.8,88,0,2}, {101,Kind::Gate,1.8,0,10},
+ {105,Kind::Archetype,-2.1,130,0,4}, {109,Kind::Crate,-1.8,90,75},
+ {113,Kind::Health,0}, {116,Kind::Archetype,2.1,135,0,3},
+ {120,Kind::Carrier,-1.8,145,10,0,8}, {124,Kind::Wave,0,14,1,2},
+ // Siege: fortified batteries, shield/support pairs, then earned recovery.
+ {128,Kind::Battery,2.6,130,0,0,0,1.4}, {132,Kind::Archetype,-1.8,165,0,1},
+ {136,Kind::Crate,1.8,100,85}, {139,Kind::Gate,1.8,0,14},
+ {143,Kind::Wave,0,14,2,1}, {147,Kind::Carrier,-1.8,160,7,0,10},
+ {151,Kind::Roller,1.8,0,14,0,0,0,.8}, {155,Kind::Archetype,2.1,160,0,4},
+ {159,Kind::Archetype,-2.1,145,0,3}, {163,Kind::Gate,1.8,0,16},
+ {166,Kind::Carrier,-1.8,170,10,0,8}, {169,Kind::Health,1.8},
+ {173,Kind::Crate,0,105,100}, {176,Kind::Wave,0,15,1,1},
+ {180,Kind::Gate,-1.8,0,18}, {184,Kind::Health,0},
 }};
-inline constexpr std::array<Event,7> MarchStorm{{
- {7,Kind::Archetype,1.8,75,0,2}, {18,Kind::Health,-1.8},
- {32,Kind::Archetype,-2.1,115,0,4}, {44,Kind::Health,1.8},
- {55,Kind::Archetype,2.1,100,0,3}, {67,Kind::Health,0},
- {80,Kind::Archetype,-1.8,125,0,1},
-}};
-inline constexpr std::array<Event,8> MarchForge{{
- {8,Kind::Archetype,-1.8,135,0,1}, {18,Kind::Health,1.8},
- {32,Kind::Archetype,2.1,115,0,3}, {43,Kind::Health,-1.8},
- {58,Kind::Archetype,-2.1,150,0,4}, {68,Kind::Health,0},
- {74,Kind::Archetype,1.8,110,0,2}, {87,Kind::Health,1.8},
-}};
-inline constexpr EventList MarchEvents(int act){return act==0?EventList{MarchFirst.data(),int(MarchFirst.size())}:act==1?EventList{MarchStorm.data(),int(MarchStorm.size())}:EventList{MarchForge.data(),int(MarchForge.size())};}
+static_assert(IronMarch.size()<=64,"Single-route spawn ledger has sixty-four bits");
+static_assert(IronMarch.back().at<=MarchDuration-13,"Last supplies reach the commander before the one final boss");
 static_assert(StormPass.size()<32&&ForgeCore.size()<32,"Keep authored chapter spawn bits bounded");
 static_assert(StormPass.back().at<=96-13&&ForgeCore.back().at<=102-13,"Preserve full horizon lead-in before the boss");
 }

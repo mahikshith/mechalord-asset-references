@@ -1,58 +1,36 @@
 {
-  "sha256": "3b16f22bf4dcfdabe9d9c9fed078ab4abc0632d891ec76ed933ec437c0d7eb0a",
+  "sha256": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46",
   "scope": "Public simulation controls, first active vulnerable HUD part order. Automatic ability timing and threat prediction remain; not a normal-input or human-difficulty claim.",
   "runs": [
     {
       "rank": 0,
       "phase": "won",
-      "time": 497.3333435058594,
+      "time": 268.7166748046875,
       "act": 2,
-      "hp": 90,
-      "army": 1,
+      "hp": 100,
+      "army": 34,
       "acts": [
         {
-          "act": 0,
-          "bossSeconds": 72.81666564941406,
-          "time": 162.81666564941406,
-          "hp": 90,
-          "army": 1
-        },
-        {
-          "act": 1,
-          "bossSeconds": 56.883331298828125,
-          "time": 315.70001220703125,
-          "hp": 96,
-          "army": 23
-        },
-        {
           "act": 2,
-          "bossSeconds": 79.63333129882812,
-          "time": 497.3333435058594,
-          "hp": 90,
-          "army": 1
+          "bossSeconds": 70.7166748046875,
+          "time": 268.7166748046875,
+          "hp": 100,
+          "army": 34
         }
       ],
       "partHits": {
-        "cannonL": 258,
-        "cannonR": 223,
-        "jetR": 299,
-        "jetL": 260,
-        "legL": 228,
-        "legR": 230,
-        "core": 277
+        "cannonL": 90,
+        "cannonR": 60,
+        "jetL": 80,
+        "jetR": 96,
+        "legL": 63,
+        "legR": 63,
+        "core": 91
       },
       "clashes": [
         {
-          "act": 0,
-          "time": 96.61666870117188
-        },
-        {
-          "act": 1,
-          "time": 265.4333190917969
-        },
-        {
           "act": 2,
-          "time": 424.9666748046875
+          "time": 205.26666259765625
         }
       ],
       "unresolved": 0
@@ -60,50 +38,32 @@
     {
       "rank": 3,
       "phase": "won",
-      "time": 421.4166564941406,
+      "time": 229.60000610351562,
       "act": 2,
       "hp": 115,
-      "army": 17,
+      "army": 58,
       "acts": [
         {
-          "act": 0,
-          "bossSeconds": 23.416664123535156,
-          "time": 113.41666412353516,
-          "hp": 115,
-          "army": 60
-        },
-        {
-          "act": 1,
-          "bossSeconds": 56.55000305175781,
-          "time": 265.9666748046875,
-          "hp": 100,
-          "army": 3
-        },
-        {
           "act": 2,
-          "bossSeconds": 53.449981689453125,
-          "time": 421.4166564941406,
+          "bossSeconds": 31.600006103515625,
+          "time": 229.60000610351562,
           "hp": 115,
-          "army": 17
+          "army": 58
         }
       ],
       "partHits": {
-        "cannonL": 187,
-        "cannonR": 174,
-        "jetL": 171,
-        "jetR": 170,
-        "legR": 167,
-        "legL": 167,
-        "core": 280
+        "cannonL": 79,
+        "cannonR": 78,
+        "jetL": 58,
+        "jetR": 55,
+        "legR": 65,
+        "legL": 68,
+        "core": 63
       },
       "clashes": [
         {
-          "act": 1,
-          "time": 224.23333740234375
-        },
-        {
           "act": 2,
-          "time": 375.23333740234375
+          "time": 211.6999969482422
         }
       ],
       "unresolved": 0

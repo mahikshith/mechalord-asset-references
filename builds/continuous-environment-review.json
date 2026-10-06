@@ -1,0 +1,91 @@
+{
+  "checkedAt": "2026-10-06T20:17:38.288Z",
+  "scope": "CPU geometry/transform tests using all 14 real native environment GLBs. No rendered appearance or mobile performance claim.",
+  "checks": [
+    "native source/environment-only whitelist",
+    "collision-aligned continuous deck",
+    "three distinct absolute-distance profiles",
+    "upcoming zones visible before boundaries",
+    "smooth lighting palette",
+    "stable recycling and stage-independent identity",
+    "actual transformed native lane safety",
+    "one final arena and safe rear seal",
+    "native crane articulation and pause",
+    "3000 bounded updates and disposal"
+  ],
+  "sourceSha256": "0fbe6f18c174dad21df2eac0c89a3bbb3c363760fc8f4db6c6a22664fb7f1d86",
+  "route": {
+    "stormStart": 229.4,
+    "forgeStart": 473.6,
+    "arenaStart": 732.6,
+    "width": 9.7,
+    "sectionLength": 10.8,
+    "sections": 13,
+    "rear": 16,
+    "far": 118
+  },
+  "sources": {
+    "SuspendedIsland": {
+      "bytes": 213808,
+      "sha256": "8814a3fbb6f0075da10c3b9ba2f939b86bb9a88d29bee939e7c49daca2a69ac2"
+    },
+    "SpineConnector": {
+      "bytes": 159000,
+      "sha256": "348d666f7da1bf5da009cb2fb6fe5caee489430c25008fc1f4e5f17c7ff3a87e"
+    },
+    "SunkenRoute": {
+      "bytes": 223740,
+      "sha256": "c7d1f773c93c744e6676a9947a4763610acb10330486c042ebb0049695e25122"
+    },
+    "CitadelBowl": {
+      "bytes": 247404,
+      "sha256": "54ffa40c23678e62a9b97851d3db7ed6990868768d1228f1e8ac8c039ec7b745"
+    },
+    "TaperedButtress": {
+      "bytes": 93124,
+      "sha256": "99719c937afbd663de32377d42edd5f650c1649827fe8b1c760970aa5fbda363"
+    },
+    "PressureVessel": {
+      "bytes": 244968,
+      "sha256": "3bb44a85e7724a55e228e7558e29250f5524a6b8c0b011e53da1f6880c1080cb"
+    },
+    "CoolingStack": {
+      "bytes": 108380,
+      "sha256": "ddb52830dca176b25a9588f9a7b221980720fa43f417bd708144462b2fa53ba4"
+    },
+    "ArticulatedServiceArm": {
+      "bytes": 177776,
+      "sha256": "37046d56e7849d4a63146db071b3f6cb746c4752b87b05f04288f833256122c4"
+    },
+    "ReactorBank": {
+      "bytes": 100884,
+      "sha256": "4cc8b87c9c24329739f8c3a271bb3710fc348ddbe96957d50e6fcbe225f5d1a7"
+    },
+    "CitadelSpire": {
+      "bytes": 18112,
+      "sha256": "0c9049047c0f30b4df6c7049ca44c4e977804842576984a94b37ec62cc518019"
+    },
+    "CableDrum": {
+      "bytes": 30708,
+      "sha256": "6ac8e2191b8d48dcd79e4b051be436390fd9e563fb4fcda49488858f7a3a8bc0"
+    },
+    "DistantFoundryWorks": {
+      "bytes": 206492,
+      "sha256": "fe9a992735341a5a569ef485aaaf8529d508ae1ad1f696cc9a5b632ba748f388"
+    },
+    "DistantTransferGallery": {
+      "bytes": 87444,
+      "sha256": "13c0e8556d26498ecaa258d06243a331f07773e2365689b965e8ecbfeb169387"
+    },
+    "ReactorBulkhead": {
+      "bytes": 89448,
+      "sha256": "f36b4a105c05c7cfaf10588baddb75499225bc877413f4c51ed81c531adc834c"
+    }
+  },
+  "inspectedVertices": 6098292,
+  "minDecorX": 4.924800133895872,
+  "geometryCount": 29,
+  "maxBatches": 24,
+  "maxInstances": 150,
+  "maxTriangles": 251536
+}

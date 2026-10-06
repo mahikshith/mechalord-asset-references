@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "decisionDate": "2026-10-04",
+  "references": [
+    {
+      "id": "relic-marshal",
+      "path": "art/concepts/relic-marshal-v1.png",
+      "sha256": "2a76cf91d5317740db8b209b8e6d26f664908e962148d094822cec9f5e007a1e",
+      "width": 1145,
+      "height": 1374,
+      "status": "authoritative-user-selected-design"
+    },
+    {
+      "id": "gearling-sentinel",
+      "path": "art/concepts/gearling-sentinel-v1.png",
+      "sha256": "86d2e5747dee20f5e7c4c6833066e41affc0f17b1de709950563c51d44c73a97",
+      "width": 1312,
+      "height": 1199,
+      "status": "authoritative-user-selected-design"
+    },
+    {
+      "id": "rust-crawler",
+      "path": "art/concepts/rust-crawler-v1.png",
+      "sha256": "d7295b2d0d8ee4510f54f7417bcceeb498d7b73e5bae8a8a95bb6378a3a102ae",
+      "width": 1312,
+      "height": 1199,
+      "status": "authoritative-user-selected-design"
+    }
+  ]
+}

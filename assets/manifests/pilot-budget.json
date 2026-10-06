@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "approvalDate": "2026-10-04",
+  "approval": "User approved this 50-credit batch in the current conversation",
+  "cashPurchasesAllowed": false,
+  "estimatedCreditCeiling": 50,
+  "source": "https://docs.meshy.ai/en/api/pricing",
+  "estimatedSteps": [
+    {
+      "id": "relic-marshal-v1",
+      "resource": "image-to-3d",
+      "estimatedCredits": 15,
+      "status": "api-submission-rejected-no-task-created"
+    },
+    {
+      "id": "gearling-sentinel-v1",
+      "resource": "image-to-3d",
+      "estimatedCredits": 15,
+      "status": "cancelled-not-submitted"
+    },
+    {
+      "id": "rust-crawler-v1",
+      "resource": "image-to-3d",
+      "estimatedCredits": 15,
+      "status": "cancelled-not-submitted"
+    },
+    {
+      "id": "relic-marshal-rig-v1",
+      "resource": "rigging",
+      "estimatedCredits": 5,
+      "status": "cancelled-not-submitted"
+    }
+  ],
+  "extraPaidRerunsAllowed": false,
+  "creditsSpent": 0,
+  "lastVerifiedBalance": 100,
+  "blocker": "Historical API/export restrictions; Meshy discontinued by user. Continue with local Blender and supplied assets.",
+  "batchStatus": "cancelled-by-user-no-further-Meshy-submissions"
+}

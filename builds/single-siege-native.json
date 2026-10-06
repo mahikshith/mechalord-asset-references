@@ -1,0 +1,12 @@
+{
+  "scope": "Native compiled production simulation. Mechanical fixtures and automated public-action feasibility, not human difficulty or rendering quality.",
+  "checks": 130,
+  "output": "130 single-siege mechanics checks passed.",
+  "cppSha256": "ed6bc2aba9137ff00978d8565667dceb48b198bbdf42bb3d3471d05e17eb1427",
+  "headerSha256": "b3222e9df909d1f2f4c3174851f3bca2dbb3d91b1b7ae0e77affd71ff6a5c793",
+  "encountersSha256": "4c607213bc9023aa092d4adb98a8ffac336597bbd292bf57c29415c5a8fb7ba2",
+  "commands": [
+    "tools/vendor/zig-x86_64-windows-0.17.0/zig.exe c++ -std=c++17 -O2 -Igame/Mechalord/Source/Mechalord game/Mechalord/Source/Mechalord/AssaultSimulation.cpp tools/playable-preview/test_single_siege.cpp -o builds/single-siege-mechanics-test.exe",
+    "builds/single-siege-mechanics-test.exe"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "gearling-sentinel",
+  "route": "locally-authored-Blender-interpretation",
+  "blender": "5.2.2 LTS",
+  "concept": "art/concepts/gearling-sentinel-v1.png",
+  "triangles": 524,
+  "triangleTarget": 700,
+  "materialCount": 1,
+  "textureSize": [
+    512,
+    512
+  ],
+  "dimensionsMeters": [
+    1.184000015258789,
+    0.9700000286102295,
+    0.9908064305782318
+  ],
+  "animations": [
+    "Idle",
+    "Roll",
+    "Fire"
+  ],
+  "boneCount": 5,
+  "glb": "assets\\exports\\gearling-sentinel-v1.glb",
+  "source": "assets/source/gearling-sentinel-v1.blend",
+  "preview": "assets/previews/gearling-sentinel-v1.png",
+  "paidGenerationCredits": 0,
+  "engineImportVerified": false,
+  "productionAccepted": false,
+  "review": "User rejected: simplified geometry and materials do not match original concept"
+}

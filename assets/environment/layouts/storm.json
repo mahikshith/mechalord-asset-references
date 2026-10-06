@@ -1,0 +1,493 @@
+{
+  "schema": 1,
+  "stageId": "storm",
+  "name": "Storm Pass",
+  "chunkId": 1001,
+  "runSeconds": 50,
+  "siegeHealth": 100,
+  "reward": 120,
+  "boss": false,
+  "units": "metres",
+  "axes": {
+    "lateral": "X",
+    "forward": "Y",
+    "up": "Z"
+  },
+  "unrealUnitMultiplier": 100,
+  "runSpeedMetresPerSecond": 1.5,
+  "usableLaneHalfWidthMetres": 2.6,
+  "trackModuleLengthMetres": 8,
+  "assemblyMode": "Pool a visible window; these full-course definitions are not all spawned simultaneously.",
+  "dressing": [
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        2,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        2,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        8,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        8,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        10,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        10,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        16,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        16,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        18,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        18,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        24,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        24,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        26,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        26,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        32,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        32,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        34,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        34,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        40,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        40,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        42,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        42,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        48,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        48,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        50,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        50,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        56,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        56,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        58,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        58,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        64,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        64,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        66,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        66,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        72,
+        0
+      ]
+    },
+    {
+      "module": "cliff-base",
+      "positionMetres": [
+        0,
+        72,
+        0
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        -4.0,
+        74,
+        -0.08
+      ]
+    },
+    {
+      "module": "relic-column",
+      "positionMetres": [
+        4.0,
+        74,
+        -0.08
+      ]
+    }
+  ],
+  "encounters": [
+    {
+      "kind": "recruit",
+      "atSeconds": 3,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        4.5,
+        0
+      ],
+      "value": 24,
+      "widthNormalized": 0.32,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0,
+      "module": "gate-recruit"
+    },
+    {
+      "kind": "multiply",
+      "atSeconds": 12,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        18.0,
+        0
+      ],
+      "value": 2,
+      "widthNormalized": 0.32,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0.45,
+      "module": "gate-multiply"
+    },
+    {
+      "kind": "wave",
+      "atSeconds": 23,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        34.5,
+        0
+      ],
+      "value": 30,
+      "widthNormalized": 0.32,
+      "health": 30,
+      "threat": 1.2,
+      "motionAmplitudeNormalized": 0,
+      "module": null
+    },
+    {
+      "kind": "obstacle",
+      "atSeconds": 28,
+      "laneNormalized": -0.6,
+      "positionMetres": [
+        -1.56,
+        42.0,
+        0
+      ],
+      "value": 10,
+      "widthNormalized": 0.3,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0,
+      "module": "barricade"
+    },
+    {
+      "kind": "energy",
+      "atSeconds": 34,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        51.0,
+        0
+      ],
+      "value": 80,
+      "widthNormalized": 0.32,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0,
+      "module": "gate-energy"
+    },
+    {
+      "kind": "recruit",
+      "atSeconds": 41,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        61.5,
+        0
+      ],
+      "value": 25,
+      "widthNormalized": 0.32,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0.3,
+      "module": "gate-recruit"
+    }
+  ],
+  "siege": {
+    "platform": "siege-platform",
+    "platformOffsetMetres": [
+      0,
+      -1.5,
+      0
+    ],
+    "corePositionMetres": [
+      0,
+      14.4,
+      0
+    ],
+    "coreModule": null,
+    "defenseModules": [
+      {
+        "module": "defense-tower",
+        "positionMetres": [
+          -2.15,
+          14.4,
+          0
+        ]
+      },
+      {
+        "module": "defense-tower",
+        "positionMetres": [
+          2.15,
+          14.4,
+          0
+        ]
+      }
+    ],
+    "gates": [
+      {
+        "module": "gate-multiply",
+        "positionMetres": [
+          0,
+          5.4,
+          0
+        ],
+        "multiplier": 2
+      },
+      {
+        "module": "gate-multiply",
+        "positionMetres": [
+          0,
+          9,
+          0
+        ],
+        "multiplier": 3
+      }
+    ]
+  }
+}

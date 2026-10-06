@@ -49,9 +49,9 @@ let shieldBlockUntil = 0;
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 let dialogueTimer: ReturnType<typeof setTimeout> | undefined;
 const held = new Set<string>();
-const names = ['SHIELD', 'EMP', 'OVERDRIVE'];
-const descriptions = ['Shield protects your entire legion while active.', 'EMP clears ordinary machines and incoming fire, then briefly stuns surviving elites.', "Overdrive boosts your legion's damage and fire rate."];
-const abilityEffects = ['LEGION GUARD', 'CLEAR + STUN', 'ATTACK BOOST'];
+const names = ['SHIELD', 'EMP', 'BARRAGE'];
+const descriptions = ['Shield protects your entire legion while active.', 'EMP clears ordinary machines and incoming fire, then briefly stuns surviving elites.', 'Barrage deploys shoulder launchers for a timed sequence of paired rocket volleys.'];
+const abilityEffects = ['LEGION GUARD', 'CLEAR + STUN', 'STORM BATTERY FIRING'];
 const tierNames = ['PULSE', 'TWIN', 'ARC', 'SIEGE'];
 const levelNames = chapters.map(chapter=>chapter.name);
 const challenges = chapters.map(chapter=>chapter.challenge);
@@ -240,7 +240,7 @@ function effects(s: Snapshot): void {
     else if (event.kind === 'healthPickup') { pulse($('commander-health'), 'health-restored'); toast(`FIELD REPAIR · +${Math.round(event.value)} HP`, 1000); }
     else if (event.kind === 'clashWin') toast('BEAM OVERPOWERED · TYRANT HIT', 1200);
     else if (event.kind === 'clashLose') toast('CLASH LOST · GET CLEAR', 1200);
-    else if (event.kind === 'actStart') { bossIntroduced=false; secondPhaseAnnounced=false; focusPart=undefined; clearDialogue(); toast(`ACT ${(s.actIndex??0)+1} · ${campaignActs[s.actIndex??0].toUpperCase()}`, 1800); }
+    else if (event.kind === 'actStart') { clearDialogue(); toast(`${campaignActs[s.actIndex??0].toUpperCase()} · KEEP ADVANCING`, 1500); }
     else if (event.kind === 'heal' || event.kind === 'revive') { pulse($('commander-health'), 'health-restored'); toast(event.kind === 'revive' ? 'LEGION TRANSFER · BACK IN THE FIGHT' : `LEGION TRANSFER · +${event.value} HP`, 1500); }
   }
   if (sacrifices.length) world.sacrifice(sacrifices);
@@ -265,7 +265,7 @@ function effects(s: Snapshot): void {
 }
 function hud(s: Snapshot): void {
   const boss = s.phase === 'boss' || s.phase === 'lastStand' && s.travelDistance >= s.travelGoal, destroying = s.phase === 'destroying';
-  const distanceRemaining = Math.max(0, s.travelGoal - s.travelDistance), route = Math.max(0, Math.min(1, s.campaign ? s.actProgress??0 : s.travelDistance / Math.max(1, s.travelGoal)));
+  const distanceRemaining = Math.max(0, s.travelGoal - s.travelDistance), route = Math.max(0, Math.min(1, s.travelDistance / Math.max(1, s.travelGoal)));
   const exposed = boss && s.bossState === 'exposed', rebuilding = boss && s.bossState === 'rebuilding';
   const guarded = boss && s.bossState === 'guarded', coreStage = exposed || guarded;
   const reactorShield=boss&&s.bossPartsMask===63&&s.guardHp>0;
@@ -275,7 +275,7 @@ function hud(s: Snapshot): void {
   const projectiles = boss && s.enemyShots.some(shot => shot.z > -.5 && shot.z < 10), windup = boss && s.bossAction === 'windup';
   const visibleGunners = boss ? [] : s.targets.filter(target => target.z > 3 && target.z < 27);
   const runnerGunner = visibleGunners.find(target => target.fireState === 'locked') ?? visibleGunners.find(target => target.fireState === 'tracking');
-  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? coreStage ? 'TYRANT · CORE' : reactorShield?'TYRANT · CORE SHIELD':s.bossRevives ? 'TYRANT · REFORGED' : 'TYRANT · ARMOR' : s.campaign ? `${(s.actIndex??0)+1}/3 · ${campaignActs[s.actIndex??0].toUpperCase()}` : s.levelName.toUpperCase();
+  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? coreStage ? 'TYRANT · CORE' : reactorShield?'TYRANT · CORE SHIELD':s.bossRevives ? 'TYRANT · REFORGED' : 'TYRANT · ARMOR' : s.campaign ? campaignActs[s.actIndex??0].toUpperCase() : s.levelName.toUpperCase();
   $('objective').textContent = s.phase === 'lastStand' ? 'COMMANDER DOWN' : destroying ? '' : boss ? (rebuilding ? 'REBUILDING' : exposed ? s.bossCoreTime > 0 ? `${percent}% · ${s.bossCoreTime.toFixed(1)}s` : `${percent}% · FINISH IT` : windup ? s.bossPattern === 'laser' ? 'LASER CHARGE' : s.bossPattern === 'rockets' ? 'MISSILE LOCK' : 'CHARGING' : s.lasers.length ? 'LASER LIVE' : guarded ? 'CORE GUARDED' : projectiles ? 'INCOMING' : `${percent}% ${reactorShield?'SHIELD':'ARMOR'}`) : runnerGunner ? runnerGunner.fireState === 'locked' ? 'CANNON LOCKED' : 'CANNON CHARGING' : s.engagement ? 'KEEP MOVING' : incoming ? 'TYRANT AHEAD' : `${Math.floor(route * 100)}% ADVANCE`;
   $('route-fill').style.width = `${boss ? percent : destroying ? 0 : route * 100}%`;
   $('route-fill').classList.toggle('core-exposed', exposed); $('route-fill').classList.toggle('rebuilding', rebuilding);
@@ -399,9 +399,9 @@ function frame(now: number): void {
     if(playing && snapshot.phase==='reward') {
       if(!rewarding) { audio.silence(); clearDialogue(); rewardChoosing=false; }
       rewarding=true; $('reward').hidden=rewardChoosing||paused;
-      finalReward=!!snapshot.campaign && (snapshot.actIndex??0)===2;
+      finalReward=!!snapshot.campaign;
       const bonuses=snapshot.rewardBonuses??{laser:0,vitality:0,endurance:0};
-      $('reward-copy').textContent=snapshot.campaign && (snapshot.actIndex??0)<2?`Carry this core into ${campaignActs[(snapshot.actIndex??0)+1]}. Your surviving legion continues.`:'Carry one imprint into your next campaign. Replaces your previous imprint.';
+      $('reward-copy').textContent='The Tyrant has fallen. Absorb one core imprint for your next assault. Replaces your previous imprint.';
       $('reward-laser-copy').textContent=finalReward?'+25% beam damage next campaign':`+25% beam damage · +${(bonuses.laser+1)*25}% total`;
       $('reward-vitality-copy').textContent=finalReward?'+20 maximum HP next campaign':'+20 maximum HP · restore up to 35 HP';
       $('reward-endurance-copy').textContent=finalReward?'+15% relic + burst duration next campaign':`+15% relic + burst duration · +${(bonuses.endurance+1)*15}% total`;

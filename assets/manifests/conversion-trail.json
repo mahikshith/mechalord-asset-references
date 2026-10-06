@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "referenceRepository": "https://github.com/mahikshith/mechalord-asset-references",
+  "suppliedMeshyModel": {
+    "shareUrl": "https://www.meshy.ai/s/UbTCHB",
+    "name": "Aegis Vanguard",
+    "id": "01a106e2-bc60-7004-b28f-15d8bb5eba0c",
+    "model": "Meshy 7.1",
+    "viewerFaces": 2366542,
+    "viewerVertices": 1183021,
+    "viewerTopology": "Triangle",
+    "license": "CC BY 4.0",
+    "localModelDownloaded": false,
+    "reviewScreenshot": "assets/previews/aegis-vanguard-meshy-review.png",
+    "texturedVariantInspected": true,
+    "texturedVariantViewerVertices": 1251949,
+    "exportAccessTest": "GLB Download opens Pro subscription requirement; no download event",
+    "productionAccepted": false
+  },
+  "to3DAttempts": [
+    {
+      "source": "Meshy original-reference upload URL",
+      "status": "failed",
+      "httpStatus": 400,
+      "taskId": null
+    },
+    {
+      "source": "public original PNG on GitHub",
+      "status": "failed",
+      "httpStatus": 400,
+      "taskId": null
+    }
+  ],
+  "to3DReportedCost": "not supplied by provider; no accepted job ID returned",
+  "meshysubscriptionPurchased": false,
+  "meshySubmissionsByAgentAccepted": 0,
+  "currentRoute": "User supplied TRELLIS GLB, followed by local Blender cleanup, LODs and animation; no further hosted conversions or credit spending.",
+  "suppliedTrellisAsset": {
+    "original": "assets/originals/sample-huggingface.glb",
+    "userReportedGenerator": "TRELLIS on Hugging Face; exact Space/version not supplied",
+    "inspection": "assets/manifests/sample-inspection.json",
+    "preparation": "assets/manifests/relic-marshal-hf.json"
+  }
+}

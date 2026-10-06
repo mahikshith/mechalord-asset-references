@@ -1,0 +1,31 @@
+{
+  "id": "rust-crawler",
+  "route": "locally-authored-Blender-interpretation",
+  "blender": "5.2.2 LTS",
+  "concept": "art/concepts/rust-crawler-v1.png",
+  "triangles": 548,
+  "triangleTarget": 700,
+  "materialCount": 1,
+  "textureSize": [
+    512,
+    512
+  ],
+  "dimensionsMeters": [
+    1.2279999256134033,
+    1.180999994277954,
+    0.9650000035762787
+  ],
+  "animations": [
+    "Idle",
+    "Roll",
+    "Fire"
+  ],
+  "boneCount": 5,
+  "glb": "assets\\exports\\rust-crawler-v1.glb",
+  "source": "assets/source/rust-crawler-v1.blend",
+  "preview": "assets/previews/rust-crawler-v1.png",
+  "paidGenerationCredits": 0,
+  "engineImportVerified": false,
+  "productionAccepted": false,
+  "review": "User rejected: simplified geometry and materials do not match original concept"
+}

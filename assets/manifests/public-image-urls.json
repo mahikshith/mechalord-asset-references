@@ -1,0 +1,26 @@
+{
+  "repository": "https://github.com/mahikshith/mechalord-asset-references",
+  "images": [
+    {
+      "id": "relic-marshal",
+      "imageUrl": "https://raw.githubusercontent.com/mahikshith/mechalord-asset-references/main/relic-marshal-v1.png",
+      "status": 200,
+      "contentType": "image/png",
+      "matchesOriginal": true
+    },
+    {
+      "id": "gearling-sentinel",
+      "imageUrl": "https://raw.githubusercontent.com/mahikshith/mechalord-asset-references/main/gearling-sentinel-v1.png",
+      "status": 200,
+      "contentType": "image/png",
+      "matchesOriginal": true
+    },
+    {
+      "id": "rust-crawler",
+      "imageUrl": "https://raw.githubusercontent.com/mahikshith/mechalord-asset-references/main/rust-crawler-v1.png",
+      "status": 200,
+      "contentType": "image/png",
+      "matchesOriginal": true
+    }
+  ]
+}

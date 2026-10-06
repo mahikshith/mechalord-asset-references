@@ -1,0 +1,38 @@
+{
+  "id": "rust-crawler",
+  "version": 2,
+  "route": "original local Blender modeling",
+  "paidServicesUsed": false,
+  "sourceTriangles": 3776,
+  "editablePartCount": 76,
+  "boneCount": 49,
+  "clips": [
+    "Idle",
+    "Roll",
+    "Fire"
+  ],
+  "bakedTextureSize": [
+    512,
+    512
+  ],
+  "exportMaterials": 1,
+  "lods": [
+    {
+      "name": "mobile",
+      "triangles": 551,
+      "target": 700,
+      "path": "assets/exports/rust-crawler-mobile-v2.glb"
+    },
+    {
+      "name": "lod1",
+      "triangles": 237,
+      "target": 350,
+      "path": "assets/exports/rust-crawler-lod1-v2.glb"
+    }
+  ],
+  "source": "assets/source/rust-crawler-v2.blend",
+  "preview": "assets/previews/rust-crawler-v2.png",
+  "productionAccepted": false,
+  "androidValidated": false,
+  "notes": "New detailed interpretation of authoritative concept. Awaiting visual review; engine and device validation pending."
+}

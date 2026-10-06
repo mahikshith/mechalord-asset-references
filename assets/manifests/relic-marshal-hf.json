@@ -1,0 +1,34 @@
+{
+  "source": {
+    "triangles": 19537,
+    "glb": "assets\\exports\\relic-marshal-hf-source.glb",
+    "glbBytes": 2062984,
+    "materials": 1
+  },
+  "mobile": {
+    "triangles": 3980,
+    "glb": "assets\\exports\\relic-marshal-hf-mobile.glb",
+    "glbBytes": 1642908,
+    "materials": 1
+  },
+  "lod1": {
+    "triangles": 1980,
+    "glb": "assets\\exports\\relic-marshal-hf-lod1.glb",
+    "glbBytes": 1567028,
+    "materials": 1
+  },
+  "original": "assets/originals/sample-huggingface.glb",
+  "heightMeters": 1.9,
+  "forwardAxis": "-Y",
+  "upAxis": "Z",
+  "groundPivot": true,
+  "baseColorTexture": [
+    1024,
+    1024
+  ],
+  "rigged": false,
+  "animations": [],
+  "productionAccepted": false,
+  "androidValidated": false,
+  "notes": "Faithful user-supplied reconstruction; static source and decimated candidates. Rigging, deformation and engine/device checks pending."
+}

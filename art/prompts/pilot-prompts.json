@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-04",
+  "tool": "built-in image_gen",
+  "background": "opaque neutral studio gray",
+  "assets": [
+    {
+      "id": "relic-marshal",
+      "role": "commander",
+      "triangles": 4000,
+      "texture": 1024,
+      "prompt": "Use case: stylized-concept. Create one original 3D game character reference for Mechalord, a chunky stylized medieval-mech mobile game. Subject: the Relic Marshal, a friendly armored humanoid commander, single full body, centered, front three-quarter view, neutral A-pose, both arms separated from torso and hands open, feet apart and fully visible. Rounded ivory steel armor with restrained teal enamel and bronze mechanical joints, compact rounded helmet with a dark visor, bold readable shoulders, simple large forms, subtle ancient circuitry on chest, no thin ornaments, no cape. A compact relic-powered crossbow-rifle is mounted on the outer right forearm, kept clear of torso and not spanning hands. Warm painted low-detail materials intended for an unlit mobile game, friendly determined presence, solid believable 3D volumes. Soft even studio lighting, plain pale gray background, minimal soft contact shadow. A single object only, no scene, no scenery, no text, no labels, no watermark, no multiple views, no panels, no existing game characters. Camera nearly orthographic; no dramatic perspective; all body parts unobscured. This image is a clean input for subsequent image-to-3D modeling."
+    },
+    {
+      "id": "gearling-sentinel",
+      "role": "friendly-crowd",
+      "triangles": 700,
+      "texture": 512,
+      "prompt": "Use case: stylized-concept. Create a single original mechanical troop character reference for Mechalord, a chunky stylized medieval-mech mobile game. The Gearling Sentinel is a small friendly clockwork soldier on two wide bronze wheels, squat ivory steel armored body with teal enamel panels, large dark horizontal visor with two small teal eyes, a compact top turret shaped like a medieval crossbow, chunky bronze joints, very few broad armor plates and strong rounded silhouette. Match a painted stylized 3D mobile-game art direction, not realism. The wheels are visibly separate from chassis; barrel clear from body, easy to articulate in 3D. No limbs or humanoid rider; no thin pipes, no ornate microdetail. One object only, entire object fully visible with margin, centered front three-quarter view, nearly orthographic. Soft neutral studio lighting, plain pale gray background, minimal contact shadow. No text, labels, scenery, panels, multiple views, watermark, or recognizable existing-game designs. This image is a clean input for low-poly image-to-3D reconstruction at approximately 700 triangles."
+    },
+    {
+      "id": "rust-crawler",
+      "role": "enemy-crowd",
+      "triangles": 700,
+      "texture": 512,
+      "prompt": "Use case: stylized-concept. Create one original hostile mechanical troop character reference for Mechalord, a chunky stylized medieval-mech mobile game. Subject: Rust Crawler, a squat tracked siege automaton, broad low compact chassis on two clearly separated wide caterpillar tracks, angular dark charcoal iron and muted terracotta-red armor with chunky bronze edges, small dark visor with two amber eyes, short heavy forward cannon integrated into an armored head turret. Original enemy silhouette distinct from a friendly rounded wheeled ivory and teal automaton, slightly menacing but playful, no gore. Few broad plates, painted simplified materials, obvious volumes, no microdetail, no tiny tubes or spikes. Entire single machine centered and fully visible with margin, front three-quarter almost orthographic view. Soft even neutral studio lighting, plain pale gray background, minimal contact shadow. No scenery, text, labels, logo, watermark, multiple views, panels, rider or extra props. Clean image-to-3D reference suitable for a approximately 700-triangle real-time mobile troop."
+    }
+  ]
+}

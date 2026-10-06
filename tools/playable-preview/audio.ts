@@ -1,6 +1,6 @@
 import type { Effect, Snapshot } from './contract';
 
-type Cue = 'pulse'|'twin'|'arc'|'rail'|'hit'|'grunt'|'impact'|'explosion'|'pickup'|'relic'|'windup'|'cannon'|'win'|'rank'|'start'|'loss'|'rolling'|'laser'|'shield'|'emp'|'overdrive'|'shieldhit'|'tempest'|'arcstorm'|'salvo'|'heal'|'revive'|'clash'|'clashwin'|'shieldbreak'|'musicPulse'|'musicDrive'|'musicThreat';
+type Cue = 'pulse'|'twin'|'arc'|'rail'|'hit'|'grunt'|'impact'|'explosion'|'pickup'|'relic'|'windup'|'cannon'|'win'|'rank'|'start'|'loss'|'rolling'|'laser'|'shield'|'emp'|'barrage'|'shieldhit'|'tempest'|'arcstorm'|'salvo'|'heal'|'revive'|'clash'|'clashwin'|'shieldbreak'|'musicPulse'|'musicDrive'|'musicThreat';
 /** Original, locally synthesized mechanical sounds. No downloaded samples or voice service. */
 export class BattleAudio {
   private context?: AudioContext;
@@ -27,7 +27,7 @@ export class BattleAudio {
     try {
       if (!this.context) {
         this.context = new AudioContext(); this.master = this.context.createGain(); this.master.gain.value = .65; this.master.connect(this.context.destination);
-        for (const cue of ['pulse','twin','arc','rail','hit','grunt','impact','explosion','pickup','relic','windup','cannon','win','rank','start','loss','rolling','laser','shield','emp','overdrive','shieldhit','tempest','arcstorm','salvo','heal','revive','clash','clashwin','shieldbreak','musicPulse','musicDrive','musicThreat'] as Cue[]) this.buffers.set(cue, this.make(cue));
+        for (const cue of ['pulse','twin','arc','rail','hit','grunt','impact','explosion','pickup','relic','windup','cannon','win','rank','start','loss','rolling','laser','shield','emp','barrage','shieldhit','tempest','arcstorm','salvo','heal','revive','clash','clashwin','shieldbreak','musicPulse','musicDrive','musicThreat'] as Cue[]) this.buffers.set(cue, this.make(cue));
       }
       if (this.enabled) await this.context.resume();
     } catch { /* Audio failure never blocks the game or its captions. */ }
@@ -78,18 +78,18 @@ export class BattleAudio {
       case 'combatPower': this.play(event.value===8?'tempest':event.value===9?'arcstorm':'salvo', .85, .25); break;
       case 'chainHit': this.play('arcstorm', .18, .3); break;
       case 'recruit': if (event.value > 0) this.play('pickup', .55, .2); break;
-      case 'relic': this.play(event.value===0?'shield':event.value===1?'emp':'overdrive', .85, .3); break;
+      case 'relic': this.play(event.value===0?'shield':event.value===1?'emp':'barrage', .85, .3); break;
     }
   }
   update(s: Snapshot, running: boolean): void {
     if (!running || !this.enabled || !this.context || this.context.state !== 'running') { if(this.active.size)this.silence(); return; }
     if ((s.phase === 'run' || s.phase === 'boss') && !s.clash?.active) {
-      if (s.time - this.lastShot > (s.ability > 0 && s.relic === 2 ? .085 : .14) && s.shots.some(shot => shot.owner!=='troop' && shot.z < 1)) {
+      if (s.time - this.lastShot > .14 && s.shots.some(shot => shot.owner!=='troop' && shot.z < 1)) {
         const cue: Cue = s.weaponPower === 'railburst' ? 'rail' : s.weaponPower === 'cannons' ? 'cannon' : s.weapon >= 3 ? 'arc' : s.weapon === 2 ? 'twin' : 'pulse';
         this.play(cue, .42, .055); this.lastShot = s.time;
       }
       if (s.bossAction === 'windup' && this.bossAction !== 'windup') this.play('windup', .7, .8);
-      if (s.bossAction === 'evade' && this.bossAction !== 'evade') this.play('overdrive', .45, .8);
+      if (s.bossAction === 'evade' && this.bossAction !== 'evade') this.play('windup', .45, .8);
     }
     this.bossAction = s.bossAction;
     this.updateMusic(s);
@@ -134,7 +134,7 @@ export class BattleAudio {
 
   private make(cue: Cue): AudioBuffer {
     const music=cue.startsWith('music');
-    const audio = this.context!, length = music ? 16*60/112 : cue==='revive'?1.5:cue==='clash'?3:cue==='clashwin'?.7:cue==='heal'?.55:cue==='shieldbreak'?.45:cue === 'tempest' ? 1 : cue === 'arcstorm' ? 1.2 : cue === 'salvo' ? 1.8 : cue === 'emp' ? .65 : cue === 'shield' ? .55 : cue === 'overdrive' ? .6 : cue === 'shieldhit' ? .19 : cue === 'laser' ? .8 : cue === 'rolling' ? 1 : cue === 'explosion' ? 1.35 : cue === 'windup' ? .65 : ['win','rank'].includes(cue) ? .78 : ['pickup','relic','start','loss'].includes(cue) ? .4 : cue === 'grunt' ? .24 : cue === 'cannon' ? .3 : .14;
+    const audio = this.context!, length = music ? 16*60/112 : cue==='revive'?1.5:cue==='clash'?3:cue==='clashwin'?.7:cue==='heal'?.55:cue==='shieldbreak'?.45:cue === 'tempest' ? 1 : cue === 'arcstorm' ? 1.2 : cue === 'salvo' ? 1.8 : cue === 'emp' ? .65 : cue === 'shield' ? .55 : cue === 'barrage' ? .6 : cue === 'shieldhit' ? .19 : cue === 'laser' ? .8 : cue === 'rolling' ? 1 : cue === 'explosion' ? 1.35 : cue === 'windup' ? .65 : ['win','rank'].includes(cue) ? .78 : ['pickup','relic','start','loss'].includes(cue) ? .4 : cue === 'grunt' ? .24 : cue === 'cannon' ? .3 : .14;
     const buffer = audio.createBuffer(1, Math.ceil(length * audio.sampleRate), audio.sampleRate), samples = buffer.getChannelData(0);
     let seed = 18231, filtered = 0, phase = 0;
     for (let i = 0; i < samples.length; i++) {
@@ -152,7 +152,7 @@ export class BattleAudio {
         value*=Math.min(1,t*400)*Math.min(1,(length-t)*400);
       }
       else if(cue==='heal'||cue==='revive'){phase+=2*Math.PI*(cue==='heal'?480+360*p:100+720*p*p)/audio.sampleRate;value=(Math.sin(phase)*.25+Math.sin(phase*1.5)*.14+Math.sin(phase*2)*.06)*Math.sin(Math.PI*p);if(cue==='revive')value+=filtered*.16*Math.pow(1-p,2);}
-      else if(cue==='clash'){phase+=2*Math.PI*(90+155*p)/audio.sampleRate;const throb=.65+.35*Math.sin(t*2*Math.PI*7);value=(Math.sin(phase)*.26+Math.sin(phase*2.013)*.12+filtered*.35+noise*.1*Math.pow(Math.max(0,Math.sin(t*101)),8))*throb*Math.min(1,t*30)*Math.min(1,(length-t)*12);}
+      else if(cue==='clash'){phase+=2*Math.PI*(48+28*p+6*Math.sin(t*11))/audio.sampleRate;const pressure=.80+.20*Math.sin(t*2*Math.PI*5.5),crack=Math.pow(Math.max(0,Math.sin(t*127)*Math.sin(t*211)),5);value=(Math.sin(phase)*.38+Math.sin(phase*2.017)*.15+filtered*.58+noise*.22*crack)*pressure*Math.min(1,t*90)*Math.min(1,(length-t)*12);}
       else if(cue==='clashwin'){phase+=2*Math.PI*(50+650*Math.exp(-p*6))/audio.sampleRate;value=(Math.sin(phase)*.4+filtered*.7+noise*.1)*Math.min(1,t*140)*Math.exp(-p*4);}
       else if(cue==='shieldbreak'){phase+=2*Math.PI*(580-400*p)/audio.sampleRate;value=(Math.sin(phase)*.22+Math.sin(phase*1.63)*.18+noise*.22+filtered*.32)*Math.exp(-p*6);}
       else if(cue==='tempest'){phase+=2*Math.PI*(135+110*Math.sin(p*Math.PI))/audio.sampleRate;const crack=Math.pow(Math.max(0,Math.sin(t*97)+Math.sin(t*173)*.35),6);value=(Math.sin(phase)*.22+Math.sin(phase*3.03)*.13+filtered*.3+noise*.12*Math.min(1,crack))*Math.min(1,t*100)*Math.min(1,(1-p)*13);}
@@ -160,9 +160,9 @@ export class BattleAudio {
       else if(cue==='salvo'){const local=t%.28;phase+=2*Math.PI*(75+140*Math.exp(-local*40))/audio.sampleRate;value=(Math.sin(phase)*.26+filtered*.75+noise*.07)*Math.exp(-local*18)*Math.min(1,t*300)*Math.min(1,(length-t)*15);}
       else if(cue==='shield'){const latch=(t%.13);phase+=2*Math.PI*(120+90*Math.exp(-latch*40))/audio.sampleRate;value=(Math.sin(phase)*.32+Math.sin(phase*2.7)*.16+filtered*.6)*Math.exp(-latch*25)*Math.min(1,t*200)*Math.min(1,(length-t)*30);}
       else if(cue==='emp'){phase+=2*Math.PI*(50+460*Math.exp(-p*9))/audio.sampleRate;value=(Math.sin(phase)*.55+noise*.24*Math.pow(Math.max(0,Math.sin(t*150)),4)+filtered*.7)*Math.min(1,t*300)*Math.exp(-p*4);}
-      else if(cue==='overdrive'){phase+=2*Math.PI*(85+320*p*p)/audio.sampleRate;value=(Math.sin(phase)*.30+Math.sin(phase*2.03)*.14+filtered*.28)*(0.7+.3*Math.sin(t*75))*Math.sin(p*Math.PI);}
+      else if(cue==='barrage'){const latch=t% .18;phase+=2*Math.PI*(65+200*Math.exp(-latch*45))/audio.sampleRate;value=(Math.sin(phase)*.36+filtered*.72+noise*.09)*Math.exp(-latch*19)*Math.min(1,t*240)*Math.min(1,(length-t)*30);}
       else if(cue==='shieldhit'){phase+=2*Math.PI*(950-650*p)/audio.sampleRate;value=(Math.sin(phase)*.25+Math.sin(phase*1.73)*.18+noise*.10)*Math.exp(-p*7);}
-      else if (cue === 'laser') { phase += 2*Math.PI*(110+90*Math.sin(p*Math.PI))/audio.sampleRate;const arc=Math.pow(Math.max(0,Math.sin(t*97)*Math.sin(t*163)),4);value=(Math.sin(phase)*.32+Math.sin(phase*3.01)*.17+filtered*.35+noise*.24*arc)*Math.min(1,t*90)*Math.min(1,(1-p)*12); }
+      else if (cue === 'laser') { phase += 2*Math.PI*(62+34*Math.sin(p*Math.PI))/audio.sampleRate;const arc=Math.pow(Math.max(0,Math.sin(t*97)*Math.sin(t*163)),4);value=(Math.sin(phase)*.40+Math.sin(phase*3.01)*.12+filtered*.52+noise*.28*arc)*Math.min(1,t*140)*Math.min(1,(1-p)*12); }
       else if (cue === 'rolling') value = filtered * .45 + Math.sin(t * Math.PI * 2 * 39) * .08 + Math.sin(t * Math.PI * 2 * 17) * .08 * Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * 11)), 8);
       else if (['pickup','relic','win','rank','start'].includes(cue)) {
         const notes = cue === 'rank' ? [392,494,587,784] : cue === 'win' ? [330,440,554,660] : cue === 'relic' ? [220,440,660,880] : [440,554,660,880];

@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "relic-marshal",
+      "role": "commander",
+      "triangleTarget": 4000,
+      "textureTarget": 1024,
+      "concept": "art/concepts/relic-marshal-v1.png",
+      "conceptStatus": "authoritative-user-selected-design",
+      "modelStatus": "faithful-source-with-first-pass-local-rig-and-idle-run",
+      "generator": "User-supplied TRELLIS reconstruction + local Blender",
+      "taskId": null,
+      "measuredTriangles": 3980,
+      "exports": [
+        "assets\\exports\\relic-marshal-hf-source.glb",
+        "assets\\exports\\relic-marshal-hf-mobile.glb",
+        "assets\\exports\\relic-marshal-hf-lod1.glb"
+      ],
+      "productionAccepted": false,
+      "experimentalBlockoutReceipt": "assets/manifests/relic-marshal-blender.json",
+      "remoteCandidate": {
+        "shareUrl": "https://www.meshy.ai/s/UbTCHB",
+        "name": "Aegis Vanguard",
+        "source": "user-supplied existing Meshy asset",
+        "texturedVariantInspected": true,
+        "downloadStatus": "requires-account-export-access",
+        "productionAccepted": false
+      },
+      "localDetailedExperimentReceipt": "assets/manifests/relic-marshal-v2.json",
+      "sourceReceipt": "assets/manifests/relic-marshal-hf.json",
+      "rigReceipt": "assets/manifests/relic-marshal-hf-rigged.json"
+    },
+    {
+      "id": "gearling-sentinel",
+      "role": "friendly-crowd",
+      "triangleTarget": 700,
+      "textureTarget": 512,
+      "concept": "art/concepts/gearling-sentinel-v1.png",
+      "conceptStatus": "authoritative-user-selected-design",
+      "modelStatus": "local-detailed-experiment-awaiting-faithful-conversion",
+      "generator": "Local Blender; Meshy discontinued",
+      "taskId": null,
+      "measuredTriangles": null,
+      "exports": [],
+      "productionAccepted": false,
+      "experimentalBlockoutReceipt": "assets/manifests/gearling-sentinel-blender.json",
+      "localDetailedExperimentReceipt": "assets/manifests/gearling-sentinel-v2.json"
+    },
+    {
+      "id": "rust-crawler",
+      "role": "enemy-crowd",
+      "triangleTarget": 700,
+      "textureTarget": 512,
+      "concept": "art/concepts/rust-crawler-v1.png",
+      "conceptStatus": "authoritative-user-selected-design",
+      "modelStatus": "local-detailed-experiment-awaiting-faithful-conversion",
+      "generator": "Local Blender; Meshy discontinued",
+      "taskId": null,
+      "measuredTriangles": null,
+      "exports": [],
+      "productionAccepted": false,
+      "experimentalBlockoutReceipt": "assets/manifests/rust-crawler-blender.json",
+      "localDetailedExperimentReceipt": "assets/manifests/rust-crawler-v2.json"
+    },
+    {
+      "id": "arc-warden",
+      "role": "elite",
+      "triangleTarget": 2000,
+      "textureTarget": 512,
+      "conceptStatus": "deferred-until-pilot-android-validation",
+      "modelStatus": "not-generated",
+      "taskId": null,
+      "measuredTriangles": null,
+      "exports": []
+    },
+    {
+      "id": "relic-launcher",
+      "role": "siege-launcher",
+      "triangleTarget": 2000,
+      "textureTarget": 1024,
+      "conceptStatus": "deferred-until-pilot-android-validation",
+      "modelStatus": "not-generated",
+      "taskId": null,
+      "measuredTriangles": null,
+      "exports": []
+    },
+    {
+      "id": "forge-colossus",
+      "role": "boss",
+      "triangleTarget": 8000,
+      "textureTarget": 1024,
+      "conceptStatus": "deferred-until-pilot-android-validation",
+      "modelStatus": "not-generated",
+      "taskId": null,
+      "measuredTriangles": null,
+      "exports": []
+    }
+  ]
+}

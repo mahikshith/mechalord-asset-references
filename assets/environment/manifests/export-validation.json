@@ -1,0 +1,233 @@
+{
+  "schema": 1,
+  "blenderVersion": "5.2.2 LTS",
+  "status": "pass",
+  "checks": 28,
+  "scope": "Blender export/reimport, not Unreal/device verification",
+  "results": [
+    {
+      "module": "track-straight",
+      "format": "glb",
+      "triangles": 1756,
+      "boundsErrorMetres": 0.0,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "track-straight",
+      "format": "fbx",
+      "triangles": 1756,
+      "boundsErrorMetres": 7e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "track-narrow",
+      "format": "glb",
+      "triangles": 860,
+      "boundsErrorMetres": 0.0,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "track-narrow",
+      "format": "fbx",
+      "triangles": 860,
+      "boundsErrorMetres": 7e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "gate-recruit",
+      "format": "glb",
+      "triangles": 808,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "gate-recruit",
+      "format": "fbx",
+      "triangles": 808,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "gate-multiply",
+      "format": "glb",
+      "triangles": 844,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "gate-multiply",
+      "format": "fbx",
+      "triangles": 844,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "gate-energy",
+      "format": "glb",
+      "triangles": 776,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "gate-energy",
+      "format": "fbx",
+      "triangles": 776,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "barricade",
+      "format": "glb",
+      "triangles": 272,
+      "boundsErrorMetres": 0.0,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "barricade",
+      "format": "fbx",
+      "triangles": 272,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "energy-pickup",
+      "format": "glb",
+      "triangles": 160,
+      "boundsErrorMetres": 0.0,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "energy-pickup",
+      "format": "fbx",
+      "triangles": 160,
+      "boundsErrorMetres": 0.0,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "relic-column",
+      "format": "glb",
+      "triangles": 260,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "relic-column",
+      "format": "fbx",
+      "triangles": 260,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "pipe-arch",
+      "format": "glb",
+      "triangles": 788,
+      "boundsErrorMetres": 6e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "pipe-arch",
+      "format": "fbx",
+      "triangles": 788,
+      "boundsErrorMetres": 6e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "rail-section",
+      "format": "glb",
+      "triangles": 232,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "rail-section",
+      "format": "fbx",
+      "triangles": 232,
+      "boundsErrorMetres": 3e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "cliff-base",
+      "format": "glb",
+      "triangles": 372,
+      "boundsErrorMetres": 1.6e-05,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "cliff-base",
+      "format": "fbx",
+      "triangles": 372,
+      "boundsErrorMetres": 1.64e-05,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "siege-platform",
+      "format": "glb",
+      "triangles": 1288,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "siege-platform",
+      "format": "fbx",
+      "triangles": 1288,
+      "boundsErrorMetres": 5e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "defense-tower",
+      "format": "glb",
+      "triangles": 408,
+      "boundsErrorMetres": 1e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "defense-tower",
+      "format": "fbx",
+      "triangles": 408,
+      "boundsErrorMetres": 2e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "forge-core-plinth",
+      "format": "glb",
+      "triangles": 776,
+      "boundsErrorMetres": 2e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    },
+    {
+      "module": "forge-core-plinth",
+      "format": "fbx",
+      "triangles": 776,
+      "boundsErrorMetres": 2e-07,
+      "paletteVerified": true,
+      "status": "pass"
+    }
+  ]
+}

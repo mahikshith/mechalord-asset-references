@@ -11,7 +11,7 @@ namespace mech::assault
 {
 enum class Phase { Ready, Run, Boss, Destroying, Won, Lost, LastStand, Reward, Reviving };
 enum class Kind { Enemy, Crate, Gate, Hazard, Orb };
-enum class Relic { Shield, EMP, Overdrive };
+enum class Relic { Shield, EMP, StormBattery, Overdrive=StormBattery };
 enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire, EmpPulse, EmpClear, EmpStun, ShieldHit, EscortBlock, CombatPower, ChainHit, ShieldBreak, HealthPickup, RewardChosen, ClashStart, ClashWin, ClashLose, EnemySupport, ActStart };
 enum class ProjectileKind { Shell, Rocket, Orb };
 enum class WeaponEmitter { Gunner, ArmL, ArmR, ShoulderL, ShoulderR, Core };
@@ -40,6 +40,7 @@ struct Shot
     bool heavy=false,active=false; FriendlyKind kind=FriendlyKind::Pulse;
     int pierce=1,lastHit=0; bool troop=false;
     int id=0; double y=0,dy=0,life=0; int aimRegion=7,epoch=0; bool spatial=false;
+    bool battery=false; int targetId=0;
 };
 struct EnemyShot
 {
@@ -110,6 +111,7 @@ public:
     bool ChooseReward(int Choice);
     bool ApplyLegacyReward(int Choice);
     int StageLevel() const { return campaign?(actIndex==0?0:actIndex==1?3:4):level; }
+    double StageProgress() const;
     bool RelicActive(Relic Type) const { return campaign?relicTime[int(Type)]>0:ability>0 && relic==Type; }
     bool Heal();
     bool Revive();
@@ -140,7 +142,11 @@ private:
     int nextShotId=1; double collapseTime=0,collapseStartY=0;
     int combatPulses=0,combatEpoch=0,evades=0; double combatClock=0,beamSlope=0,nextEvade=7,evadeTarget=0;
     bool bossClashed=false,legacyApplied=false; double clashTapCooldown=0,healthDropClock=0,actStartDistance=0;
-    void ConfigureAct(bool First);
+    double barrageClock=0,groundStride=0; int barragePairs=0;
+    void ConfigureCampaign();
+    void UpdateZone();
+    void BarrageVolley();
+    void BarrageStep(double Dt);
     void SpawnArchetype(int Type,double X,double Hp,double Delay=0);
     void ArchetypeStep(Target& Enemy,double Dt);
     bool BeginClash();

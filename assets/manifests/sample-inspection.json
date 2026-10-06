@@ -1,0 +1,25 @@
+{
+  "source": "assets/originals/sample-huggingface.glb",
+  "sha256": "e8e0761aacccc2559466b480773ac297c5b080cc8394f3f56cec3ddf478478a3",
+  "triangles": 19537,
+  "vertices": 14793,
+  "meshObjects": 1,
+  "materials": 1,
+  "textures": [
+    {
+      "name": "Image_0",
+      "width": 1024,
+      "height": 1024
+    }
+  ],
+  "dimensionsRaw": [
+    0.33952873945236206,
+    0.8577245473861694,
+    0.9995030760765076
+  ],
+  "armatures": 0,
+  "animations": 0,
+  "provenance": "User-supplied GLB; exact Hugging Face Space not yet identified",
+  "productionAccepted": false,
+  "androidValidated": false
+}

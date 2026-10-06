@@ -1,0 +1,48 @@
+{
+  "originalPreserved": true,
+  "checks": [
+    {
+      "file": "assets\\exports\\relic-marshal-hf-source.glb",
+      "triangles": 19537,
+      "weightedExportVertices": 0,
+      "clips": [],
+      "passed": true
+    },
+    {
+      "file": "assets\\exports\\relic-marshal-hf-mobile.glb",
+      "triangles": 3980,
+      "weightedExportVertices": 0,
+      "clips": [],
+      "passed": true
+    },
+    {
+      "file": "assets\\exports\\relic-marshal-hf-lod1.glb",
+      "triangles": 1980,
+      "weightedExportVertices": 0,
+      "clips": [],
+      "passed": true
+    },
+    {
+      "file": "assets\\exports\\relic-marshal-hf-rigged-source.glb",
+      "triangles": 19537,
+      "weightedExportVertices": 14793,
+      "clips": [
+        "Idle",
+        "Run"
+      ],
+      "passed": true
+    },
+    {
+      "file": "assets\\exports\\relic-marshal-hf-rigged-mobile.glb",
+      "triangles": 3980,
+      "weightedExportVertices": 4582,
+      "clips": [
+        "Idle",
+        "Run"
+      ],
+      "passed": true
+    }
+  ],
+  "engineImportVerified": false,
+  "notes": "Binary geometry/texture/skin checks passed. Visual joint cleanup and actual engine/device validation remain required."
+}

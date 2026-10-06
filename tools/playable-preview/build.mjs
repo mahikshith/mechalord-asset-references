@@ -27,7 +27,7 @@ for(const [html,script] of [['index.html','game.js'],['review.html','review.js']
 }
 for(const [source,dest] of [['relic-marshal-hf-rigged-source.glb','commander.glb'],['relic-marshal-hf-mobile.glb','troop.glb'],['rust-crawler-source-v2.glb','crawler.glb'],['cinder-reaver-v3.glb','cinder-reaver.glb'],['forge-tyrant-v3.glb','forge-tyrant.glb']])
  await fs.copyFile(path.join(root,'assets/exports',source),path.join(out,dest));
-const environmentAssets=['CoolingStack','ReactorBank','ArticulatedServiceArm','CitadelSpire','DistantFoundryWorks','DistantTransferGallery'];
+const environmentAssets=['SuspendedIsland','SpineConnector','SunkenRoute','CitadelBowl','TaperedButtress','PressureVessel','CoolingStack','ArticulatedServiceArm','ReactorBank','CitadelSpire','CableDrum','DistantFoundryWorks','DistantTransferGallery','ReactorBulkhead'];
 await fs.mkdir(path.join(out,'environment'),{recursive:true});
 for(const name of environmentAssets)await fs.copyFile(path.join(root,'assets/exports/reforged',name+'.glb'),path.join(out,'environment',name+'.glb'));
 const manifest={builtAt:new Date().toISOString(),coreAsset,coreSha256:coreHash,files:{}};

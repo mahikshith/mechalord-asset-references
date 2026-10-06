@@ -1,0 +1,413 @@
+{
+  "schema": 1,
+  "stageId": "gatehouse",
+  "name": "Gatehouse Siege",
+  "chunkId": 0,
+  "runSeconds": 45,
+  "siegeHealth": 70,
+  "reward": 90,
+  "boss": false,
+  "units": "metres",
+  "axes": {
+    "lateral": "X",
+    "forward": "Y",
+    "up": "Z"
+  },
+  "unrealUnitMultiplier": 100,
+  "runSpeedMetresPerSecond": 1.5,
+  "usableLaneHalfWidthMetres": 2.6,
+  "trackModuleLengthMetres": 8,
+  "assemblyMode": "Pool a visible window; these full-course definitions are not all spawned simultaneously.",
+  "dressing": [
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        2,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        2,
+        -0.08
+      ]
+    },
+    {
+      "module": "pipe-arch",
+      "positionMetres": [
+        0,
+        6,
+        0
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        8,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        10,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        10,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        16,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        18,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        18,
+        -0.08
+      ]
+    },
+    {
+      "module": "pipe-arch",
+      "positionMetres": [
+        0,
+        22,
+        0
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        24,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        26,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        26,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        32,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        34,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        34,
+        -0.08
+      ]
+    },
+    {
+      "module": "pipe-arch",
+      "positionMetres": [
+        0,
+        38,
+        0
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        40,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        42,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        42,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        48,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        50,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        50,
+        -0.08
+      ]
+    },
+    {
+      "module": "pipe-arch",
+      "positionMetres": [
+        0,
+        54,
+        0
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        56,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        58,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        58,
+        -0.08
+      ]
+    },
+    {
+      "module": "track-straight",
+      "positionMetres": [
+        0,
+        64,
+        0
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        -4.0,
+        66,
+        -0.08
+      ]
+    },
+    {
+      "module": "defense-tower",
+      "positionMetres": [
+        4.0,
+        66,
+        -0.08
+      ]
+    },
+    {
+      "module": "pipe-arch",
+      "positionMetres": [
+        0,
+        70,
+        0
+      ]
+    }
+  ],
+  "encounters": [
+    {
+      "kind": "recruit",
+      "atSeconds": 3,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        4.5,
+        0
+      ],
+      "value": 20,
+      "widthNormalized": 0.32,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0,
+      "module": "gate-recruit"
+    },
+    {
+      "kind": "multiply",
+      "atSeconds": 10,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        15.0,
+        0
+      ],
+      "value": 2,
+      "widthNormalized": 0.32,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0,
+      "module": "gate-multiply"
+    },
+    {
+      "kind": "wave",
+      "atSeconds": 20,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        30.0,
+        0
+      ],
+      "value": 20,
+      "widthNormalized": 0.32,
+      "health": 20,
+      "threat": 1.0,
+      "motionAmplitudeNormalized": 0,
+      "module": null
+    },
+    {
+      "kind": "recruit",
+      "atSeconds": 28,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        42.0,
+        0
+      ],
+      "value": 20,
+      "widthNormalized": 0.32,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0,
+      "module": "gate-recruit"
+    },
+    {
+      "kind": "energy",
+      "atSeconds": 36,
+      "laneNormalized": 0,
+      "positionMetres": [
+        0.0,
+        54.0,
+        0
+      ],
+      "value": 50,
+      "widthNormalized": 0.32,
+      "health": 10,
+      "threat": 0.5,
+      "motionAmplitudeNormalized": 0,
+      "module": "gate-energy"
+    }
+  ],
+  "siege": {
+    "platform": "siege-platform",
+    "platformOffsetMetres": [
+      0,
+      -1.5,
+      0
+    ],
+    "corePositionMetres": [
+      0,
+      14.4,
+      0
+    ],
+    "coreModule": null,
+    "defenseModules": [
+      {
+        "module": "defense-tower",
+        "positionMetres": [
+          -2.15,
+          14.4,
+          0
+        ]
+      },
+      {
+        "module": "defense-tower",
+        "positionMetres": [
+          2.15,
+          14.4,
+          0
+        ]
+      }
+    ],
+    "gates": [
+      {
+        "module": "gate-multiply",
+        "positionMetres": [
+          0,
+          5.4,
+          0
+        ],
+        "multiplier": 2
+      },
+      {
+        "module": "gate-multiply",
+        "positionMetres": [
+          0,
+          9,
+          0
+        ],
+        "multiplier": 3
+      }
+    ]
+  }
+}

@@ -50,4 +50,4 @@ for(const rank of [0,3]){
 }
 const report={sha256:createHash('sha256').update(binary).digest('hex'),scope:'Public simulation controls, first active vulnerable HUD part order. Automatic ability timing and threat prediction remain; not a normal-input or human-difficulty claim.',runs};
 fs.writeFileSync('builds/player-target-route-audit.json',JSON.stringify(report,null,2));
-if(!runs.every(r=>r.phase==='won'&&r.acts.length===3&&r.unresolved===0))process.exitCode=1;
+if(!runs.every(r=>r.phase==='won'&&r.acts.length===1&&r.unresolved===0))process.exitCode=1;

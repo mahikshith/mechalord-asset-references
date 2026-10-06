@@ -163,6 +163,7 @@ function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=n
  status.textContent+=` · attack admission ${state.safetyAdmitted??0} / deferred ${state.safetyDeferred??0} / unsupported ${state.safetyUnsupported??0} / capacity ${state.safetyCapacity??0}`;
  const partRegions=(state as Snapshot&{bossRegions?:AuthoritativeBossRegion[]}).bossRegions;
  if(partRegions?.length)status.textContent+=` · vulnerable ${partRegions.filter(r=>r.vulnerable&&r.hp>0).map(r=>r.id+' '+Math.ceil(r.hp)+'HP').join(', ')||'none'}`;
+ if(state.clash?.active){const c=world.clashVisuals.stats;status.textContent+=` · contact front ${c.visible?'visible':'hidden'} / ${c.arcs} arcs / ${c.sparks} sparks at ${c.contact.map(v=>v.toFixed(2)).join(',')}`;}
  const info=world.renderer.info;status.textContent+=` · draw calls ${info.render.calls} · triangles ${info.render.triangles} · geometries ${info.memory.geometries} · textures ${info.memory.textures}`;
  if(soak){soak.frames++;if(dt>.034)soak.longFrames++;soak.peakCalls=Math.max(soak.peakCalls,info.render.calls);soak.peakTriangles=Math.max(soak.peakTriangles,info.render.triangles);soak.peakGeometries=Math.max(soak.peakGeometries,info.memory.geometries);soak.peakTextures=Math.max(soak.peakTextures,info.memory.textures);
   if(['won','lost','lastStand'].includes(state.phase)||state.time>=(campaignSoak?900:240)){

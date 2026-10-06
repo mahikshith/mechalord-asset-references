@@ -2,15 +2,15 @@
   "schema": 4,
   "scope": "Actual continuous-travel Assault browser adapter/current WASM. Automated normal controls; no Unreal, physical-device or first-time-player validation.",
   "binary": "C:\\Users\\mahik\\Desktop\\mechalord\\delivery\\playable\\assault.wasm",
-  "bytes": 1891734,
-  "sha256": "3b16f22bf4dcfdabe9d9c9fed078ab4abc0632d891ec76ed933ec437c0d7eb0a",
+  "bytes": 1906393,
+  "sha256": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46",
   "memoryBytes": 1376256,
-  "testedAt": "2026-10-06T19:54:49.088Z",
+  "testedAt": "2026-10-06T20:25:39.181Z",
   "winningRuns": [
     {
       "level": 0,
       "relic": 0,
-      "time": 174.5,
+      "time": 169.4166717529297,
       "army": 1,
       "weapon": 4,
       "kills": 72,
@@ -30,11 +30,11 @@
     {
       "level": 0,
       "relic": 1,
-      "time": 153,
+      "time": 150.3333282470703,
       "army": 1,
       "weapon": 4,
       "kills": 79,
-      "commanderHp": 87,
+      "commanderHp": 77,
       "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
@@ -50,12 +50,12 @@
     {
       "level": 0,
       "relic": 2,
-      "time": 172.68333435058594,
+      "time": 154.76666259765625,
       "army": 1,
       "weapon": 4,
-      "kills": 71,
-      "commanderHp": 75,
-      "bossArmorRebuilds": 1,
+      "kills": 79,
+      "commanderHp": 80,
+      "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
       "powers": [
         11,
@@ -65,12 +65,12 @@
         9,
         10
       ],
-      "contactAttacks": 5
+      "contactAttacks": 4
     },
     {
       "level": 1,
       "relic": 0,
-      "time": 105.91666412353516,
+      "time": 105.96666717529297,
       "army": 112,
       "weapon": 4,
       "kills": 109,
@@ -87,7 +87,7 @@
     {
       "level": 1,
       "relic": 1,
-      "time": 93.76667022705078,
+      "time": 93.83333587646484,
       "army": 144,
       "weapon": 4,
       "kills": 118,
@@ -104,10 +104,10 @@
     {
       "level": 1,
       "relic": 2,
-      "time": 84.88333129882812,
-      "army": 118,
+      "time": 89.8499984741211,
+      "army": 112,
       "weapon": 4,
-      "kills": 115,
+      "kills": 113,
       "commanderHp": 92,
       "bossArmorRebuilds": 0,
       "commanderReviveUsed": false,
@@ -116,13 +116,13 @@
         2,
         4
       ],
-      "contactAttacks": 2
+      "contactAttacks": 0
     },
     {
       "level": 2,
       "relic": 0,
-      "time": 118.8499984741211,
-      "army": 148,
+      "time": 119.56666564941406,
+      "army": 142,
       "weapon": 4,
       "kills": 123,
       "commanderHp": 100,
@@ -140,7 +140,7 @@
     {
       "level": 2,
       "relic": 1,
-      "time": 104.0999984741211,
+      "time": 104.06666564941406,
       "army": 148,
       "weapon": 4,
       "kills": 123,
@@ -159,10 +159,10 @@
     {
       "level": 2,
       "relic": 2,
-      "time": 116.08333587646484,
+      "time": 117.31666564941406,
       "army": 118,
       "weapon": 4,
-      "kills": 125,
+      "kills": 127,
       "commanderHp": 100,
       "bossArmorRebuilds": 1,
       "commanderReviveUsed": false,
@@ -173,7 +173,7 @@
         5,
         2
       ],
-      "contactAttacks": 1
+      "contactAttacks": 0
     }
   ],
   "safetyRuns": [
@@ -182,10 +182,10 @@
       "firstDangerousVolley": 13.333333015441895,
       "maxRunnerShotGap": 15.933330535888672,
       "runnerShots": 22,
-      "bossShots": 31,
-      "actualDamageEvents": 21,
-      "time": 174.5,
-      "admitted": 25,
+      "bossShots": 35,
+      "actualDamageEvents": 20,
+      "time": 169.4166717529297,
+      "admitted": 24,
       "deferred": 84,
       "unsupported": 3,
       "existingUnsafe": 76,
@@ -199,7 +199,7 @@
       "runnerShots": 7,
       "bossShots": 11,
       "actualDamageEvents": 11,
-      "time": 135.5833282470703,
+      "time": 132.93333435058594,
       "admitted": 12,
       "deferred": 26,
       "unsupported": 0,
@@ -356,7 +356,7 @@
       "status": "pass"
     },
     {
-      "name": "booster bursts brake during committed aim and disabled parts cannot move the boss",
+      "name": "booster bursts and grounded strides plant during committed aim; destroyed legs stop translation",
       "status": "pass"
     },
     {
@@ -412,7 +412,7 @@
       "status": "pass"
     },
     {
-      "name": "Overdrive boosts actual exposed-core hit damage while armor remains bounded",
+      "name": "Storm Battery launches finite real paired shoulder rockets without boosting normal bullets",
       "status": "pass"
     },
     {

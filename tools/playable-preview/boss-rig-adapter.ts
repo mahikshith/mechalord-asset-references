@@ -24,7 +24,7 @@ export class BossRigAdapter {
  private highlightClock=0;
  private cueColor=new T.Color();
  private flashes=new Map<BossRegionID,number>();
- private regionMaterials=new Map<BossRegionID,{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];intensities:number[]}[]>();
+ private regionMaterials=new Map<BossRegionID,{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];colors:T.Color[];intensities:number[]}[]>();
  private disposed=false;
  constructor(private root:T.Object3D,private scene:T.Scene){
   for(const name of ['Arm_L','Arm_R','Leg_L','Leg_R','Knee_L','Knee_R','Barrel_L','Barrel_R']){const node=root.getObjectByName(name);if(node)this.joints.set(name,{node,rest:node.quaternion.clone()});}
@@ -45,8 +45,8 @@ export class BossRigAdapter {
   // It never creates a new reactor housing, ring, wheel, or persistent target surface.
   this.reactorFlash=new T.Mesh(new T.CircleGeometry(1,64),new T.MeshBasicMaterial({color:0xffefc8,transparent:true,opacity:0,side:T.DoubleSide,depthWrite:false,depthTest:true,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,toneMapped:false}));this.reactorFlash.name='MeasuredOvalReactor_ConfirmedDamageFlash';this.reactorFlash.visible=false;this.reactorFlash.renderOrder=8;scene.add(this.reactorFlash);
   for(const [id,name] of [['cannonL','Arm_L'],['cannonR','Arm_R'],['jetL','Pod_L'],['jetR','Pod_R'],['legL','Leg_L'],['legR','Leg_R']] as [BossRegionID,string][]){
-   const items:{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];intensities:number[]}[]=[];
-   root.getObjectByName(name)?.traverse(o=>{if(!(o as T.Mesh).isMesh)return;const mesh=o as T.Mesh,original=mesh.material,materials=(Array.isArray(original)?original:[original]).map(m=>m.clone() as T.MeshStandardMaterial);mesh.material=Array.isArray(original)?materials:materials[0];items.push({mesh,original,materials,base:materials.map(m=>m.emissive?.clone()??new T.Color()),intensities:materials.map(m=>m.emissiveIntensity??0)});});
+   const items:{mesh:T.Mesh;original:T.Material|T.Material[];materials:T.MeshStandardMaterial[];base:T.Color[];colors:T.Color[];intensities:number[]}[]=[];
+   root.getObjectByName(name)?.traverse(o=>{if(!(o as T.Mesh).isMesh)return;const mesh=o as T.Mesh,original=mesh.material,materials=(Array.isArray(original)?original:[original]).map(m=>m.clone() as T.MeshStandardMaterial);mesh.material=Array.isArray(original)?materials:materials[0];items.push({mesh,original,materials,base:materials.map(m=>m.emissive?.clone()??new T.Color()),colors:materials.map(m=>m.color?.clone()??new T.Color()),intensities:materials.map(m=>m.emissiveIntensity??0)});});
    this.regionMaterials.set(id,items);
   }
  }
@@ -69,7 +69,7 @@ export class BossRigAdapter {
   for(const [id,items] of this.regionMaterials){
    const r=regions?.find(r=>r.id===id),flash=Math.max(0,(this.flashes.get(id)??0)-Math.max(0,dt));this.flashes.set(id,flash);
    const valid=visible&&r&&r.hp>0&&r.vulnerable,amount=visible&&r&&r.hp>0&&flash>0?flash/.24:valid?id===focus?.20+Math.sin(this.highlightClock*5)*.055:.045:0;
-   for(const item of items)for(let i=0;i<item.materials.length;i++){const m=item.materials[i];if(!m.emissive)continue;m.emissive.copy(item.base[i]);m.emissiveIntensity=item.intensities[i];if(amount>0){m.emissive.setHex(flash>0?0xffeeab:0xe38f3b);m.emissiveIntensity=amount*(flash>0?2.5:1);}}
+   for(const item of items)for(let i=0;i<item.materials.length;i++){const m=item.materials[i];m.color?.copy(item.colors[i]);if(!m.emissive)continue;m.emissive.copy(item.base[i]);m.emissiveIntensity=item.intensities[i];if(amount>0){m.emissive.setHex(flash>0?0xffffff:0x68d6e8);m.emissiveIntensity=amount*(flash>0?2.8:1);if(flash>0)m.color?.lerp(new T.Color(0xffffff),Math.min(.82,amount*.82));}}
   }
   this.flashes.set('core',Math.max(0,(this.flashes.get('core')??0)-Math.max(0,dt)));
   if(visible)for(const r of regions??[]){
@@ -82,7 +82,7 @@ export class BossRigAdapter {
    this.dummy.position.set(marker.x,marker.y,-marker.z);this.dummy.quaternion.fromArray(marker.quaternion);this.dummy.scale.set(marker.radiusX*1.05,marker.radiusY*1.05,1);
    // Forward face is native -Z, transformed by the region's exact quaternion.
    this.dummy.position.addScaledVector(this.dummy.getWorldDirection(this.forward),-(marker.radiusZ+.035));this.dummy.updateMatrix();this.cues.setMatrixAt(count,this.dummy.matrix);
-   this.cueColor.setHex(r.id===focus?0x9cf5ff:0x655e50);this.cues.setColorAt(count++,this.cueColor);
+   this.cueColor.setHex((this.flashes.get(r.id)??0)>0?0xffffff:r.id===focus?0x9cf5ff:0x655e50);this.cues.setColorAt(count++,this.cueColor);
   }
   this.cues.count=count;this.cues.instanceMatrix.needsUpdate=true;if(this.cues.instanceColor)this.cues.instanceColor.needsUpdate=true;
  }

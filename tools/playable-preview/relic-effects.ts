@@ -1,6 +1,7 @@
 import * as T from 'three';
 import type {Effect,Snapshot} from './contract';
 import {PlatedShield} from './plated-shield';
+import {StormBattery} from './storm-battery';
 
 export interface RelicViewOptions {depthScale?:number;armyRadius:number;armyCenterX:number;armyCenterZ:number;visible:boolean;paused?:boolean;}
 type Spark={mesh:T.Mesh<T.RingGeometry,T.MeshBasicMaterial>;life:number;duration:number;size:number;x:number;y:number;z:number;exact:boolean;shield:boolean};
@@ -10,7 +11,7 @@ const CYAN=0x65efff,AMBER=0xffa54b;
 export class RelicEffects {
  readonly root=new T.Group();readonly dome:T.Mesh<T.SphereGeometry,T.ShaderMaterial>;
  readonly rim:T.Mesh<T.TorusGeometry,T.MeshBasicMaterial>;readonly wave:T.Group;
- readonly overdrive=new T.Group();readonly escort=new T.Group();readonly lightning:T.LineSegments;
+ readonly battery:StormBattery;readonly escort=new T.Group();readonly lightning:T.LineSegments;
  readonly light=new T.PointLight(CYAN,0,12,2);readonly shield:PlatedShield;
  private timeMarkers:T.InstancedMesh;private frostCrystals:T.InstancedMesh;private timeHands:T.InstancedMesh;
  private empArcs:T.InstancedMesh;private empArcStamp=new T.Object3D();
@@ -21,8 +22,6 @@ export class RelicEffects {
  private radii=new T.Vector3(2.2,3.25,3.0);private normal=new T.Vector3();private point=new T.Vector3();
  private upward=new T.Vector3(0,0,1);private disposed=false;private eventIDs=new Set<number>();
  private reduced=false;private impact={exposureLift:0,zoom:0};private lastShield=false;
- private weaponEnergy:T.Mesh[]=[];
- private odCircuits:T.InstancedMesh;private odEmbers:T.InstancedMesh;private odArcs:T.Mesh[]=[];private odFloor:T.Mesh[]=[];
  constructor(private scene:T.Scene,private hero:T.Object3D,reducedMotion=false){
   this.reduced=reducedMotion;this.root.name='RelicEffects';scene.add(this.root);this.root.add(this.light);this.shield=new PlatedShield(this.root);
   const domeMaterial=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{clock:{value:0},strength:{value:1},tint:{value:new T.Color(CYAN)}},vertexShader:`varying vec3 n;varying vec3 v;varying vec3 local;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);n=normalize(normalMatrix*normal);v=normalize(-mv.xyz);local=position;gl_Position=projectionMatrix*mv;}`,fragmentShader:`varying vec3 n;varying vec3 v;varying vec3 local;uniform float clock;uniform float strength;uniform vec3 tint;void main(){float edge=pow(1.-abs(dot(normalize(n),normalize(v))),2.2);float bands=pow(max(0.,sin(local.y*44.-clock*2.)),24.);float grid=pow(max(0.,sin(local.x*28.+local.z*23.)),32.);float a=(.026+edge*.26+bands*.018+grid*.014)*strength;gl_FragColor=vec4(tint*(.72+edge*.5),a);}`});
@@ -32,12 +31,7 @@ export class RelicEffects {
   for(let i=0;i<3;i++){const ring=new T.Mesh(new T.TorusGeometry(1,.018+i*.008,6,128),this.energy(i===1?0xf2ffff:CYAN,.8));ring.rotation.x=-Math.PI/2;ring.position.y=.08+i*.12;ring.userData.layer=i;this.wave.add(ring);}
   const waveWall=new T.Mesh(new T.CylinderGeometry(1,1,1,96,1,true),this.energy(CYAN,.08));waveWall.name='EMP_VerticalWave';waveWall.position.y=.65;this.wave.add(waveWall);
   this.empArcs=new T.InstancedMesh(new T.CylinderGeometry(.5,.5,1,5).rotateX(Math.PI/2),this.energy(0xb2efff,.9),256);this.empArcs.name='EMP_ThunderShockFront';this.empArcs.frustumCulled=false;this.root.add(this.empArcs);
-  this.root.add(this.overdrive,this.escort);this.overdrive.name='OverdriveWeaponEnergy';this.escort.name='FiniteEscortGuard';
-  this.odCircuits=new T.InstancedMesh(new T.CapsuleGeometry(.045,.64,2,5),this.energy(0xffd583,.82),18);this.odCircuits.frustumCulled=false;this.odCircuits.name='Overdrive_InstancedFlameStreaks';this.overdrive.add(this.odCircuits);
-  this.odEmbers=new T.InstancedMesh(new T.OctahedronGeometry(.045),this.energy(AMBER,.9),24);this.odEmbers.frustumCulled=false;this.odEmbers.name='Overdrive_InstancedUpperBodyEmbers';this.overdrive.add(this.odEmbers);
-  for(let i=0;i<3;i++){const arc=new T.Mesh(new T.TorusGeometry(1,.035,5,64,Math.PI*1.55),this.energy(i===1?CYAN:AMBER,.8));arc.name='Overdrive_UpperBodyArc_'+i;this.overdrive.add(arc);this.odArcs.push(arc);}
-  for(let i=0;i<2;i++){const ring=new T.Mesh(new T.TorusGeometry(1,.018,6,48),this.energy(i===0?AMBER:CYAN,.48));ring.rotation.x=-Math.PI/2;ring.name='OverdriveFloor_'+i;this.overdrive.add(ring);this.odFloor.push(ring);}
-  for(let i=0;i<4;i++){const collar=new T.Mesh(new T.TorusGeometry(.26,.043,5,24),this.energy(i%2?CYAN:AMBER,.95));collar.name='OverdrivePosedWeapon_'+i;collar.visible=false;this.root.add(collar);this.weaponEnergy.push(collar);}
+  this.battery=new StormBattery(this.root);this.root.add(this.escort);this.escort.name='FiniteEscortGuard';
   for(const side of [-1,1]){const satellite=new T.Group();satellite.name='EscortEmitter_'+side;satellite.position.set(side*1.1,1.65,.6);const housing=new T.Mesh(new T.OctahedronGeometry(.18),new T.MeshStandardMaterial({color:0x526678,metalness:.55,roughness:.4}));const halo=new T.Mesh(new T.TorusGeometry(.27,.025,6,20),this.energy(0x9cfcb3,.8));satellite.add(housing,halo);this.escort.add(satellite);}
   const rippleGeometry=new T.RingGeometry(.82,1,40);
   for(let i=0;i<12;i++){const mesh=new T.Mesh(rippleGeometry,this.energy(CYAN,.9));mesh.visible=false;this.root.add(mesh);this.sparks.push({mesh,life:0,duration:.48,size:.65,x:0,y:1.05,z:0,exact:false,shield:true});}
@@ -94,18 +88,12 @@ export class RelicEffects {
   };
   if(freeze||slow){for(const target of s.targets??[])if(target.kind==='enemy'&&target.hp>0&&target.z>=-1&&(!freeze||target.z<18))markTime(target.x,target.z,target.variant>0?.9:.62,target.id);if(s.phase==='boss'&&s.bossHp>0)markTime(s.bossX,s.bossZ,1.9,0);}
   this.timeMarkers.count=marked;this.timeMarkers.instanceMatrix.needsUpdate=true;if(this.timeMarkers.instanceColor)this.timeMarkers.instanceColor.needsUpdate=true;this.frostCrystals.count=crystals;this.frostCrystals.instanceMatrix.needsUpdate=true;this.timeHands.count=hands;this.timeHands.instanceMatrix.needsUpdate=true;
-  const od=o.visible&&(timers?.[2]?.activeTime??(s.relic===2?s.ability:0))>0;this.overdrive.visible=od;this.overdrive.position.set(s.x,0,0);
-  for(let i=0;i<18;i++){const a=this.clock*2+i*Math.PI/9,p=(this.clock*1.3+i*.173)%1;this.stamp.position.set(Math.cos(a)*(.8+p*.22),.45+p*2.5,Math.sin(a)*.65-.1);this.stamp.rotation.set(.2*Math.sin(a),a,Math.sin(a)*.45);this.stamp.scale.set(.65,.45+Math.sin(p*Math.PI)*.7,.65);this.stamp.updateMatrix();this.odCircuits.setMatrixAt(i,this.stamp.matrix);}this.odCircuits.instanceMatrix.needsUpdate=true;
-  for(let i=0;i<24;i++){const p=(this.clock*.62+i*.137)%1,a=i*2.39;this.stamp.position.set(Math.sin(a)*(.65+p*.35),.8+p*2.4,Math.cos(a)*.7-.2);this.stamp.rotation.set(a,this.clock,a*.7);this.stamp.scale.setScalar(Math.sin(p*Math.PI)*(.55+(i%3)*.2));this.stamp.updateMatrix();this.odEmbers.setMatrixAt(i,this.stamp.matrix);}this.odEmbers.instanceMatrix.needsUpdate=true;
-  for(let i=0;i<3;i++){const arc=this.odArcs[i];arc.position.set(0,1.6+i*.25,-.05);arc.rotation.set(i===1?.7:-.15,this.clock*(i===1?-.9:.7)+i*1.3,i*.55);arc.scale.set(1.03,1.25,1.03);}
-  this.odFloor.forEach((ring,i)=>{ring.position.set(o.armyCenterX-s.x,.09+i*.04,o.armyCenterZ);ring.scale.set(o.armyRadius*(i===0?1:1.07),3.2,1);});
-  const weaponNames=['HandCannon_L','HandCannon_R','Arsenal_Hero','Arsenal_Hero'];
-  for(let i=0;i<4;i++){const collar=this.weaponEnergy[i],node=this.hero.getObjectByName(weaponNames[i]);let visible=!!node;for(let parent=node;parent;parent=parent.parent)visible&&=parent.visible;collar.visible=od&&visible;if(collar.visible&&node){node.updateWorldMatrix(true,false);this.point.set(i<2?0:i===2?-.68:.68,i<2?0:2.08,i<2?.85:-.5);collar.position.copy(node.localToWorld(this.point));node.getWorldQuaternion(collar.quaternion);collar.rotateZ(this.clock*3);collar.scale.setScalar(.85+Math.sin(this.clock*7+i)*.12);}}
+  this.battery.update(s,dt,o.visible,s.phase==='lastStand'||s.phase==='reviving'||!!s.rewardPending||!!s.clash?.active);
   this.escort.visible=o.visible&&s.escortShield>0&&s.powerTime>0;this.escort.position.set(s.x,0,0);this.escort.children.forEach((c,i)=>{c.position.y=1.6+Math.sin(this.clock*2+i)*.08;c.rotation.y=this.clock*.5;});
-  this.pulseLife=Math.max(0,this.pulseLife-dt);this.refreshImpact();this.light.position.set(s.x,2,0);this.light.color.setHex(this.pulseType===2?AMBER:CYAN);this.light.intensity=(od?3:shield?1.4:0)+this.impact.exposureLift*36;
+  this.pulseLife=Math.max(0,this.pulseLife-dt);this.refreshImpact();this.light.position.set(s.x,2,0);this.light.color.setHex(CYAN);this.light.intensity=(this.battery.root.visible?1.6:shield?1.4:0)+this.impact.exposureLift*36;
  }
  private refreshImpact(){const envelope=this.pulseLife>0?Math.pow(this.pulseLife/this.pulseDuration,2):0;this.impact.exposureLift=envelope*(this.reduced?.045:.16);this.impact.zoom=this.reduced?0:envelope*.016;}
  private writeBolts(){let cursor=0;for(const b of this.bolts){if(b.life<=0)continue;for(let j=0;j<12;j++){for(let end=0;end<2;end++){const t=(j+end)/12,w=Math.sin(t*Math.PI)*.35,seed=b.seed*1.37+(j+end)*4.17;this.boltPositions[cursor]=T.MathUtils.lerp(b.start.x,b.end.x,t)+Math.sin(seed)*w;this.boltPositions[cursor+1]=T.MathUtils.lerp(b.start.y,b.end.y,t)+Math.cos(seed*1.9)*w;this.boltPositions[cursor+2]=T.MathUtils.lerp(b.start.z,b.end.z,t)+Math.sin(seed*.7)*w;this.boltColors[cursor]=.55;this.boltColors[cursor+1]=.8+b.life*.7;this.boltColors[cursor+2]=1;cursor+=3;}}}this.lightning.geometry.setDrawRange(0,cursor/3);this.lightning.geometry.attributes.position.needsUpdate=true;this.lightning.geometry.attributes.color.needsUpdate=true;}
- reset(){this.clock=this.pulseLife=this.empLife=0;this.shield.reset();this.empArcs.count=this.timeMarkers.count=this.frostCrystals.count=this.timeHands.count=0;this.eventIDs.clear();for(const p of this.sparks){p.life=0;p.mesh.visible=false;}for(const b of this.bolts)b.life=0;for(const c of this.weaponEnergy)c.visible=false;this.dome.visible=this.rim.visible=this.wave.visible=this.overdrive.visible=this.escort.visible=false;this.light.intensity=0;this.stun.count=0;this.lightning.geometry.setDrawRange(0,0);this.refreshImpact();}
+ reset(){this.clock=this.pulseLife=this.empLife=0;this.shield.reset();this.battery.reset();this.empArcs.count=this.timeMarkers.count=this.frostCrystals.count=this.timeHands.count=0;this.eventIDs.clear();for(const p of this.sparks){p.life=0;p.mesh.visible=false;}for(const b of this.bolts)b.life=0;this.dome.visible=this.rim.visible=this.wave.visible=this.escort.visible=false;this.light.intensity=0;this.stun.count=0;this.lightning.geometry.setDrawRange(0,0);this.refreshImpact();}
  dispose(){if(this.disposed)return;this.disposed=true;const gs=new Set<T.BufferGeometry>(),ms=new Set<T.Material>();this.root.traverse((o:any)=>{if(o.geometry)gs.add(o.geometry);if(o.isInstancedMesh)o.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])ms.add(m);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());this.light.dispose();this.root.removeFromParent();}
 }
