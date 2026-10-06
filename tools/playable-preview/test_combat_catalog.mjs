@@ -22,7 +22,7 @@ function route(s,wanted){
 function run(level,relic,rank,wanted,observe){core.start(relic,level,rank);let s=core.snapshot();for(let f=0;f<300*60&&['run','boss','destroying'].includes(s.phase);f++){
  if(s.energy>=100&&s.ability===0&&s.phase!=='destroying'&&(relic===2||s.phase==='boss'||s.targets.some(t=>t.kind==='enemy'&&t.z<12)))core.activate();const before=s;core.step(1/60,route(s,wanted));s=core.snapshot();if(observe?.(s,before))break;
  }return s;}
-test('ABI4 exposes all five distinct chapter identities and clean finite powers',()=>{assert.equal(core.api.abi_version(),4);const names=[];for(let level=0;level<5;level++){core.start(0,level,0);const s=core.snapshot();assert.equal(s.level,level);names.push(s.levelName);assert.equal(s.combatPower,'none');assert.equal(s.combatPowerTime,0);assert.equal(s.friendlyBeams.length,0);assert.equal(s.bossEvadeTime,0);}assert.equal(new Set(names).size,5);assert.equal(names[3],'Storm Pass');assert.equal(names[4],'Forge Core');});
+test('ABI5 exposes all five distinct chapter identities and clean finite powers',()=>{assert.equal(core.api.abi_version(),5);const names=[];for(let level=0;level<5;level++){core.start(0,level,0);const s=core.snapshot();assert.equal(s.level,level);names.push(s.levelName);assert.equal(s.combatPower,'none');assert.equal(s.combatPowerTime,0);assert.equal(s.friendlyBeams.length,0);assert.equal(s.bossEvadeTime,0);}assert.equal(new Set(names).size,5);assert.equal(names[3],'Storm Pass');assert.equal(names[4],'Forge Core');});
 const earned=[];
 for(const wanted of['tempest','arcstorm','salvo'])test('earned '+wanted+' is finite, physical and survives pause/reset correctly',()=>{
  let active=null,elapsed=0,births=0,pulseFrames=0,chainHits=0,beamFrames=0,pauseChecked=false;const seen=new Set();

@@ -16,10 +16,11 @@ int main(){int Cases=0;for(bool Tell:{true,false})for(int Hz:{30,60,120}){
  Battle B;B.Start(Relic::Shield,0,0);B.phase=Phase::Boss;B.bossX=0;B.bossZ=12;B.bossY=2.8;
  B.bossPartsMask=7;for(int I=0;I<3;++I)B.regionHp[I]=0;B.regionHp[3]=10;B.UpdateBossHealth();
  mech::boss_pose::Pose P;P.position={0,2.8,-12};B.poseDriver.Reset(P);B.bossFrame=B.previousBossFrame=mech::boss_pose::BuildFrame(P,7);
- B.bossEvadeTime=Tell?1.:.5;B.bossEvadeTell=Tell?.2:0;B.evadeTarget=1.9;B.evades=1;B.nextEvade=999;B.bossAction=BossAction::Evade;
+ B.bossEvadeTime=Tell?1.:.5;B.bossEvadeTell=Tell?.2:0;B.evadeTarget=1.9;B.evades=1;B.nextEvade=999;B.bossAction=BossAction::Evade;B.bossPattern=BossPattern::Rockets;
  Check(B.RegionVulnerable(3),"second booster legally vulnerable");
  B.DamageRegion(3,100,B.bossFrame.regions[3].aimCenter,FriendlyKind::Pulse,B.bossEpoch);
  Check((B.bossPartsMask&12)==12&&B.regionHp[3]==0,"real damage destroys second booster");
+ Check(B.bossPattern==BossPattern::Sweep,"broken rocket pods immediately retire rocket warning");
  Check(B.bossEvadeTime==0&&B.bossEvadeTell==0&&B.bossFiringWindow==1.4,"cancel both evade clocks and enter recovery");
  const double X=B.bossX,Z=B.bossZ;for(int I=0;I<Hz/2;++I)B.Advance(1./Hz,3);
  Check(B.bossX==X&&B.bossZ==Z,"disabled boosters cannot dash during recovery");

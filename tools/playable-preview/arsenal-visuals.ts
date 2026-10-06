@@ -3,8 +3,8 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {Snapshot} from './contract';
 import {WeaponSockets,flightAttitude,type EmitterPositions} from './weapon-sockets';
 
-export type ArsenalPickupKind='guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort'|'tempest'|'arcstorm'|'salvo';
-export const PICKUP_COLORS={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x9cfcb3,tempest:0x50e5ff,arcstorm:0xba8cff,salvo:0xff7148} as const;
+export type ArsenalPickupKind='guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort'|'tempest'|'arcstorm'|'salvo'|'health';
+export const PICKUP_COLORS={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x9cfcb3,tempest:0x50e5ff,arcstorm:0xba8cff,salvo:0xff7148,health:0x5deb9e} as const;
 const STEEL=0x30434e,IVORY=0xd5c7a7,BRONZE=0xb08749,BLACK=0x17232c;
 function paint(source:T.BufferGeometry,color:number,x=0,y=0,z=0,rx=0,ry=0,rz=0){
   const g=source.index?source.toNonIndexed():source;if(g!==source)source.dispose();g.rotateX(rx).rotateY(ry).rotateZ(rz).translate(x,y,z);
@@ -139,7 +139,7 @@ export class ArsenalVisuals {
     const live=s.phase==='run'||s.phase==='boss',powered=live&&((state.powerTime??0)>0||state.weaponPermanent===true);
     this.cannons.visible=powered&&state.weaponPower==='cannons';this.guided.visible=powered&&state.weaponPower==='guided';this.rail.visible=powered&&state.weaponPower==='railburst';
     const finite=s;
-    this.lance.visible=live&&['tempest','arcstorm'].includes(finite.combatPower)&&(finite.combatPowerTime??0)>0;this.storm.visible=live&&finite.combatPower==='arcstorm'&&(finite.combatPowerTime??0)>0;
+    this.lance.visible=live&&((['tempest','arcstorm'].includes(finite.combatPower)&&(finite.combatPowerTime??0)>0)||(s as Snapshot&{clash?:{active:boolean}}).clash?.active===true);this.storm.visible=live&&finite.combatPower==='arcstorm'&&(finite.combatPowerTime??0)>0;
     if(live&&finite.combatPower==='salvo'&&(finite.combatPowerTime??0)>0)this.guided.visible=true;
     const lanceRay=finite.friendlyBeams?.[0];if(this.lance.visible&&lanceRay){this.hero.updateWorldMatrix(true,false);this.lance.position.copy(this.hero.worldToLocal(new T.Vector3(lanceRay.x,lanceRay.y,-lanceRay.z)));this.lance.rotation.x=Math.atan2(lanceRay.endY-lanceRay.y,Math.max(.001,lanceRay.endZ-lanceRay.z));this.lance.rotation.y=Math.PI;}
     if(this.lance.visible&&!lanceRay){this.hero.updateWorldMatrix(true,false);this.lance.position.copy(this.hero.worldToLocal(new T.Vector3(s.x,1.42,-1.32)));this.lance.rotation.set(0,Math.PI,0);}
@@ -199,7 +199,11 @@ export function createPickup(kind:ArsenalPickupKind,shootable=false){
   const visual=new T.Group();visual.name='PickupVisual';visual.position.y=shootable?1.1:1.35;group.add(visual);
   const icon=new T.Group();icon.name='PickupSymbol_'+kind;visual.add(icon);
   const color=PICKUP_COLORS[kind],parts:T.BufferGeometry[]=[];
-  if(kind==='guided'){
+  if(kind==='health'){
+    // Field repair cartridge, with a raised green medical cross and protected steel casing.
+    parts.push(paint(new T.BoxGeometry(.84,.78,.29),STEEL),paint(new T.BoxGeometry(.66,.62,.055),IVORY,0,0,.18),paint(new T.BoxGeometry(.18,.48,.07),color,0,0,.23),paint(new T.BoxGeometry(.47,.18,.07),color,0,0,.23));
+    for(const side of [-1,1])parts.push(paint(new T.BoxGeometry(.095,.7,.35),BRONZE,side*.40,0,0));
+  }else if(kind==='guided'){
     // Three complete finned missiles and an open sight: clear even without a label.
     for(let i=0;i<3;i++){const x=(i-1)*.33,y=i===1?.12:-.10;
       parts.push(paint(new T.CylinderGeometry(.085,.085,.58,6),IVORY,x,y,0,Math.PI/2));

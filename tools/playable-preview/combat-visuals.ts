@@ -79,6 +79,7 @@ export class CombatVisuals {
   private rotors:T.InstancedMesh;private struts:T.InstancedMesh;private sparkMesh:T.InstancedMesh;
   private sparks:Spark[]=Array.from({length:128},()=>({p:new T.Vector3(),v:new T.Vector3(),life:0,max:1,color:new T.Color()}));private sparkIndex=0;private bursts:Burst[]=[];
   private sacrificeStreams:SacrificeStream[]=[];private streamBodies:T.InstancedMesh;private streamHeads:T.InstancedMesh;
+  private repairPulses:{root:T.Object3D;age:number}[]=[];private repairCrosses:T.InstancedMesh;
   private acquisitions:Acquisition[]=[];private acquireRing:T.InstancedMesh;private acquireTrace:T.InstancedMesh;private acquireDummy=new T.Object3D();
   constructor(private scene:T.Scene){
     this.debris=pool(scene,new T.BoxGeometry(1,1,1),standard(0xffffff),this.debrisCapacity);this.debris.castShadow=true;
@@ -91,6 +92,7 @@ export class CombatVisuals {
     const light=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
     this.acquireRing=pool(scene,new T.TorusGeometry(1,.025,3,32).rotateX(Math.PI/2),light,4);
     const trace=joined([painted(new T.BoxGeometry(.025,.28,.025),0xffffff,-.035,.26,0,0,0,-.25),painted(new T.BoxGeometry(.025,.23,.025),0xffffff,.01,.04,0,0,0,.55),painted(new T.BoxGeometry(.025,.28,.025),0xffffff,-.02,-.19,0,0,0,-.25)]);
+    this.repairCrosses=pool(scene,joined([painted(new T.BoxGeometry(.15,.52,.055),0xffffff),painted(new T.BoxGeometry(.52,.15,.055),0xffffff)]),new T.MeshBasicMaterial({color:0x65f4a4,transparent:true,opacity:.95,depthWrite:false,toneMapped:false}),4);this.repairCrosses.name='Repair_RisingGreenCrosses';instanceFade(this.repairCrosses,4);
     this.acquireTrace=pool(scene,trace,light.clone(),32);instanceFade(this.acquireRing,4);instanceFade(this.acquireTrace,32);
     const streamMaterial=new T.MeshBasicMaterial({color:0x6ee8ff,transparent:true,opacity:.75,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
     this.streamBodies=pool(scene,new T.CylinderGeometry(.035,.035,1,6).rotateX(Math.PI/2),streamMaterial,48);this.streamHeads=pool(scene,new T.OctahedronGeometry(.11),streamMaterial.clone(),48);instanceFade(this.streamBodies,48);instanceFade(this.streamHeads,48);
@@ -114,6 +116,7 @@ export class CombatVisuals {
   /** A deflected round does not cause damage or an explosion. */
   deflect(x:number,y:number,worldZ:number){this.puff(x,y,worldZ,'flash',.13,.055,0xaac2cc);for(let i=0;i<3;i++)this.spark(x,y,worldZ,.55,0xaac2cc);}
   private later(x:number,y:number,z:number,delay:number,strength:number){if(this.bursts.length>=32)this.bursts.shift();this.bursts.push({p:new T.Vector3(x,y,z),delay,strength});}
+  shieldBreak(x:number,y:number,worldZ:number){for(let i=0;i<5;i++)this.chunk(x+(this.random()-.5)*.35,y+(this.random()-.5)*.3,worldZ,.16,i%2?0x697f85:0x3b4b53,1.5,'plate');for(let i=0;i<7;i++)this.spark(x,y,worldZ,.55,0xa7e5e4);this.puff(x,y,worldZ,'flash',.16,.065,0x91dddf);}
   enemyDeath(x:number,worldZ:number,variant=0,size=1,impactY=.6*size){
     const elite=variant>0,count=elite?14:7;
     for(let i=0;i<count;i++)this.chunk(x+(this.random()-.5)*size,.4+this.random()*size,worldZ+(this.random()-.5)*size,(.22+this.random()*.06)*size,i%5===0?0x843322:i%5===3?0x98774b:i%2?0x273239:0x3a4850,elite?3.3:2.3,i%7===3||i%7===4?'rotor':i%7>4?'strut':'plate');
@@ -239,9 +242,10 @@ export class CombatVisuals {
     if(positions.length)this.powerAcquire(root,'guided');
   }
   /** Compact pickup transformation; only four simultaneous pulses, shared geometry/materials. */
-  powerAcquire(root:T.Object3D,kind:'guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort'|'tempest'|'arcstorm'|'salvo'){
+  healthPickup(root:T.Object3D,amount:number){if(!(amount>0))return false;if(this.repairPulses.length>=4)this.repairPulses.shift();this.repairPulses.push({root,age:0});this.powerAcquire(root,'health');return true;}
+  powerAcquire(root:T.Object3D,kind:'guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort'|'tempest'|'arcstorm'|'salvo'|'health'){
     root.updateWorldMatrix(true,true);const bounds=new T.Box3().setFromObject(root),size=bounds.getSize(new T.Vector3());
-    const colors={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x7de5e9,tempest:0x50e5ff,arcstorm:0xba8cff,salvo:0xff7148};
+    const colors={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x7de5e9,tempest:0x50e5ff,arcstorm:0xba8cff,salvo:0xff7148,health:0x5deb9e};
     if(this.acquisitions.length>=4)this.acquisitions.shift();
     this.acquisitions.push({root,age:0,radius:T.MathUtils.clamp(Math.max(size.x,size.z)*.45,.5,1.4),height:T.MathUtils.clamp(size.y,1.5,3.5),color:new T.Color(colors[kind])});
     const position=root.getWorldPosition(new T.Vector3());for(let i=0;i<3;i++)this.puff(position.x,1.3+i*.3,position.z,'flash',.13,.22,colors[kind]);
@@ -278,6 +282,7 @@ export class CombatVisuals {
         this.acquireTrace.setMatrixAt(traces,this.acquireDummy.matrix);this.acquireTrace.setColorAt(traces,pulse.color);this.acquireTrace.geometry.getAttribute('instanceOpacity').setX(traces++,fade);
       }
     }
+    let repairs=0;for(const pulse of this.repairPulses){pulse.age+=elapsed;if(pulse.age>=1)continue;const p=pulse.root.getWorldPosition(new T.Vector3());this.acquireDummy.position.set(p.x,p.y+2.45+pulse.age*.95,p.z);this.acquireDummy.rotation.set(-.35,0,0);this.acquireDummy.scale.setScalar(.75+Math.sin(pulse.age*Math.PI)*.15);this.acquireDummy.updateMatrix();this.repairCrosses.setMatrixAt(repairs,this.acquireDummy.matrix);this.repairCrosses.geometry.getAttribute('instanceOpacity').setX(repairs++,Math.min(1,(1-pulse.age)*4));}this.repairPulses=this.repairPulses.filter(p=>p.age<1);changed(this.repairCrosses,repairs);
     this.acquisitions=this.acquisitions.filter(p=>p.age<.85);changed(this.acquireRing,rings);changed(this.acquireTrace,traces);
 
     let streamCount=0;const up=new T.Vector3(0,0,1);
@@ -295,9 +300,9 @@ export class CombatVisuals {
       f.v.set(0,0,0);f.spin.set(0,0,0);f.settled=true;
     }
   }
-  reset(){this.bursts=[];for(const s of this.sparks)s.life=0;changed(this.sparkMesh,0);changed(this.rotors,0);changed(this.struts,0);this.sacrificeStreams=[];changed(this.streamBodies,0);changed(this.streamHeads,0);for(const [node,visible] of this.hiddenBossParts)node.visible=visible;this.hiddenBossParts.clear();this.bossDestroyed=false;this.acquisitions=[];changed(this.acquireRing,0);changed(this.acquireTrace,0);for(const c of this.chunks)c.life=0;for(const p of this.puffs)p.life=0;for(const collection of [this.fragments,this.commanderFragments])for(const f of collection){this.scene.remove(f.group);f.materials.forEach(m=>m.dispose());f.ownedGeometry?.dispose();}this.fragments=[];this.commanderFragments=[];this.bossBurnTime=0;this.bossBurn=undefined;changed(this.debris,0);changed(this.smoke,0);changed(this.fire,0);}
+  reset(){this.repairPulses=[];changed(this.repairCrosses,0);this.bursts=[];for(const s of this.sparks)s.life=0;changed(this.sparkMesh,0);changed(this.rotors,0);changed(this.struts,0);this.sacrificeStreams=[];changed(this.streamBodies,0);changed(this.streamHeads,0);for(const [node,visible] of this.hiddenBossParts)node.visible=visible;this.hiddenBossParts.clear();this.bossDestroyed=false;this.acquisitions=[];changed(this.acquireRing,0);changed(this.acquireTrace,0);for(const c of this.chunks)c.life=0;for(const p of this.puffs)p.life=0;for(const collection of [this.fragments,this.commanderFragments])for(const f of collection){this.scene.remove(f.group);f.materials.forEach(m=>m.dispose());f.ownedGeometry?.dispose();}this.fragments=[];this.commanderFragments=[];this.bossBurnTime=0;this.bossBurn=undefined;changed(this.debris,0);changed(this.smoke,0);changed(this.fire,0);}
   stats(){return {debris:this.debris.count+this.rotors.count+this.struts.count,smoke:this.smoke.count,fire:this.fire.count,sparks:this.sparkMesh.count,queuedBursts:this.bursts.length,bossFragments:this.fragments.length,commanderFragments:this.commanderFragments.length,acquirePulses:this.acquisitions.length,sacrificeStreams:this.sacrificeStreams.length,capacity:this.debrisCapacity+this.particleCapacity+this.fragmentCapacity+this.commanderFragmentCapacity+128+32};}
-  dispose(){this.reset();for(const m of [this.debris,this.rotors,this.struts,this.sparkMesh,this.smoke,this.fire,this.acquireRing,this.acquireTrace,this.streamBodies,this.streamHeads]){this.scene.remove(m);m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}}
+  dispose(){this.reset();for(const m of [this.debris,this.rotors,this.struts,this.sparkMesh,this.smoke,this.fire,this.acquireRing,this.acquireTrace,this.streamBodies,this.streamHeads,this.repairCrosses]){this.scene.remove(m);m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}}
 }
 
 export type RobotMotion={id:number;dt:number;velocityX?:number;velocityZ?:number;aimYaw?:number};
@@ -325,7 +330,7 @@ export class RobotFormation {
       const dt=T.MathUtils.clamp(motion.dt,0,.15),velocity=Math.hypot(motion.velocityX??0,motion.velocityZ??0),desired=motion.aimYaw??(velocity>.08?Math.atan2(motion.velocityX??0,motion.velocityZ??0):yaw),difference=Math.atan2(Math.sin(desired-pose.yaw),Math.cos(desired-pose.yaw));
       pose.yaw+=difference*(1-Math.exp(-dt*9));pose.speed+=(T.MathUtils.clamp(velocity/1.5,0,1.25)-pose.speed)*(1-Math.exp(-dt*12));pose.phase+=dt*7.5*pose.speed;turn=pose.yaw;cycle=pose.phase;speed=pose.speed;
     }
-    this.dummy.position.set(x,.025,worldZ);this.dummy.rotation.set(hit?-.10:0,turn,0);this.dummy.scale.set(scale*.82,scale*1.1,scale);this.dummy.updateMatrix();this.body.setMatrixAt(this.count,this.dummy.matrix);this.eyes.setMatrixAt(this.count,this.dummy.matrix);
+    this.dummy.position.set(x,.025,worldZ);const strafe=T.MathUtils.clamp(motion?.velocityX??0,-3,3);this.dummy.rotation.set((hit?-.10:0)+(motion?Math.sin(cycle*2)*.017*speed:0),turn,-strafe*.035);this.dummy.scale.set(scale*.82,scale*1.1,scale);this.dummy.updateMatrix();this.body.setMatrixAt(this.count,this.dummy.matrix);this.eyes.setMatrixAt(this.count,this.dummy.matrix);
     const part=(mesh:T.InstancedMesh,index:number,px:number,py:number,pz:number,rx:number)=>{this.local.position.set(px,py,pz);this.local.rotation.set(rx,0,0);this.local.scale.setScalar(1);this.local.updateMatrix();this.matrix.multiplyMatrices(this.dummy.matrix,this.local.matrix);mesh.setMatrixAt(index,this.matrix);};
     for(const [j,side] of [-1,1].entries()){const swing=Math.sin(cycle+(side>0?Math.PI:0))*speed,index=this.count*2+j;
       part(this.arms,index,side*.34,.73,0,-swing*.24-(hit?.13:0));part(this.legs,index,side*.32,.45,0,swing*.10);
@@ -380,7 +385,7 @@ export class CommanderPowerVisuals {
   trigger(e:Effect){
     if(this.disposed||e.kind!=='chainHit'||this.seen.has(e.id)||!([e.x,e.y,e.z,e.endX,e.endY,e.endZ].every(Number.isFinite)))return false;
     this.seen.add(e.id);if(this.seen.size>256)this.seen.delete(this.seen.values().next().value!);
-    const link=this.links[this.cursor++%24];link.id=e.id;link.start.set(e.x,e.y!,-e.z);link.end.set(e.endX!,e.endY!,-e.endZ!);link.life=.26;return true;
+    const link=this.links[this.cursor++%24];link.id=e.id;link.start.set(e.x,e.y!,-e.z);link.end.set(e.endX!,e.endY!,-e.endZ!);link.life=.34;return true;
   }
   update(beams:ReadonlyArray<PowerBeamView>,dt:number,visible=true){
     if(this.disposed)return;const delta=Math.max(0,Math.min(.15,dt));this.clock+=delta;this.uniform.value=this.clock;for(const l of this.links)l.life=Math.max(0,l.life-delta);
@@ -388,16 +393,16 @@ export class CommanderPowerVisuals {
     const segment=(from:T.Vector3,to:T.Vector3,radius:number,color:number)=>{if(ac>=512)return;this.dir.subVectors(to,from);const len=this.dir.length();if(len<.001)return;this.stamp.position.copy(from).add(to).multiplyScalar(.5);this.stamp.quaternion.setFromUnitVectors(this.up,this.dir.multiplyScalar(1/len));this.stamp.scale.set(radius*2,radius*2,len);this.stamp.updateMatrix();this.arcs.setMatrixAt(ac,this.stamp.matrix);this.arcs.setColorAt(ac++,new T.Color(color));};
     const branch=(from:T.Vector3,to:T.Vector3,id:number,width:number,parts:number,chain=false)=>{
       // Main axis is untouched; peripheral forks are cosmetic and stay within the corridor.
-      const phase=this.clock*22+id*.73;for(let i=0;i<parts;i++){const t=i/parts,u=(i+1)/parts,offset=(v:number,axis:number)=>Math.sin(v*Math.PI)*(chain?.18:width*.32)*Math.sin(v*37+phase+axis*2.1);
-        this.a.copy(from).lerp(to,t);this.b.copy(from).lerp(to,u);this.a.x+=offset(t,0);this.a.y+=offset(t,1);this.b.x+=offset(u,0);this.b.y+=offset(u,1);segment(this.a,this.b,chain?.027:.041,chain?0xbc9aff:0x8befff);
-        if(i%3===1){const tip=this.b.clone();tip.x+=Math.sin(i*2+phase)*width*.19;tip.y+=Math.cos(i*3+phase)*width*.19;tip.z+=Math.sin(i+phase)*.18;segment(this.b,tip,.021,chain?0xe8d8ff:0xedffff);}}
+      const phase=Math.floor(this.clock*26)*.91+id*.73;for(let i=0;i<parts;i++){const t=i/parts,u=(i+1)/parts,offset=(v:number,axis:number)=>Math.sin(v*Math.PI)*(chain?.26:width*.32)*Math.sin(v*37+phase+axis*2.1);
+        this.a.copy(from).lerp(to,t);this.b.copy(from).lerp(to,u);this.a.x+=offset(t,0);this.a.y+=offset(t,1);this.b.x+=offset(u,0);this.b.y+=offset(u,1);segment(this.a,this.b,chain?.055:.041,chain?0x8054e8:0x8befff);if(chain)segment(this.a,this.b,.019,0xece4ff);
+        if(i%(chain?2:3)===1){const tip=this.b.clone();tip.x+=Math.sin(i*2+phase)*width*.19;tip.y+=Math.cos(i*3+phase)*width*.19;tip.z+=Math.sin(i+phase)*.18;segment(this.b,tip,chain?.028:.021,chain?0xe8d8ff:0xedffff);if(chain){const fork=tip.clone().add(new T.Vector3(Math.cos(i+phase)*.22,.18,Math.sin(i+phase)*.14));segment(tip,fork,.016,0xac8bff);}}}
     };
     for(const beam of beams){if(bc>=4||beam.time<=0||beam.width<=0||!([beam.x,beam.y,beam.z,beam.endX,beam.endY,beam.endZ,beam.width].every(Number.isFinite)))continue;
       const from=new T.Vector3(beam.x,beam.y,-beam.z),to=new T.Vector3(beam.endX,beam.endY,-beam.endZ),d=new T.Vector3().subVectors(to,from),len=d.length();if(len<.01)continue;d.multiplyScalar(1/len);
       this.stamp.position.copy(from).add(to).multiplyScalar(.5);this.stamp.quaternion.setFromUnitVectors(this.up,d);this.stamp.scale.set(beam.width,beam.width,len);this.stamp.updateMatrix();this.shells.setMatrixAt(bc,this.stamp.matrix);this.stamp.scale.set(1,1,len);this.stamp.updateMatrix();this.cores.setMatrixAt(bc++,this.stamp.matrix);
       this.stamp.position.copy(from);this.stamp.scale.setScalar(.24+Math.sin(this.clock*31)*.018);this.stamp.updateMatrix();this.muzzles.setMatrixAt(mc,this.stamp.matrix);this.muzzles.setColorAt(mc++,new T.Color(0xb2f5ff));this.stamp.quaternion.setFromUnitVectors(this.up,d);this.stamp.scale.setScalar(.24);this.stamp.updateMatrix();this.rings.setMatrixAt(rc++,this.stamp.matrix);branch(from,to,beam.id,beam.width,36);
     }
-    for(const link of this.links){if(link.life<=0)continue;branch(link.start,link.end,link.id,.65,10,true);if(mc<8){this.stamp.position.copy(link.start);this.stamp.quaternion.identity();this.stamp.scale.setScalar(.12*link.life/.26);this.stamp.updateMatrix();this.muzzles.setMatrixAt(mc,this.stamp.matrix);this.muzzles.setColorAt(mc++,new T.Color(0xc8a8ff));}}
+    for(const link of this.links){if(link.life<=0)continue;branch(link.start,link.end,link.id,.85,10,true);for(const endpoint of [link.start,link.end])if(mc<8){this.stamp.position.copy(endpoint);this.stamp.quaternion.identity();this.stamp.scale.setScalar(.22*link.life/.34);this.stamp.updateMatrix();this.muzzles.setMatrixAt(mc,this.stamp.matrix);this.muzzles.setColorAt(mc++,new T.Color(0xc8a8ff));}}
     changed(this.shells,bc);changed(this.cores,bc);changed(this.arcs,ac);changed(this.muzzles,mc);changed(this.rings,rc);
   }
   get stats(){return {beams:this.shells.count,arcs:this.arcs.count,links:this.links.filter(l=>l.life>0).length,clock:this.clock};}
@@ -405,7 +410,7 @@ export class CommanderPowerVisuals {
   dispose(){if(this.disposed)return;this.disposed=true;for(const m of [this.shells,this.cores,this.arcs,this.muzzles,this.rings]){m.geometry.dispose();(m.material as T.Material).dispose();m.dispose();}this.root.removeFromParent();}
 }
 
-export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;emitters?:Partial<Record<string,T.Vector3>>;bossCharging?:boolean;bossCharge?:number;hostileRate?:number;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;width:number;time:number}>};
+export type MissileOptions={depthScale:number;bossPhase:boolean;bossZ?:number;bossX?:number;bossY?:number;bossLaunchHeight?:number;bossImpactHeight?:number;bossSurfaceOffset?:number;targets?:ReadonlyArray<Target>;formation?:ReadonlyArray<FormationUnit>;dt?:number;simulationTime?:number;overdrive:boolean;weapon:number;visible?:boolean;emitters?:Partial<Record<string,T.Vector3>>;bossCharging?:boolean;bossCharge?:number;hostileRate?:number;lasers?:ReadonlyArray<{id:number;x:number;z:number;endX:number;endZ:number;y?:number;endY?:number;width:number;time:number}>};
 type FriendlyPath={shot:Shot;originZ:number;launch:number;targetZ:number;targetHeight:number;targetId?:number;boss:boolean};
 /** Legacy 2.5D layouts use surface anchors; spatial shots bypass them entirely. */
 function targetHeight(kind:Target['kind'],variant=0){return kind==='enemy'?(variant>0?1.65:.78):kind==='crate'?.68:kind==='orb'?1.1:kind==='hazard'?.7:1.1;}
@@ -452,15 +457,20 @@ export class CombatMissiles {
   private clock=0;private hostileClock=0;private plasmaTime={value:0};private beamLightning:T.InstancedMesh;
   private friendlyPaths:FriendlyPath[]=[];private previousTime?:number;
   constructor(private scene:T.Scene){
-    const nose=new T.LatheGeometry([new T.Vector2(.115,0),new T.Vector2(.11,.09),new T.Vector2(.083,.19),new T.Vector2(.042,.29),new T.Vector2(0,.34)],12);
-    const parts=[painted(new T.CylinderGeometry(.115,.115,.74,12),0xe1d8c4,0,0,0,Math.PI/2),painted(nose,0xb08a52,0,0,.37,Math.PI/2),painted(new T.CylinderGeometry(.10,.13,.14,10),0x283c48,0,0,-.43,Math.PI/2)];
-    for(const z of [-.25,.20])parts.push(painted(new T.TorusGeometry(.118,.025,4,12),0x596c75,0,0,z));
-    for(const a of [0,Math.PI/2])parts.push(painted(new T.BoxGeometry(.43,.042,.30),0x384d5a,0,0,-.23,0,0,a));
-    const material=standard(0xffffff);material.vertexColors=true;this.bodies=pool(scene,joined(parts),material,this.capacity+96);
-    const flame=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.48,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
-    this.exhaust=pool(scene,new T.SphereGeometry(.095,10,8).scale(1,1,2.5).translate(0,0,-.63),flame,this.capacity+96);
-    const orb=standard(0xbf3820);orb.emissive.set(0x74170b);orb.emissiveIntensity=.65;this.orbs=pool(scene,new T.IcosahedronGeometry(.22,1),orb,96);
-    const orbCore=basic(0xffa53e);orbCore.toneMapped=false;this.orbCores=pool(scene,new T.OctahedronGeometry(.17,1),orbCore,96);
+    const nose=new T.LatheGeometry([new T.Vector2(.12,0),new T.Vector2(.118,.12),new T.Vector2(.085,.27),new T.Vector2(.035,.39),new T.Vector2(0,.44)],16);
+    const parts=[painted(new T.CylinderGeometry(.12,.12,1.08,16),0x374952,0,0,0,Math.PI/2),painted(nose,0xa8ada5,0,0,.54,Math.PI/2),painted(new T.CylinderGeometry(.105,.15,.19,12),0x1e2b32,0,0,-.62,Math.PI/2)];
+    for(const z of [-.37,.31])parts.push(painted(new T.TorusGeometry(.124,.017,4,16),0xb79759,0,0,z));
+    // Four swept, tapered fins and long recessed armor strips give an actual missile silhouette.
+    for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5]){const shape=new T.Shape();shape.moveTo(.09,-.48);shape.lineTo(.29,-.57);shape.lineTo(.26,-.33);shape.lineTo(.10,-.06);shape.closePath();const fin=new T.ExtrudeGeometry(shape,{depth:.025,bevelEnabled:false}).rotateX(Math.PI/2).rotateZ(a);parts.push(painted(fin,0x778381));parts.push(painted(new T.BoxGeometry(.043,.013,.67),0x9ca398,Math.sin(a)*.121,Math.cos(a)*.121,-.02,0,0,-a));}
+    const material=standard(0xffffff);material.vertexColors=true;material.roughness=.36;material.metalness=.8;this.bodies=pool(scene,joined(parts),material,this.capacity+96);this.bodies.name='MachinedMissiles_FuselageNoseFins';
+    const flame=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.85,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false,side:T.DoubleSide});
+    flame.onBeforeCompile=shader=>{shader.uniforms.uRocketClock=this.plasmaTime;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 rocketUv;').replace('#include <begin_vertex>','#include <begin_vertex>\nrocketUv=uv;');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 rocketUv;uniform float uRocketClock;').replace('#include <color_fragment>','#include <color_fragment>\nfloat heat=pow(rocketUv.y,1.1);float turbulence=.75+.25*sin(rocketUv.y*38.-uRocketClock*70.+rocketUv.x*18.85);diffuseColor.rgb=mix(diffuseColor.rgb*1.2,vec3(1.,.96,.78)*1.8,heat);diffuseColor.a*=smoothstep(0.,.18,rocketUv.y)*turbulence;');};flame.customProgramCacheKey=()=> 'rocket-turbulent-flame-v2';
+    this.exhaust=pool(scene,new T.CylinderGeometry(.095,.012,.65,12,8,true).rotateX(Math.PI/2).translate(0,0,-1.0),flame,this.capacity+96);this.exhaust.name='Missile_RearCombustionFlames';
+    const slugParts=[painted(new T.CylinderGeometry(.13,.16,.55,12),0x303f48,0,0,0,Math.PI/2),painted(new T.LatheGeometry([new T.Vector2(.13,0),new T.Vector2(.10,.13),new T.Vector2(0,.25)],12),0xa3977a,0,0,.275,Math.PI/2)];
+    for(const z of [-.22,.10])slugParts.push(painted(new T.TorusGeometry(.17,.025,5,12),0x9b653a,0,0,z));
+    for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5])slugParts.push(painted(new T.BoxGeometry(.045,.048,.39),0x536973,Math.sin(a)*.125,Math.cos(a)*.125,-.02,0,0,-a));
+    const slug=standard(0xffffff);slug.vertexColors=true;slug.metalness=.75;slug.roughness=.3;this.orbs=pool(scene,joined(slugParts),slug,96);this.orbs.name='Hostile_InductionSlugs';
+    const slugEnergy=joined([painted(new T.CapsuleGeometry(.074,.48,3,10),0xffd594,0,0,0,Math.PI/2),painted(new T.TorusGeometry(.143,.018,4,16),0xff9549,0,0,-.16)]);const orbCore=basic(0xffffff);orbCore.vertexColors=true;orbCore.toneMapped=false;this.orbCores=pool(scene,slugEnergy,orbCore,96);this.orbCores.name='Hostile_InductionSlugsHeatChannels';
     this.bullets=pool(scene,joined([painted(new T.CylinderGeometry(.070,.074,.42,8),0xffffff,0,0,0,Math.PI/2),painted(new T.SphereGeometry(.07,8,5).scale(1,1,1.35),0xffffff,0,0,.21),painted(new T.TorusGeometry(.076,.017,4,8),0xffffff,0,0,-.12)]),standard(0xffffff),this.capacity);
     const tip=basic(0xffffff);tip.toneMapped=false;this.tips=pool(scene,new T.SphereGeometry(.063,8,5).translate(0,0,.27),tip,this.capacity);
     const shell=joined([painted(new T.CylinderGeometry(.075,.09,.38,10),0x60717a,0,0,0,Math.PI/2),painted(new T.ConeGeometry(.075,.14,10),0xd79650,0,0,.25,Math.PI/2),painted(new T.TorusGeometry(.095,.025,4,10),0x303c43,0,0,-.13)]);
@@ -474,8 +484,8 @@ export class CombatMissiles {
     this.beamCores=pool(scene,new T.CylinderGeometry(.23,.23,1,12).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffefd2,transparent:true,opacity:.86,depthWrite:false,toneMapped:false}),4);
     this.wakes=pool(scene,new T.CapsuleGeometry(.035,.22,2,6).rotateX(Math.PI/2).translate(0,0,-.30),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.45,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),this.capacity);
     const trailMaterial=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.38,depthWrite:false,toneMapped:false});
-    this.trails=pool(scene,new T.IcosahedronGeometry(1,1),trailMaterial,192);instanceFade(this.trails,192);
-    this.hotTrails=pool(scene,new T.SphereGeometry(1,8,6),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.72,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),192);instanceFade(this.hotTrails,192);
+    trailMaterial.dispose();this.trails=pool(scene,new T.PlaneGeometry(2,2),combustionMaterial(this.plasmaTime,true),192);this.trails.geometry.setAttribute('instanceOpacity',new T.InstancedBufferAttribute(new Float32Array(192),1));
+    this.hotTrails=pool(scene,new T.PlaneGeometry(2,2),combustionMaterial(this.plasmaTime,false),192);this.hotTrails.geometry.setAttribute('instanceOpacity',new T.InstancedBufferAttribute(new Float32Array(192),1));
     this.shellStreaks=pool(scene,new T.CapsuleGeometry(.035,.40,2,6).rotateX(Math.PI/2).translate(0,0,-.42),new T.MeshBasicMaterial({color:0xffa651,transparent:true,opacity:.48,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),96);
     this.beamFlow=pool(scene,new T.CylinderGeometry(.5,.5,1,5).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.88,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),288);instanceFade(this.beamFlow,288);
     // The beam terminates on the road at its existing simulated far endpoint. Sparks spray above this contact.
@@ -508,8 +518,8 @@ export class CombatMissiles {
         this.tips.setColorAt(bulletCount,this.color.set(enemy?0xffa12b:owner==='troop'?0x53c9ff:0xffca54));bulletCount++;
         if(!enemy){this.dummy.scale.z*=options.overdrive?1.6:.72;this.dummy.updateMatrix();this.wakes.setMatrixAt(wakeCount,this.dummy.matrix);this.wakes.setColorAt(wakeCount++,this.color.set(owner==='troop'?0x64dfff:options.overdrive?0xffe297:0xffbd55));}return;
       }
-      this.dummy.updateMatrix();this.bodies.setMatrixAt(count,this.dummy.matrix);this.bodies.setColorAt(count,this.color.set(kind==='salvo'?0xff9f68:enemy?0xff9262:owner==='troop'?0x69baff:0xffd18a));
-      const flutter=enemy?this.hostileClock:this.clock;this.dummy.scale.set(scale,scale,scale*(.85+.12*Math.sin(flutter*55+position.x*2)));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(kind==='salvo'?0xff6c32:enemy?0xff6024:owner==='troop'?0x59bcff:0xffc064));count++;
+      this.dummy.updateMatrix();this.bodies.setMatrixAt(count,this.dummy.matrix);this.bodies.setColorAt(count,this.color.set(kind==='salvo'?0xe5d5bd:enemy?0xc8aba0:owner==='troop'?0xadccdb:0xe1d9bd));
+      const flutter=enemy?this.hostileClock:this.clock;const rocketScale=scale*(kind==='salvo'?1.6:1);this.dummy.scale.set(rocketScale,rocketScale,rocketScale*(1+.08*Math.sin(flutter*55+position.x*2)));this.dummy.updateMatrix();this.exhaust.setMatrixAt(count,this.dummy.matrix);this.exhaust.setColorAt(count,this.color.set(kind==='salvo'?0xff6c32:enemy?0xff6024:owner==='troop'?0x59bcff:0xffc064));count++;
     };
     this.previousTime=options.simulationTime;const used=new Set<FriendlyPath>(),paths:FriendlyPath[]=[];
     for(const p of friendly.slice(0,this.capacity)){
@@ -539,17 +549,17 @@ export class CombatMissiles {
       }
       const launch=this.hostileLaunchZ.get(p.id)!,distance=Math.hypot(p.x-launch.x,p.z-launch.z),blend=Math.max(0,1-distance),height=.85+(launch.height-.85)*T.MathUtils.clamp(p.z/launch.z,0,1);
       const position=new T.Vector3(p.x,height,-p.z*options.depthScale).addScaledVector(launch.offset,blend),direction=new T.Vector3(p.dx,(launch.height-.85)/launch.z*p.dz,-p.dz*options.depthScale).normalize();
-      if(p.kind==='orb'){if(orbCount>=96)continue;this.dummy.position.copy(position);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(Math.max(.8,p.radius/.18));this.dummy.updateMatrix();this.orbs.setMatrixAt(orbCount,this.dummy.matrix);this.dummy.position.z+=.13*this.dummy.scale.z;this.dummy.updateMatrix();this.orbCores.setMatrixAt(orbCount++,this.dummy.matrix);}
+      if(p.kind==='orb'){if(orbCount>=96)continue;this.dummy.position.copy(position);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction);this.dummy.scale.setScalar(Math.max(.8,p.radius/.18));this.dummy.updateMatrix();this.orbs.setMatrixAt(orbCount,this.dummy.matrix);this.orbCores.setMatrixAt(orbCount++,this.dummy.matrix);}
       else write(position,direction,p.kind==='rocket'?Math.max(1.1,p.radius/.17):1.8,true,p.kind,'commander',p.radius);
       launch.trailClock=Math.min(.07,launch.trailClock+hostileDelta);if(p.kind==='rocket'&&hostileDelta>0&&launch.trailClock>=.035&&position.distanceToSquared(launch.lastTrail)>.0064){launch.trailClock%=.035;launch.lastTrail.copy(position);this.leaveTrail(position,direction,true,0xff8136);}
     }
     for(const id of this.hostileLaunchZ.keys())if(!live.has(id))this.hostileLaunchZ.delete(id);
     changed(this.bodies,count);changed(this.exhaust,count);changed(this.orbs,orbCount);changed(this.orbCores,orbCount);changed(this.bullets,bulletCount);changed(this.tips,bulletCount);changed(this.wakes,wakeCount);changed(this.hostileShells,shellCount);changed(this.hostileTips,shellCount);changed(this.shellStreaks,shellCount);
-    let trailCount=0,hotCount=0;for(const particle of this.trailParticles){if(particle.life<=0)continue;const progress=1-particle.life/particle.max,mesh=particle.hot?this.hotTrails:this.trails,index=particle.hot?hotCount++:trailCount++;this.dummy.position.copy(particle.p);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(particle.size*(particle.hot?1-progress*.55:1+progress*.7));this.dummy.updateMatrix();mesh.setMatrixAt(index,this.dummy.matrix);mesh.setColorAt(index,particle.color);mesh.geometry.getAttribute('instanceOpacity').setX(index,particle.life/particle.max);}changed(this.trails,trailCount);changed(this.hotTrails,hotCount);
+    let trailCount=0,hotCount=0;for(const particle of this.trailParticles){if(particle.life<=0)continue;const progress=1-particle.life/particle.max,mesh=particle.hot?this.hotTrails:this.trails,index=particle.hot?hotCount++:trailCount++;this.dummy.position.copy(particle.p);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(particle.size*(particle.hot?1-progress*.55:1+progress*1.7));this.dummy.updateMatrix();mesh.setMatrixAt(index,this.dummy.matrix);mesh.setColorAt(index,particle.color);mesh.geometry.getAttribute('instanceOpacity').setX(index,particle.life/particle.max);}changed(this.trails,trailCount);changed(this.hotTrails,hotCount);
     this.updateBeams(options);
   }
   private leaveTrail(position:T.Vector3,direction:T.Vector3,enemy:boolean,color:number){
-    for(const hot of [true,false]){const particle=this.trailParticles[this.trailIndex++%192];particle.p.copy(position).addScaledVector(direction,hot?-.60:-.80);particle.life=particle.max=hot?.16:.22;particle.size=hot?.095:.08;particle.hot=hot;particle.enemy=enemy;particle.color.set(hot?color:0x84979a);}
+    for(const hot of [true,false]){const particle=this.trailParticles[this.trailIndex++%192];particle.p.copy(position).addScaledVector(direction,hot?-.90:-1.15);particle.life=particle.max=hot?.18:.42;particle.size=hot?.14:.12;particle.hot=hot;particle.enemy=enemy;particle.color.set(hot?color:0x66737a);}
   }
   private updateBeams(options:MissileOptions){
     let count=0,flow=0,emitters=0,sparks=0,corona=0,lightning=0;this.beamLight.visible=false;
@@ -557,8 +567,8 @@ export class CombatMissiles {
       for(let i=0;i<2;i++){this.dummy.position.copy(position).addScaledVector(axis,.012+i*.035);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),axis);this.dummy.rotateZ((i?-.7:1)*this.hostileClock*2+i*1.4);this.dummy.scale.setScalar((.20+i*.11)*(1+charge*.32+.025*Math.sin(this.hostileClock*21)));this.dummy.updateMatrix();this.beamCorona.setMatrixAt(corona++,this.dummy.matrix);}
     };
     for(const beam of options.lasers??[]){if(count>=4||beam.time<=0)continue;
-      const from=options.emitters?.core?.clone()??new T.Vector3(beam.x,(options.bossY??0)+(options.bossLaunchHeight??3.4),-beam.z*options.depthScale),to=new T.Vector3(beam.endX,.07,-beam.endZ*options.depthScale),direction=to.clone().sub(from),length=direction.length();if(length<.01)continue;
-      this.dummy.position.copy(to);this.dummy.position.y=.026;this.dummy.rotation.set(0,0,0);this.dummy.scale.set(.64,.64,.64);this.dummy.updateMatrix();this.beamGround.setMatrixAt(count,this.dummy.matrix);
+      const from=options.emitters?.core?.clone()??new T.Vector3(beam.x,(options.bossY??0)+(options.bossLaunchHeight??3.4),-beam.z*options.depthScale),to=new T.Vector3(beam.endX,beam.endY??.07,-beam.endZ*options.depthScale),direction=to.clone().sub(from),length=direction.length();if(length<.01)continue;
+      this.dummy.position.copy(to);this.dummy.position.y=beam.endY!==undefined&&beam.endY>.4?-.5:.026;this.dummy.rotation.set(0,0,0);this.dummy.scale.set(.64,.64,.64);this.dummy.updateMatrix();this.beamGround.setMatrixAt(count,this.dummy.matrix);
       this.beamLight.visible=true;this.beamLight.position.copy(to).add(new T.Vector3(0,.32,0));this.beamLight.intensity=3.5+.4*Math.sin(this.hostileClock*33);
       const axis=direction.clone().normalize(),width=Math.max(.05,beam.width),across=new T.Vector3().crossVectors(axis,Math.abs(axis.y)<.9?new T.Vector3(0,1,0):new T.Vector3(1,0,0)).normalize(),up=new T.Vector3().crossVectors(across,axis).normalize();
       this.dummy.position.copy(from).add(to).multiplyScalar(.5);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),axis);this.dummy.scale.set(width,width,length);this.dummy.updateMatrix();this.beamShells.setMatrixAt(count,this.dummy.matrix);this.beamCores.setMatrixAt(count,this.dummy.matrix);
@@ -616,7 +626,7 @@ export class ArmyAbilityVisuals {
     const centerX=options.armyCenterX??s.x,heroDistance=Math.hypot(s.x-centerX,options.armyCenterZ);
     this.group.position.set(centerX,.04,options.armyCenterZ);this.group.visible=options.visible!==false&&(active||timeActive||this.pulseAge<.85);
     const radius=Math.max(1.6,options.armyRadius+.65,heroDistance+1.0);const shield=active&&s.relic===0;
-    this.dome.visible=this.domeGrid.visible=this.boundary.visible=shield;
+    this.dome.visible=this.domeGrid.visible=this.boundary.visible=false;
     // Commander is almost 2.8m tall in the current renderer and stands away
     // from the army centroid. Solve the ellipsoid height at his position.
     const heroSurface=Math.sqrt(Math.max(.08,1-(heroDistance/radius)**2));

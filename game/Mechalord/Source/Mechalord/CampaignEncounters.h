@@ -5,7 +5,7 @@
 // attack admission and rewards; these tables introduce no separate authority.
 namespace mech::campaign
 {
-enum class Kind { Wave,Gunner,Battery,Carrier,Crate,Gate,Roller };
+enum class Kind { Wave,Gunner,Battery,Carrier,Crate,Gate,Roller,Archetype,Health };
 struct Event
 {
  double at=0;Kind kind=Kind::Wave;double x=0,hp=0;
@@ -71,6 +71,27 @@ inline constexpr std::array<Event,23> ForgeCore{{
 }};
 inline constexpr double Duration(int level){return level==3?96:level==4?102:0;}
 inline constexpr EventList Events(int level){return level==3?EventList{StormPass.data(),int(StormPass.size())}:level==4?EventList{ForgeCore.data(),int(ForgeCore.size())}:EventList{};}
+// Additional encounters use upper spawn bits so existing routes remain intact.
+// Type-specific silhouettes are introduced singly before the final combinations.
+inline constexpr std::array<Event,7> MarchFirst{{
+ {20,Kind::Archetype,1.8,65,0,1}, {33,Kind::Health,-1.8},
+ {44,Kind::Archetype,-1.8,55,0,2}, {53,Kind::Health,1.8},
+ {62,Kind::Archetype,2.1,85,0,3}, {72,Kind::Health,0},
+ {76,Kind::Archetype,-2.1,85,0,4},
+}};
+inline constexpr std::array<Event,7> MarchStorm{{
+ {7,Kind::Archetype,1.8,75,0,2}, {18,Kind::Health,-1.8},
+ {32,Kind::Archetype,-2.1,115,0,4}, {44,Kind::Health,1.8},
+ {55,Kind::Archetype,2.1,100,0,3}, {67,Kind::Health,0},
+ {80,Kind::Archetype,-1.8,125,0,1},
+}};
+inline constexpr std::array<Event,8> MarchForge{{
+ {8,Kind::Archetype,-1.8,135,0,1}, {18,Kind::Health,1.8},
+ {32,Kind::Archetype,2.1,115,0,3}, {43,Kind::Health,-1.8},
+ {58,Kind::Archetype,-2.1,150,0,4}, {68,Kind::Health,0},
+ {74,Kind::Archetype,1.8,110,0,2}, {87,Kind::Health,1.8},
+}};
+inline constexpr EventList MarchEvents(int act){return act==0?EventList{MarchFirst.data(),int(MarchFirst.size())}:act==1?EventList{MarchStorm.data(),int(MarchStorm.size())}:EventList{MarchForge.data(),int(MarchForge.size())};}
 static_assert(StormPass.size()<32&&ForgeCore.size()<32,"Keep authored chapter spawn bits bounded");
 static_assert(StormPass.back().at<=96-13&&ForgeCore.back().at<=102-13,"Preserve full horizon lead-in before the boss");
 }

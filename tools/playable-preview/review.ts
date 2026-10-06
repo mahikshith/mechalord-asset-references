@@ -8,8 +8,9 @@ import type {AuthoritativeBossRegion} from './boss-rig-adapter';
 const canvas=document.querySelector('canvas')!;
 const core=new AssaultCore(),world=new Battlefield(canvas);
 let state:Snapshot,paused=false,previous=performance.now(),speed=1;
-let seekPower:PickupPower|undefined,missCore=false;
+let seekPower:PickupPower|undefined,missCore=false,watchEnemy=0;
 let autoRelic=true;
+let campaignSoak=false,autoRewards=true;
 let seekMiss='';
 const soakCases=[...[0,3,4].flatMap(level=>[0,1,2].map(relic=>({level,relic,rank:0}))),...([0,3,4].map((level,relic)=>({level,relic,rank:3})))];
 let chosenBossRegion:string|undefined;
@@ -26,12 +27,16 @@ function observeGeometry(){
 }
 function clearGeometryHistory(){for(const [geometry,record]of geometryHistory)geometry.removeEventListener('dispose',record.release);geometryHistory.clear();}
 function aim(s:Snapshot){
+ const observed=watchEnemy?s.targets.find(t=>t.archetype===watchEnemy&&t.z>0&&t.z<32):undefined;
+ if(observed&&s.phase==='run')return observed.x>=0?-3:3;
  if(s.phase==='boss'){
+  if(s.campaign&&s.clash?.active)return s.x;
+  if(s.campaign&&s.clash?.result==='none'&&s.bossPattern==='laser'&&s.bossAttack>.4&&(s.laserCharges??0)>0)return s.bossLane;
   if(missCore&&s.bossState==='exposed')return s.bossX>=0?-3:3;
   const regions=s.bossZ<28?(s as Snapshot&{bossRegions?:AuthoritativeBossRegion[]}).bossRegions?.filter(r=>r.vulnerable&&r.hp>0):undefined;
   let region=regions?.find(r=>r.id===chosenBossRegion);
   if(!region&&regions?.length){region=[...regions].sort((a,b)=>Math.abs(a.x-s.x)-Math.abs(b.x-s.x))[0];chosenBossRegion=region.id;}
-  const reward=s.pickups.filter(p=>p.z<5&&p.z>0).sort((a,b)=>a.z-b.z)[0];
+  const reward=s.pickups.filter(p=>p.z<5.5&&p.z>0).sort((a,b)=>((b.kind==='health'&&s.commanderHp<s.commanderMaxHp-18?100:0)+(b.bonusTroops&&s.army<45?50:0)-b.z)-((a.kind==='health'&&s.commanderHp<s.commanderMaxHp-18?100:0)+(a.bonusTroops&&s.army<45?50:0)-a.z))[0];
   const desired=Math.max(-3,Math.min(3,reward?.x??region?.x??s.bossX));
   const shots=s.enemyShots.filter(p=>p.z<5.5&&p.dz<-.01).map(p=>({x:p.x-p.dx*p.z/p.dz,size:p.radius+.5}));
   if(s.bossPattern==='laser'&&s.bossAction==='windup'&&s.bossAttack>.6)return s.bossLane>0?-2.8:2.8;
@@ -63,11 +68,17 @@ function aim(s:Snapshot){
 function tick(dt:number,render=true,draw=true){
  if(state.phase==='lastStand')return;
  const previousWeapon=state.weapon;
- if(autoRelic&&state.energy>=100&&state.ability<=0)core.activate();
+ if(state.campaign){
+  if(state.phase==='reward'&&autoRewards)core.chooseReward(state.commanderHp<state.commanderMaxHp-20?'vitality':'laser');
+  if(state.clash?.active)core.clashTap();
+  const firstLaser=state.clash?.result==='none'&&state.phase==='boss'&&state.bossPattern==='laser'&&state.bossAttack>.4;
+  if(firstLaser&&state.bossAttack>.97)core.fireLaser();
+  if(autoRelic&&!firstLaser&&!state.clash?.active){if((state.relics?.[0].energy??0)>=100&&(state.phase==='boss'||state.commanderHp<55))core.activateRelic(0);if((state.relics?.[1].energy??0)>=100&&(state.phase==='run'||state.bossAttack>.7))core.activateRelic(1);if((state.relics?.[2].energy??0)>=100)core.activateRelic(2);}
+ }else if(autoRelic&&state.energy>=100&&state.ability<=0)core.activate();
  core.step(dt,aim(state));state=core.snapshot();
  if(render){for(const event of state.effects)world.trigger(event,state);if(state.weapon>previousWeapon)world.weaponUpgrade(previousWeapon,state.weapon);world.update(state,dt,'play',draw);if(soak)observeGeometry();}
 }
-function start(){seekMiss='';autoRelic=true;seekPower=undefined;missCore=false;chosenBossRegion=undefined;core.start(Number((document.querySelector('#relic') as HTMLSelectElement).value) as 0|1|2,Number((document.querySelector('#level') as HTMLSelectElement).value),Number((document.querySelector('#rank') as HTMLSelectElement).value));state=core.snapshot();world.reset();paused=false;}
+function start(){seekMiss='';autoRelic=true;autoRewards=true;seekPower=undefined;missCore=false;watchEnemy=0;chosenBossRegion=undefined;core.start(Number((document.querySelector('#relic') as HTMLSelectElement).value) as 0|1|2,Number((document.querySelector('#level') as HTMLSelectElement).value),Number((document.querySelector('#rank') as HTMLSelectElement).value));state=core.snapshot();world.reset();paused=false;}
 document.querySelector('#start')!.addEventListener('click',()=>{soak=undefined;clearGeometryHistory();autoRelic=true;start();});
 document.querySelector('#pause')!.addEventListener('click',()=>{paused=!paused;});
 document.querySelector('#step')!.addEventListener('click',()=>{paused=true;tick(1/30);});
@@ -90,7 +101,7 @@ document.querySelector('#defeat')!.addEventListener('click',()=>{
 
 function replayUntil(predicate:(s:Snapshot)=>boolean){
  let preceding=state;
- for(let i=0;i<18000&&['run','boss'].includes(state.phase)&&!predicate(state);i++){preceding=state;tick(1/60,false);}
+ for(let i=0;i<60000&&['run','boss','destroying','reward','reviving'].includes(state.phase)&&!predicate(state);i++){preceding=state;tick(1/60,false);}
  if(!predicate(state))seekMiss=`REPLAY TARGET NOT REACHED (${state.phase})`;
  world.reset();world.update(preceding,0,'play');for(const event of state.effects)world.trigger(event,state);if(state.weapon>preceding.weapon)world.weaponUpgrade(preceding.weapon,state.weapon);world.update(state,.12,'play');paused=true;
 }
@@ -117,11 +128,19 @@ document.querySelector('#activate')!.addEventListener('click',()=>act(()=>core.a
 document.querySelector('#carrier-open')!.addEventListener('click',()=>{start();replayUntil(s=>s.targets.some(t=>t.role==='carrier'&&t.ventOpen&&t.z<24));});
 document.querySelector('#shield-impact')!.addEventListener('click',()=>{(document.querySelector('#relic') as HTMLSelectElement).value='0';start();replayUntil(s=>s.effects.some(e=>e.kind==='shieldHit'));});
 document.querySelector('#soak')!.addEventListener('click',()=>{
+ campaignSoak=false;
  clearGeometryHistory();autoRelic=true;speed=4;(document.querySelector('#speed') as HTMLSelectElement).value='4';
  selectSoakCase(0);
  soak={remaining:12,results:[],frames:0,longFrames:0,peakCalls:0,peakTriangles:0,peakGeometries:0,peakTextures:0,started:performance.now()};soakReport.textContent='Running 12 real-render repeats…';start();
 });
-function selectSoakCase(index:number){const entry=soakCases[index];(document.querySelector('#level') as HTMLSelectElement).value=String(entry.level);(document.querySelector('#relic') as HTMLSelectElement).value=String(entry.relic);(document.querySelector('#rank') as HTMLSelectElement).value=String(entry.rank);}
+document.querySelector('#campaign-soak')!.addEventListener('click',()=>{campaignSoak=true;clearGeometryHistory();speed=4;(document.querySelector('#speed') as HTMLSelectElement).value='4';selectSoakCase(0);soak={remaining:3,results:[],frames:0,longFrames:0,peakCalls:0,peakTriangles:0,peakGeometries:0,peakTextures:0,started:performance.now()};soakReport.textContent='Running three full campaign renders…';start();});
+function selectSoakCase(index:number){const entry=campaignSoak?{level:5,relic:0,rank:index===0?0:3}:soakCases[index];(document.querySelector('#level') as HTMLSelectElement).value=String(entry.level);(document.querySelector('#relic') as HTMLSelectElement).value=String(entry.relic);(document.querySelector('#rank') as HTMLSelectElement).value=String(entry.rank);}
+for(let archetype=1;archetype<=4;archetype++)document.querySelector('#enemy-'+archetype)!.addEventListener('click',()=>{(document.querySelector('#level') as HTMLSelectElement).value='5';start();autoRelic=false;watchEnemy=archetype;replayUntil(s=>s.targets.some(t=>t.archetype===archetype&&t.z<14&&t.z>9));watchEnemy=0;});
+document.querySelector('#clash')!.addEventListener('click',()=>{(document.querySelector('#level') as HTMLSelectElement).value='5';start();replayUntil(s=>!!s.clash?.active);});
+document.querySelector('#clash-tap')!.addEventListener('click',()=>act(()=>core.clashTap()));
+document.querySelector('#campaign-reward')!.addEventListener('click',()=>{(document.querySelector('#level') as HTMLSelectElement).value='5';start();replayUntil(s=>s.phase==='reward');});
+document.querySelector('#campaign-next')!.addEventListener('click',()=>act(()=>core.chooseReward('vitality')));
+document.querySelector('#campaign-health')!.addEventListener('click',()=>{(document.querySelector('#level') as HTMLSelectElement).value='5';start();seekPower='health';replayUntil(s=>s.effects.some(e=>e.kind==='healthPickup'&&e.value>0));});
 document.querySelector('#stand')!.addEventListener('click',()=>{
  start();for(let i=0;i<18000&&state.phase==='run';i++)tick(1/60,false);let preceding=state;
  for(let i=0;i<18000&&state.phase==='boss';i++){preceding=state;core.step(1/60,0);state=core.snapshot();}
@@ -137,6 +156,7 @@ function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=n
  status.textContent=`${state.phase} · ${state.time.toFixed(1)}s · army ${state.army} (${state.formation.length} visible) · Marshal ${state.commanderHp.toFixed(0)}HP · kills ${state.kills} · weapon ${state.weapon} · ${state.weaponPower} ${state.weaponPermanent?'full run':state.powerTime.toFixed(1)+'s'} · ${state.timePower} ${state.timePowerTime.toFixed(1)}s · ${state.bossState} ${state.bossCoreTime.toFixed(1)}s · armor ${state.bossArmor.toFixed(0)} · core ${state.bossCoreHp.toFixed(0)} · broken mask ${state.bossPartsMask} · next ${state.bossPart} · beams ${state.lasers.length} · heal ${state.canHeal} · revive ${state.reviveAvailable} · revives ${state.bossRevives} · phase ${state.bossPhase} ${state.bossPattern}`;
  status.textContent+=` · relic active ${state.ability.toFixed(1)}s · energy ${state.energy.toFixed(0)}`;
  status.textContent+=` · combat power ${state.combatPower??'none'} ${(state.combatPowerTime??0).toFixed(2)}s · friendly beams ${state.friendlyBeams?.length??0} · dodge tell ${(state.bossEvadeTell??0).toFixed(2)}s · evade ${(state.bossEvadeTime??0).toFixed(2)}s · recovery ${(state.bossFiringWindow??0).toFixed(2)}s`;
+ status.textContent+=` · act ${(state.actIndex??0)+1} · laser charges ${state.laserCharges??0} · clash ${state.clash?.active?'ACTIVE':state.clash?.result??'none'} ${((state.clash?.progress??0)*100).toFixed(0)}% · revive ${state.reviveCinematicTime??0}s`;
  if(seekMiss)status.textContent+=` · ${seekMiss}`;
  status.textContent+=` · EMP stun ${(state.empStunTime??0).toFixed(1)}s · escort ${state.escortShield??0}/${state.escortMax??30} · carrier ${state.targets.filter(t=>t.role==='carrier').map(t=>t.ventOpen?'OPEN':'armored').join(',')||'absent'}`;
  status.textContent+=` · airborne ${state.bossY.toFixed(2)}m · enemy rounds ${state.enemyShots.length} · ${[...new Set(state.enemyShots.map(shot=>shot.emitter??'legacy'))].join(', ')}`;
@@ -145,8 +165,8 @@ function frame(now:number){const dt=Math.min(.06,(now-previous)/1000);previous=n
  if(partRegions?.length)status.textContent+=` · vulnerable ${partRegions.filter(r=>r.vulnerable&&r.hp>0).map(r=>r.id+' '+Math.ceil(r.hp)+'HP').join(', ')||'none'}`;
  const info=world.renderer.info;status.textContent+=` · draw calls ${info.render.calls} · triangles ${info.render.triangles} · geometries ${info.memory.geometries} · textures ${info.memory.textures}`;
  if(soak){soak.frames++;if(dt>.034)soak.longFrames++;soak.peakCalls=Math.max(soak.peakCalls,info.render.calls);soak.peakTriangles=Math.max(soak.peakTriangles,info.render.triangles);soak.peakGeometries=Math.max(soak.peakGeometries,info.memory.geometries);soak.peakTextures=Math.max(soak.peakTextures,info.memory.textures);
-  if(['won','lost','lastStand'].includes(state.phase)||state.time>=240){
-   soak.results.push({result:state.time>=240?'timeout':state.phase,level:state.level,seconds:state.time,rank:Number((document.querySelector('#rank') as HTMLSelectElement).value),relic:state.relic,geometries:info.memory.geometries,textures:info.memory.textures,boss:{partsMask:state.bossPartsMask,coreHp:state.bossCoreHp,sweepUnresolved:state.sweepUnresolved??0},attackAdmission:{admitted:state.safetyAdmitted,deferred:state.safetyDeferred,unsupported:state.safetyUnsupported,existingUnsafe:state.safetyExistingUnsafe,capacity:state.safetyCapacity,authoredRockets:state.safetyAuthoredRockets,horizon:state.safetyHorizon},orphanGeometry:observeGeometry()});soak.remaining--;
+  if(['won','lost','lastStand'].includes(state.phase)||state.time>=(campaignSoak?900:240)){
+   soak.results.push({result:state.time>=(campaignSoak?900:240)?'timeout':state.phase,level:state.level,seconds:state.time,act:state.actIndex,rank:Number((document.querySelector('#rank') as HTMLSelectElement).value),relic:state.relic,geometries:info.memory.geometries,textures:info.memory.textures,boss:{partsMask:state.bossPartsMask,coreHp:state.bossCoreHp,sweepUnresolved:state.sweepUnresolved??0},attackAdmission:{admitted:state.safetyAdmitted,deferred:state.safetyDeferred,unsupported:state.safetyUnsupported,existingUnsafe:state.safetyExistingUnsafe,capacity:state.safetyCapacity,authoredRockets:state.safetyAuthoredRockets,horizon:state.safetyHorizon},orphanGeometry:observeGeometry()});soak.remaining--;
    soakReport.textContent=JSON.stringify({scope:'Desktop real WebGL replay, 4x simulation speed. Not mobile FPS.',completed:soak.results.length,remaining:soak.remaining,wallSeconds:(performance.now()-soak.started)/1000,frames:soak.frames,framesAbove34ms:soak.longFrames,peakCalls:soak.peakCalls,peakTriangles:soak.peakTriangles,peakGeometries:soak.peakGeometries,peakTextures:soak.peakTextures,runs:soak.results},null,2);
    if(soak.remaining){selectSoakCase(soak.results.length);start();}else{paused=true;soak=undefined;clearGeometryHistory();}
   }

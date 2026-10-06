@@ -20,9 +20,9 @@ test('jacketed shells reflect normal and heavy hazard radii',()=>{
   assert.equal(missiles.hostileShells.count,2);const a=new T.Vector3().setFromMatrixScale(matrix(missiles.hostileShells,0)),b=new T.Vector3().setFromMatrixScale(matrix(missiles.hostileShells,1));assert(Math.abs(b.x/a.x-2.9)<1e-6);assert(b.z>a.z);assert.equal(missiles.bullets.count,0);
   missiles.hostileShells.geometry.computeBoundingBox();assert(missiles.hostileShells.geometry.getAttribute('color'));assert(missiles.hostileShells.material.vertexColors);
 });
-test('missiles have shaded finned bodies and compact rounded exhaust, not opaque cones',()=>{
-  missiles.reset();missiles.update([],[rocket],options);assert.equal(missiles.bodies.count,1);assert.equal(missiles.exhaust.count,1);assert.equal(missiles.bodies.material.type,'MeshStandardMaterial');assert.equal(missiles.exhaust.geometry.type,'SphereGeometry');assert(missiles.exhaust.material.transparent);assert(!missiles.exhaust.material.depthWrite);
-  missiles.exhaust.geometry.computeBoundingBox();assert(missiles.exhaust.geometry.boundingBox.getSize(new T.Vector3()).z<.50);missiles.bodies.geometry.computeBoundingBox();const size=missiles.bodies.geometry.boundingBox.getSize(new T.Vector3());assert(size.x>.40);assert(size.z>1.20);
+test('missiles have long machined fuselages, swept fins and turbulent rear combustion',()=>{
+  missiles.reset();missiles.update([],[rocket],options);assert.equal(missiles.bodies.count,1);assert.equal(missiles.exhaust.count,1);assert.equal(missiles.bodies.material.type,'MeshStandardMaterial');assert.equal(missiles.exhaust.geometry.type,'CylinderGeometry');assert(missiles.exhaust.material.transparent);assert(!missiles.exhaust.material.depthWrite);
+  missiles.exhaust.geometry.computeBoundingBox();assert(missiles.exhaust.geometry.boundingBox.max.z<-.6);assert(missiles.exhaust.geometry.boundingBox.getSize(new T.Vector3()).z>.6);assert.equal(missiles.exhaust.material.customProgramCacheKey(),'rocket-turbulent-flame-v2');missiles.bodies.geometry.computeBoundingBox();const size=missiles.bodies.geometry.boundingBox.getSize(new T.Vector3());assert(size.x>.40);assert(size.z>1.20);
 });
 test('all six emitters use immutable launch anchors and converge to exact core X/Z within one metre',()=>{
   for(const emitter of ['gunner','armL','armR','shoulderL','shoulderR','core']){missiles.reset();const shot={...rocket,emitter,sourceId:emitter==='gunner'?8:0,launchY:4},key=emitter==='gunner'?'gunner:8':emitter,socket=new T.Vector3(2.3,4,-9.7),opts={...options,emitters:{[key]:socket}};

@@ -1,7 +1,7 @@
 // Independent approach audit: public controls, no simulation state injection.
 import fs from'node:fs';import path from'node:path';import assert from'node:assert/strict';import{fileURLToPath}from'node:url';import{createHash}from'node:crypto';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),binary=path.resolve(process.argv[2]??path.join(root,'delivery/playable/assault.wasm')),bytes=fs.readFileSync(binary);globalThis.fetch=async()=>new Response(bytes);
-const{AssaultCore}=await import('./assault-core.ts');const core=new AssaultCore();await core.load();assert.equal(core.api.abi_version(),4);
+const{AssaultCore}=await import('./assault-core.ts');const core=new AssaultCore();await core.load();assert.equal(core.api.abi_version(),5);
 const runs=[],checks=[],footprints=new Map();let overlaps=0,samples=0;
 function check(name,fn){try{fn();checks.push({name,status:'pass'});}catch(e){checks.push({name,status:'fail',error:e.message});}}
 function lane(s){
@@ -21,7 +21,7 @@ for(const level of[3,4])for(const rank of[0,3])for(const relic of[0,1,2]){
   // must be separated from the actual trailing formation at snapshot time.
   // ABI4 publishes target mode in its raw row even though the view adapter does
   // not retain it. Read that existing public export to exclude real retirees.
-  const raw=new Float32Array(core.api.memory.buffer,core.api.targets(),core.api.target_count()*19),modes=new Map();for(let i=0;i<raw.length;i+=19)modes.set(raw[i],raw[i+7]);
+  const raw=new Float32Array(core.api.memory.buffer,core.api.targets(),core.api.target_count()*24),modes=new Map();for(let i=0;i<raw.length;i+=24)modes.set(raw[i],raw[i+7]);
   const formation=[{x:s.x,z:0,r:.4},...s.formation.map(p=>({...p,r:.36}))];for(const t of s.targets){if(t.kind==='enemy'&&modes.get(t.id)===0||t.kind==='hazard')for(const p of formation){samples++;const rx=t.kind==='hazard'?t.size*1.048:t.size,rz=t.kind==='hazard'?.8:t.depth,dx=(p.x-t.x)/(rx+p.r-.001),dz=(p.z-t.z)/(rz+p.r-.001);if(t.kind==='hazard'?Math.abs(dx)<1&&Math.abs(dz)<1:dx*dx+dz*dz<1)overlaps++;}}
   maxPool=Math.max(maxPool,s.targets.length);if(!Number.isFinite(s.time)||s.targets.some(t=>!Number.isFinite(t.x)||!Number.isFinite(t.z)))throw Error('Nonfinite chapter state');
  }

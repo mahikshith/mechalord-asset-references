@@ -4,7 +4,7 @@ import { BattleAudio } from './audio';
 import type {BossRegionId} from './contract';
 import type { Relic, Snapshot } from './contract';
 import {powers,powerKind} from './power-catalog';
-import {chapters} from './chapter-catalog';
+import {chapters,campaignIndex,campaignActs} from './chapter-catalog';
 
 // Native L faces screen-right at neutral; visible world X remains the side cue while banking.
 function partName(id:BossRegionId,s:Snapshot){
@@ -34,6 +34,11 @@ let world: Battlefield;
 let ready = false, intro = true, paused = false, graphicsLost = false, selected: Relic = 0;
 let playing = false, targetX = 0, lastArmy = 8, lastWeapon = 1, previous = performance.now();
 let defeating = false, defeatRemaining = 0, downed = false;
+let clashing = false, rewarding = false, reviving = false, rewardChoosing = false;
+let finalReward = false;
+let clashHeld = false, clashHoldTime = 0;
+let focusPart: BossRegionId | undefined;
+let campaignSave = false;
 let pointer: number | null = null, dragStart = 0, dragOrigin = 0;
 let soundOn = true;
 const audio = new BattleAudio();
@@ -42,14 +47,15 @@ let shieldBlockUntil = 0;
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 let dialogueTimer: ReturnType<typeof setTimeout> | undefined;
 const held = new Set<string>();
-const names = ['SHIELD', 'EMP', 'OVERDRIVE'], symbols = ['◈', 'ϟ', '»'];
+const names = ['SHIELD', 'EMP', 'OVERDRIVE'];
 const descriptions = ['Shield protects your entire legion while active.', 'EMP clears ordinary machines and incoming fire, then stuns surviving elites for two seconds.', "Overdrive boosts your legion's damage and fire rate."];
 const abilityEffects = ['LEGION GUARD', 'CLEAR + 2s STUN', 'ATTACK BOOST'];
 const tierNames = ['PULSE', 'TWIN', 'ARC', 'SIEGE'];
 const levelNames = chapters.map(chapter=>chapter.name);
 const challenges = chapters.map(chapter=>chapter.challenge);
 const levelTags = chapters.map(chapter=>chapter.tag);
-interface Progress { cleared: boolean[]; best: number[]; gateHint: boolean; lastLevel: number; commanderXP: number; }
+type LegacyImprint='laser'|'vitality'|'endurance';
+interface Progress { legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; lastLevel: number; commanderXP: number; }
 const progress: Progress = { cleared: chapters.map(()=>false), best: chapters.map(()=>0), gateHint: false, lastLevel: 0, commanderXP: 0 };
 let migratedProgress = false;
 const rankThresholds = [0, 100, 250, 450];
@@ -57,7 +63,9 @@ const headStarts = ['STANDARD DEPLOYMENT', 'HAND CANNONS · FULL RUN', 'GUIDED M
 function commanderRank(): number { let rank = 0; for (let i = 1; i < rankThresholds.length; i++) if (progress.commanderXP >= rankThresholds[i]) rank = i; return rank; }
 try {
   const saved = JSON.parse(localStorage.getItem('mechalord-iron-front-progress-v1') || 'null');
-  if (saved?.schema === 1 || saved?.schema === 2 || saved?.schema === 3) {
+  if (saved?.schema === 1 || saved?.schema === 2 || saved?.schema === 3 || saved?.schema === 4) {
+    campaignSave = saved.schema === 4;
+    if(['laser','vitality','endurance'].includes(saved.legacyImprint)) progress.legacyImprint=saved.legacyImprint;
     for (let i = 0; i < chapters.length; ++i) {
       progress.cleared[i] = saved.cleared?.[i] === true;
       const score = saved.best?.[i]; progress.best[i] = Number.isFinite(score) ? Math.max(0, Math.min(1000000, Math.round(score))) : 0;
@@ -70,14 +78,14 @@ try {
     if (saved.schema === 1 || (progress.commanderXP === 0 && progress.cleared.some(Boolean))) {
       progress.commanderXP = progress.cleared.filter(Boolean).length * 100; migratedProgress = true;
     }
-    if(saved.schema !== 3) migratedProgress = true;
+    if(saved.schema !== 4) migratedProgress = true;
   }
 } catch { /* Storage may be unavailable; this session remains fully playable. */ }
 if (migratedProgress) saveProgress();
-let selectedLevel = progress.lastLevel;
+let selectedLevel = campaignSave ? progress.lastLevel : campaignIndex;
 const seenEffects = new Set<number>(), effectOrder: number[] = [];
 function saveProgress(): void {
-  try { localStorage.setItem('mechalord-iron-front-progress-v1', JSON.stringify({ schema: 3, ...progress })); } catch { /* Session state is retained. */ }
+  try { localStorage.setItem('mechalord-iron-front-progress-v1', JSON.stringify({ schema: 4, ...progress })); } catch { /* Session state is retained. */ }
 }
 function refreshLevels(): void {
   document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => {
@@ -87,59 +95,80 @@ function refreshLevels(): void {
     if(index===selectedLevel)button.scrollIntoView?.({block:'nearest',inline:'nearest'});
   });
   $('level-challenge').textContent = challenges[selectedLevel];
+  $<HTMLSelectElement>('practice-relic').value=String(selected);
+  $('relic-description').textContent=selectedLevel===campaignIndex?'All three relics are equipped. Charge them in battle; use 1 / 2 / 3 or tap their icons.':`Practice equips ${names[selected]}. ${descriptions[selected]}`;
+  $('legacy-imprint').hidden=!progress.legacyImprint;
+  $('legacy-imprint').textContent=progress.legacyImprint?`NEXT CAMPAIGN · ${{laser:'LASER +25%',vitality:'+20 MAX HP',endurance:'POWER DURATION +15%'}[progress.legacyImprint]}`:'';
+  $('start').textContent = selectedLevel === campaignIndex ? 'PLAY IRON MARCH' : 'PLAY PRACTICE';
   const rank = commanderRank(); $('commander-rank').textContent = `COMMANDER RANK ${rank + 1}`;
   $('commander-development').textContent = rank >= 3 ? headStarts[rank] : `${progress.commanderXP}/${rankThresholds[rank + 1]} XP · ${rank === 0 ? 'HAND CANNONS NEXT' : rank === 1 ? 'GUIDED MISSILES NEXT' : 'RAIL BURST NEXT'}`;
   $('starter-troops').textContent = String(8 + rank * 2);
 }
 function previewLevel(): void {
   refreshLevels();
-  if (ready) { core.start(selected, selectedLevel, commanderRank()); core.pause(true); world.reset(); targetX = 0; }
+  if (ready) { core.start(selected, selectedLevel, commanderRank(), selectedLevel===campaignIndex?progress.legacyImprint:undefined); core.pause(true); world.reset(); targetX = 0; }
 }
 const clamp = (value: number): number => Math.max(-3, Math.min(3, value));
 
 function pulse(element: HTMLElement, className: string): void {
   element.classList.remove(className); void element.offsetWidth; element.classList.add(className);
 }
-function flash(text: string): void { $('gate-flash').textContent = text; pulse($('gate-flash'), 'show-gate'); }
+function flash(text: string): void { $('gate-flash').hidden=false; $('gate-flash').textContent = text; pulse($('gate-flash'), 'show-gate'); }
 function toast(text: string, milliseconds = 1000): void {
-  clearTimeout(toastTimer); $('toast').textContent = text; $('toast').classList.add('show-toast');
-  toastTimer = setTimeout(() => $('toast').classList.remove('show-toast'), milliseconds);
+  clearTimeout(toastTimer); $('toast').hidden=false; $('toast').textContent = text; $('toast').classList.add('show-toast');
+  toastTimer = setTimeout(() => { $('toast').classList.remove('show-toast'); $('toast').textContent=''; $('toast').hidden=true; }, milliseconds);
 }
 function dialogue(key: string, speaker: string, line: string, villain = false): void {
   clearTimeout(dialogueTimer); $('dialogue-speaker').textContent = speaker; $('dialogue-line').textContent = line;
   $('dialogue').classList.toggle('villain', villain); $('dialogue').hidden = false;
   audio.speak(key, line, villain); dialogueTimer = setTimeout(() => $('dialogue').hidden = true, 3200);
 }
-function clearDialogue(): void { clearTimeout(dialogueTimer); $('dialogue').hidden = true; }
+function clearDialogue(): void { clearTimeout(dialogueTimer); $('dialogue').hidden = true; $('dialogue-speaker').textContent=''; $('dialogue-line').textContent=''; }
+function clearBattleAnnouncements():void {
+  clearTimeout(toastTimer); clearDialogue();
+  for(const id of ['toast','gate-flash']) { $(id).textContent=''; $(id).hidden=true; }
+  $('toast').classList.remove('show-toast'); $('gate-flash').classList.remove('show-gate');
+}
 function clearInput(): void {
-  held.clear(); if (pointer !== null && canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
+  held.clear(); clashHeld=false; clashHoldTime=0; if (pointer !== null && canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
   pointer = null;
 }
 function begin(): void {
   if (!ready || graphicsLost) return;
-  clearInput(); audio.reset(); void audio.unlock(); clearDialogue(); core.start(selected, selectedLevel, commanderRank()); core.pause(false); world.reset();
+  clearInput(); audio.reset(); void audio.unlock(); clearDialogue(); core.start(selected, selectedLevel, commanderRank(), selectedLevel===campaignIndex?progress.legacyImprint:undefined); core.pause(false); world.reset();
   progress.lastLevel = selectedLevel; saveProgress(); seenEffects.clear(); effectOrder.length = 0;
   intro = false; playing = true; paused = false; defeating = false; downed = false; defeatRemaining = 0; targetX = 0; lastArmy = 8 + commanderRank() * 2; lastWeapon = 1; previous = performance.now();
   bossIntroduced = false; secondPhaseAnnounced = false;
+  clashing = rewarding = reviving = rewardChoosing = false; focusPart = undefined;
+  for(const id of ['clash-panel','reward','revive-cinematic']) $(id).hidden = true;
+  document.body.classList.remove('clashing');
   shieldBlockUntil = 0;
   for (const id of ['intro', 'result', 'paused', 'danger', 'last-stand']) $(id).hidden = true;
   $('hud').hidden = false; $('abilities').hidden = false; $('error').hidden = true;
   $('gate-flash').classList.remove('show-gate'); $('gate-flash').textContent = ''; $('toast').textContent = ''; $('damage-flash').classList.remove('show-damage');
   $('army-loss').textContent = ''; $('army-loss').classList.remove('show-loss'); $('time-power').hidden = true; $('combat-power').hidden = true;
   $('toast').classList.remove('show-toast'); clearTimeout(toastTimer); document.body.classList.remove('boss-warning', 'destroying');
-  $('ability-name').textContent = names[selected]; $('ability-symbol').textContent = symbols[selected];
-  $('ability-effect').textContent = abilityEffects[selected];
   audio.play('start', .7);
 }
 function pause(value = !paused): void {
-  if (!playing || defeating || downed) return;
+  if (!playing || defeating || downed || rewarding) return;
   paused = value; core.pause(value); clearInput(); $('paused').hidden = !paused;
   if (paused) { audio.silence(); clearDialogue(); } else void audio.unlock();
 }
-function activate(): void {
-  if (playing && !defeating && !downed && !paused && !graphicsLost && core.activate()) toast(`${names[selected]} ACTIVATED`, 900);
+function canAct(): boolean { return playing && !defeating && !downed && !paused && !graphicsLost && !clashing && !rewarding && !reviving; }
+function activate(relic: Relic = selected): void {
+  if (canAct() && core.activateRelic(relic)) { selected = relic; toast(`${names[relic]} ACTIVATED`, 900); }
 }
-function heal(): void { if (playing && !defeating && !downed && !paused && !graphicsLost) core.heal(); }
+function fireLaser(): void { if(canAct()) core.fireLaser(); }
+function clashPulse(): void { if(playing && clashing && !paused && !graphicsLost) core.clashTap(); }
+function chooseReward(choice:'laser'|'vitality'|'endurance'):void {
+  if(!playing || !rewarding || rewardChoosing || graphicsLost) return;
+  rewardChoosing = true;
+  for(const kind of ['laser','vitality','endurance']) $<HTMLButtonElement>(`reward-${kind}`).disabled=true;
+  if(core.chooseReward(choice)) { if(finalReward) { progress.legacyImprint=choice; saveProgress(); refreshLevels(); } clearInput(); rewarding=false; $('reward').hidden=true; previous=performance.now(); void audio.unlock(); }
+  else { rewardChoosing=false; for(const kind of ['laser','vitality','endurance']) $<HTMLButtonElement>(`reward-${kind}`).disabled=false; }
+}
+function heal(): void { if (canAct()) core.heal(); }
 function revive(): void {
   if (playing && downed && !graphicsLost && core.revive()) { downed = false; $('last-stand').hidden = true; previous = performance.now(); void audio.unlock(); }
 }
@@ -148,14 +177,17 @@ function declineRevive(): void {
 }
 function showIntro(): void {
   clearInput(); intro = true; playing = false; paused = false; defeating = false; downed = false; defeatRemaining = 0; previewLevel();
-  audio.reset(); clearDialogue();
+  audio.reset(); clearBattleAnnouncements();
+  clashing = rewarding = reviving = rewardChoosing = false; focusPart=undefined;
+  for(const id of ['clash-panel','reward','revive-cinematic']) $(id).hidden=true;
+  document.body.classList.remove('clashing');
   for (const id of ['hud', 'abilities', 'result', 'paused', 'danger', 'time-power', 'combat-power', 'last-stand']) $(id).hidden = true;
   $('intro').hidden = false; $('toast').classList.remove('show-toast'); $('gate-flash').classList.remove('show-gate'); document.body.classList.remove('boss-warning', 'destroying');
 }
 function finish(s: Snapshot): void {
   if (!playing) return;
   playing = false; paused = false; defeating = false; downed = false; defeatRemaining = 0; clearInput();
-  audio.silence(); clearDialogue();
+  audio.silence(); clearBattleAnnouncements();
   for (const id of ['hud', 'abilities', 'paused', 'danger', 'time-power', 'combat-power', 'last-stand']) $(id).hidden = true;
   document.body.classList.remove('boss-warning', 'destroying');
   const won = s.phase === 'won';
@@ -166,7 +198,7 @@ function finish(s: Snapshot): void {
   $('result-development').hidden = !won;
   $('result-rank').textContent = `${promoted ? 'RANK UP! ' : ''}COMMANDER ${rank + 1} · +${rewardXP} XP`;
   $('result-unlock').textContent = promoted ? `${headStarts[rank]} UNLOCKED` : rank >= 3 ? 'ARSENAL MASTERED · REPLAY ANY FRONT' : `${progress.commanderXP}/${rankThresholds[rank + 1]} XP · ${headStarts[rank + 1]} NEXT`;
-  const hasNext = won && level < chapters.length-1;
+  const hasNext = won && level < 4;
   $('next-level').hidden = !hasNext; $('result').classList.toggle('has-next', hasNext);
   $('result-eyebrow').textContent = `${s.levelName || levelNames[level]} ${won ? 'CLEARED' : 'ASSAULT'}`;
   $('result-title').textContent = won ? 'VICTORY!' : 'REGROUP';
@@ -195,14 +227,18 @@ function effects(s: Snapshot): void {
     else if (event.kind === 'coreExpose') toast(s.level === 0 ? 'CORE OPEN · DAMAGE CARRIES TO THE NEXT OPENING' : s.bossRevives ? 'CORE OPEN · FINISH THE TYRANT' : 'CORE OPEN · DESTROY IT BEFORE REBUILD', 1500);
     else if (event.kind === 'bossRevive') { secondPhaseAnnounced = true; dialogue('boss-revive', 'FORGE TYRANT', 'My core still burns. Face the furnace.', true); }
     else if (event.kind === 'bossPartBreak') toast(brokenPartMessage(event,s),1500);
+    else if (event.kind === 'healthPickup') { pulse($('commander-health'), 'health-restored'); toast(`FIELD REPAIR · +${Math.round(event.value)} HP`, 1000); }
+    else if (event.kind === 'clashWin') toast('BEAM OVERPOWERED · ARMOR BROKEN', 1200);
+    else if (event.kind === 'clashLose') toast('CLASH LOST · GET CLEAR', 1200);
+    else if (event.kind === 'actStart') { bossIntroduced=false; secondPhaseAnnounced=false; focusPart=undefined; clearDialogue(); toast(`ACT ${(s.actIndex??0)+1} · ${campaignActs[s.actIndex??0].toUpperCase()}`, 1800); }
     else if (event.kind === 'heal' || event.kind === 'revive') { pulse($('commander-health'), 'health-restored'); toast(event.kind === 'revive' ? 'LEGION TRANSFER · BACK IN THE FIGHT' : `LEGION TRANSFER · +${event.value} HP`, 1500); }
   }
   if (sacrifices.length) world.sacrifice(sacrifices);
-  if (bossDied) { clearDialogue(); $('toast').classList.remove('show-toast'); $('gate-flash').classList.remove('show-gate'); clearTimeout(toastTimer); lastWeapon = s.weapon; return; }
+  if (bossDied) { clearBattleAnnouncements(); lastWeapon = s.weapon; return; }
   if (damage) pulse($('damage-flash'), 'show-damage');
   if (casualties) { $('army-loss').textContent = `−${casualties}`; pulse($('army-loss'), 'show-loss'); }
   // One reward notification per frame: an upgrade takes priority over gate growth.
-  if (pickedUp) { const info = powers[powerKind(pickedUp)]; toast(`${info.symbol} ${info.name} · ${info.effect}${recruited>0?` · +${recruited} TROOPS`:''}`, 1700); pulse($('temporary-power'), 'power-gained'); pulse($('time-power'), 'power-gained'); lastWeapon = s.weapon; }
+  if (pickedUp && pickedUp <= 10) { const info = powers[powerKind(pickedUp)]; toast(`${info.symbol} ${info.name} · ${info.effect}${recruited>0?` · +${recruited} TROOPS`:''}`, 1700); pulse($('temporary-power'), 'power-gained'); pulse($('time-power'), 'power-gained'); lastWeapon = s.weapon; }
   else if (s.weapon > lastWeapon) {
     if(playing&&!paused&&(s.phase==='run'||s.phase==='boss'))world.weaponUpgrade(lastWeapon,s.weapon);
     flash(`${tierNames[Math.min(3, s.weapon - 1)]} FIRE · LV ${s.weapon}`); audio.play('rank', .7, .5); lastWeapon = s.weapon;
@@ -219,7 +255,7 @@ function effects(s: Snapshot): void {
 }
 function hud(s: Snapshot): void {
   const boss = s.phase === 'boss' || s.phase === 'lastStand' && s.travelDistance >= s.travelGoal, destroying = s.phase === 'destroying';
-  const distanceRemaining = Math.max(0, s.travelGoal - s.travelDistance), route = Math.max(0, Math.min(1, s.travelDistance / Math.max(1, s.travelGoal)));
+  const distanceRemaining = Math.max(0, s.travelGoal - s.travelDistance), route = Math.max(0, Math.min(1, s.campaign ? s.actProgress??0 : s.travelDistance / Math.max(1, s.travelGoal)));
   const exposed = boss && s.bossState === 'exposed', rebuilding = boss && s.bossState === 'rebuilding';
   const guarded = boss && s.bossState === 'guarded', coreStage = exposed || guarded;
   const reactorShield=boss&&s.bossPartsMask===63&&s.guardHp>0;
@@ -229,11 +265,11 @@ function hud(s: Snapshot): void {
   const projectiles = boss && s.enemyShots.some(shot => shot.z > -.5 && shot.z < 10), windup = boss && s.bossAction === 'windup';
   const visibleGunners = boss ? [] : s.targets.filter(target => target.z > 3 && target.z < 27);
   const runnerGunner = visibleGunners.find(target => target.fireState === 'locked') ?? visibleGunners.find(target => target.fireState === 'tracking');
-  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? coreStage ? 'TYRANT · CORE' : reactorShield?'TYRANT · CORE SHIELD':s.bossRevives ? 'TYRANT · REFORGED' : 'TYRANT · ARMOR' : s.levelName.toUpperCase();
+  $('phase-label').textContent = destroying ? 'TYRANT DESTROYED' : boss ? coreStage ? 'TYRANT · CORE' : reactorShield?'TYRANT · CORE SHIELD':s.bossRevives ? 'TYRANT · REFORGED' : 'TYRANT · ARMOR' : s.campaign ? `${(s.actIndex??0)+1}/3 · ${campaignActs[s.actIndex??0].toUpperCase()}` : s.levelName.toUpperCase();
   $('objective').textContent = s.phase === 'lastStand' ? 'COMMANDER DOWN' : destroying ? '' : boss ? (rebuilding ? 'REBUILDING' : exposed ? s.bossCoreTime > 0 ? `${percent}% · ${s.bossCoreTime.toFixed(1)}s` : `${percent}% · FINISH IT` : windup ? s.bossPattern === 'laser' ? 'LASER CHARGE' : s.bossPattern === 'rockets' ? 'MISSILE LOCK' : 'CHARGING' : s.lasers.length ? 'LASER LIVE' : guarded ? 'CORE GUARDED' : projectiles ? 'INCOMING' : `${percent}% ${reactorShield?'SHIELD':'ARMOR'}`) : runnerGunner ? runnerGunner.fireState === 'locked' ? 'CANNON LOCKED' : 'CANNON CHARGING' : s.engagement ? 'KEEP MOVING' : incoming ? 'TYRANT AHEAD' : `${Math.floor(route * 100)}% ADVANCE`;
   $('route-fill').style.width = `${boss ? percent : destroying ? 0 : route * 100}%`;
   $('route-fill').classList.toggle('core-exposed', exposed); $('route-fill').classList.toggle('rebuilding', rebuilding);
-  document.body.classList.toggle('destroying', destroying); $('abilities').hidden = destroying || s.phase === 'lastStand';
+  document.body.classList.toggle('destroying', destroying); $('abilities').hidden = destroying || s.phase === 'lastStand' || s.phase === 'reward' || s.phase === 'reviving';
   $('army-count').textContent = String(s.army); $('kills').textContent = String(s.kills); $('kill-label').textContent = 'ELIMINATED'; $('weapon-level').textContent = String(s.weapon);
   $('kills').hidden = boss;
   if (boss) $('kill-label').textContent = reactorShield?'BREAK THE REACTOR SHIELD':guarded ? 'DODGE · WAIT FOR THE CORE TO OPEN' : s.bossRevives > 0 && !exposed ? 'BREAK THE REFORGED ARMOR' : ({cannon:'BREAK THE HAND CANNONS',jetpack:'BREAK THE BOOSTERS',leg:'BREAK THE LEG ARMOR',reactor:'DESTROY THE REACTOR'} as const)[s.bossPart];
@@ -259,40 +295,56 @@ function hud(s: Snapshot): void {
   transfer.setAttribute('aria-label', `Transfer ${s.healCost} troops for ${s.healAmount} commander health. ${s.healUsesRemaining} uses remaining.`);
   if (lastArmy !== s.army) { pulse($('army-count').parentElement!, 'pop'); lastArmy = s.army; }
   $('danger').hidden = true; document.body.classList.toggle('boss-warning', boss);
-  const button = $<HTMLButtonElement>('ability'); button.disabled = paused || destroying || s.energy < 100 || s.ability > 0; button.classList.toggle('ready', !button.disabled); button.classList.toggle('relic-active', s.ability>0); button.dataset.relic=String(s.relic);
-  $('energy-fill').style.width = `${Math.max(0, Math.min(100, s.energy))}%`;
-  $('ability-caption').textContent = s.ability > 0 ? `${s.relic === 0 && s.time < shieldBlockUntil ? 'HIT BLOCKED' : 'ACTIVE'} · ${s.ability.toFixed(1)}s` : s.energy >= 100 ? 'READY · TAP / SPACE' : `${Math.floor(s.energy)}% CHARGED`;
-  button.setAttribute('aria-label', `${names[selected]}: ${descriptions[selected]} ${$('ability-caption').textContent}`);
+  const relics=s.relics??names.map((_,i)=>({energy:i===s.relic?s.energy:0,activeTime:i===s.relic?s.ability:0}));
+  for(let i=0;i<3;i++) {
+    const relic=relics[i], button=$<HTMLButtonElement>(`relic-${i}`), equipped=!!s.campaign||i===s.relic, active=equipped&&relic.activeTime>0;
+    button.disabled=!equipped || !canAct() || relic.energy<100 || active; button.classList.toggle('unequipped',!equipped);
+    button.classList.toggle('ready', !button.disabled); button.classList.toggle('relic-active', active);
+    const label=!equipped?'—':active?`${relic.activeTime.toFixed(1)}s`:relic.energy>=100?'READY':`${Math.floor(relic.energy)}%`;
+    $(`relic-status-${i}`).textContent=label;
+    button.style.setProperty('--charge',`${Math.max(0,Math.min(100,relic.energy))}%`);
+    button.setAttribute('aria-label',equipped?`${names[i]}: ${descriptions[i]} ${active?'Active for ':''}${label}. Keyboard ${i+1}.`:`${names[i]}: not equipped in this practice run. Choose it in the practice menu.`);
+    button.setAttribute('aria-pressed',String(active));
+  }
+  const laserButton=$<HTMLButtonElement>('laser-cannon'); laserButton.hidden=!(s.laserCharges&&s.laserCharges>0) || clashing || destroying || rewarding || reviving;
+  laserButton.disabled=!canAct(); $('laser-charges').textContent=String(s.laserCharges??0);
+  laserButton.setAttribute('aria-label',`Fire lightning cannon. ${s.laserCharges??0} charges. Keyboard L. Cross the boss beam to start a clash.`);
   $('combat-hint').textContent = exposed ? 'CORE OPEN · MAKE EACH SHOT COUNT' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : boss && s.bossPattern === 'laser' ? windup ? 'LASER CHARGING · PREPARE TO DODGE' : 'DODGE THE BEAM · FIRE BACK' : boss && s.bossPattern === 'rockets' ? 'BAIT THE MISSILES · THEN CHANGE LANE' : reactorShield?'BREAK THE REACTOR SHIELD · CORE WOUNDS REMAIN':guarded ? 'CORE GUARDED · DODGE THE NEXT VOLLEY' : runnerGunner ? runnerGunner.fireState === 'locked' ? 'AIM LOCKED · CHANGE LANE' : 'CANNON TRACKING · PREPARE TO MOVE' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'BREAK PARTS · WATCH ITS NEXT ATTACK' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'BREAK CRATES · EARN WEAPON XP';
+  if(boss && !rebuilding && !guarded && !reactorShield) {
+    const vulnerable=s.bossRegions?.filter(r=>r.active&&r.vulnerable&&r.hp>0)??[];
+    focusPart=vulnerable[0]?.id;
+    if(focusPart) $('kill-label').textContent=`AIM ${partName(focusPart,s)} · HITS FLASH WHITE`;
+  }
   if(boss && !rebuilding && (s.bossEvadeTell??0)>0) { $('objective').textContent='BOOSTERS CHARGING'; $('combat-hint').textContent='DODGE COMING · TRACK THE BOOSTERS'; }
   else if(boss && s.bossAction==='evade') { $('objective').textContent='BOOSTER DODGE'; $('combat-hint').textContent='FOLLOW THE TYRANT · RECOVERY NEXT'; }
   else if(boss && (s.bossFiringWindow??0)>0 && !s.lasers.length && !projectiles) { $('objective').textContent='BOOSTERS COOLING'; $('combat-hint').textContent='RECOVERY WINDOW · AIM AT EXPOSED PARTS'; }
 }
-document.querySelectorAll<HTMLButtonElement>('[data-relic]').forEach(button => button.addEventListener('click', () => {
-  selected = Number(button.dataset.relic) as Relic;
-  document.querySelectorAll('[data-relic]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
-  $('relic-description').textContent = descriptions[selected];
-  previewLevel();
-}));
 document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => button.addEventListener('click', () => {
   selectedLevel = Math.max(0, Math.min(chapters.length-1, Number(button.dataset.level))); previewLevel();
 }));
+$('practice-relic').addEventListener('change',()=>{selected=Number($<HTMLSelectElement>('practice-relic').value) as Relic;previewLevel();});
 refreshLevels();
+$('gate-flash').addEventListener('animationend',()=>{ $('gate-flash').textContent=''; $('gate-flash').hidden=true; });
 $('start').addEventListener('click', begin); $('retry').addEventListener('click', begin); $('pause-retry').addEventListener('click', begin); $('back').addEventListener('click', showIntro);
 $('next-level').addEventListener('click', () => { selectedLevel = Math.min(chapters.length-1, selectedLevel + 1); refreshLevels(); begin(); });
 $('pause-levels').addEventListener('click', showIntro);
-$('pause').addEventListener('click', () => pause()); $('resume').addEventListener('click', () => pause(false)); $('ability').addEventListener('click', activate);
+$('pause').addEventListener('click', () => pause()); $('resume').addEventListener('click', () => pause(false)); for(let i=0;i<3;i++) $(`relic-${i}`).addEventListener('click',()=>activate(i as Relic));
+$('laser-cannon').addEventListener('click',fireLaser); $('clash-pulse').addEventListener('click',clashPulse);
+$('clash-pulse').addEventListener('pointerdown',event=>{if(clashing&&!paused){clashHeld=true;clashHoldTime=0;clashPulse();$('clash-pulse').setPointerCapture(event.pointerId);}});
+for(const event of ['pointerup','pointercancel','lostpointercapture']) $('clash-pulse').addEventListener(event,()=>{clashHeld=false;clashHoldTime=0;});
+for(const choice of ['laser','vitality','endurance'] as const) $(`reward-${choice}`).addEventListener('click',()=>chooseReward(choice));
 $('transfer').addEventListener('click', heal); $('revive').addEventListener('click', revive); $('accept-defeat').addEventListener('click', declineRevive);
 $('sound').addEventListener('click', () => {
   soundOn = !soundOn; audio.setEnabled(soundOn); $('sound').textContent = soundOn ? 'SOUND ON' : 'SOUND OFF';
   $('sound').setAttribute('aria-pressed', String(soundOn)); $('sound').setAttribute('aria-label', soundOn ? 'Mute sound' : 'Enable sound');
 });
 canvas.addEventListener('pointerdown', event => {
-  if (!playing || defeating || downed || paused || graphicsLost || pointer !== null) return;
+  if (clashing) { clashPulse(); return; }
+  if (!canAct() || pointer !== null) return;
   pointer = event.pointerId; dragStart = event.clientX; dragOrigin = targetX; canvas.setPointerCapture(pointer);
 });
 canvas.addEventListener('pointermove', event => {
-  if (pointer !== event.pointerId || !playing || defeating || downed || paused) return;
+  if (pointer !== event.pointerId || !canAct()) return;
   targetX = clamp(dragOrigin + (event.clientX - dragStart) * 6 / Math.max(1, canvas.getBoundingClientRect().width));
 });
 const release = (event: PointerEvent): void => { if (pointer === event.pointerId) pointer = null; };
@@ -301,11 +353,11 @@ window.addEventListener('keydown', event => {
   const key = event.key.toLowerCase();
   if (playing && ['arrowleft', 'arrowright', ' ', 'escape'].includes(key)) event.preventDefault();
   if (event.repeat) return; held.add(key);
-  if (key === ' ') activate(); else if (key === 'h') heal(); else if (key === 'escape') pause(); else if (key === 'r' && ready && !intro) begin();
+  if (key === ' ') { if(clashing)clashPulse(); else activate(); } else if (['1','2','3'].includes(key)) activate((Number(key)-1) as Relic); else if(key==='l')fireLaser(); else if (key === 'h') heal(); else if (key === 'escape') pause(); else if (key === 'r' && ready && !intro && !rewarding && !reviving) begin();
 });
 window.addEventListener('keyup', event => held.delete(event.key.toLowerCase()));
 window.addEventListener('blur', () => { clearInput(); if (playing) pause(true); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { clearInput(); if (playing) pause(true); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { clearInput(); if (playing) pause(true); audio.silence(); } });
 canvas.addEventListener('webglcontextlost', event => {
   event.preventDefault(); graphicsLost = true; if (playing) pause(true); $('error').hidden = false;
   $('error').textContent = 'Graphics interrupted. Your run is paused while the battlefield recovers.';
@@ -316,16 +368,35 @@ function frame(now: number): void {
   if (ready && !graphicsLost) {
     if (playing && !paused && !defeating && !downed) {
       const left = held.has('arrowleft') || held.has('a'), right = held.has('arrowright') || held.has('d');
-      if (left || right) targetX = clamp(targetX + (Number(right) - Number(left)) * dt * 5.4);
+      if ((left || right) && !clashing && !rewarding && !reviving) targetX = clamp(targetX + (Number(right) - Number(left)) * dt * 5.4);
+      if(clashing && clashHeld) { clashHoldTime+=dt; if(clashHoldTime>=1/3) { clashHoldTime-=1/3; clashPulse(); } }
       core.step(dt, targetX);
     }
     // Exactly one snapshot per frame: effects are consumed only here.
     const snapshot = core.snapshot();
+    const enteringClash=!!snapshot.clash?.active&&!clashing;
+    clashing=!!snapshot.clash?.active; if(!clashing) {clashHeld=false;clashHoldTime=0;} reviving=snapshot.phase==='reviving';
+    if(enteringClash || snapshot.phase==='reward'&&!rewarding || reviving) clearInput();
+    if(playing && snapshot.phase==='reward') {
+      if(!rewarding) { audio.silence(); clearDialogue(); rewardChoosing=false; }
+      rewarding=true; $('reward').hidden=false;
+      finalReward=!!snapshot.campaign && (snapshot.actIndex??0)===2;
+      const bonuses=snapshot.rewardBonuses??{laser:0,vitality:0,endurance:0};
+      $('reward-copy').textContent=snapshot.campaign && (snapshot.actIndex??0)<2?`Carry this core into ${campaignActs[(snapshot.actIndex??0)+1]}. Your surviving legion continues.`:'Carry one imprint into your next campaign. Replaces your previous imprint.';
+      $('reward-laser-copy').textContent=finalReward?'+25% beam damage next campaign':`+25% beam damage · +${(bonuses.laser+1)*25}% total`;
+      $('reward-vitality-copy').textContent=finalReward?'+20 maximum HP next campaign':'+20 maximum HP · restore up to 35 HP';
+      $('reward-endurance-copy').textContent=finalReward?'+15% power duration next campaign':`+15% power duration · +${(bonuses.endurance+1)*15}% total`;
+      for(const kind of ['laser','vitality','endurance']) $<HTMLButtonElement>(`reward-${kind}`).disabled=rewardChoosing;
+    } else if(snapshot.phase!=='reward') { rewarding=false; $('reward').hidden=true; }
+    $('revive-cinematic').hidden=!playing||!reviving;
+    if(reviving) $('revive-fill').style.width=`${Math.max(0,Math.min(100,(1-(snapshot.reviveCinematicTime??0)/1.5)*100))}%`;
+    $('clash-panel').hidden=!playing||!clashing||paused; document.body.classList.toggle('clashing',playing&&clashing);
+    if(clashing) { const strength=Math.round(Math.max(0,Math.min(1,snapshot.clash!.progress))*100); $('clash-fill').style.width=`${strength}%`; $('clash-meter').setAttribute('aria-valuenow',String(strength)); $('clash-time').textContent=`${snapshot.clash!.time.toFixed(1)}s`; }
     // A decline may be followed by a blur before this frame. Terminal damage
     // must still animate, and its timer must not inherit that intervening pause.
     if (playing && snapshot.phase === 'lost') { paused = false; downed = false; $('paused').hidden = true; $('last-stand').hidden = true; }
     if (!intro && !paused && playing) effects(snapshot);
-    audio.update(snapshot, !intro && !paused && playing && snapshot.phase !== 'lastStand');
+    audio.update(snapshot, !intro && !paused && playing && snapshot.phase !== 'lastStand' && snapshot.phase !== 'reward');
     if (playing) {
       if (snapshot.phase === 'lastStand') {
         if (!downed) { clearInput(); audio.silence(); clearDialogue(); paused = false; $('paused').hidden = true; }
@@ -349,7 +420,7 @@ function frame(now: number): void {
 async function boot(): Promise<void> {
   try {
     world = new Battlefield(canvas); await Promise.all([core.load(), world.load()]); ready = true; previewLevel();
-    $<HTMLButtonElement>('start').disabled = false; $('start').textContent = 'PLAY'; $('loading').textContent = 'Drag to steer · Auto fire · Tap a charged relic';
+    $<HTMLButtonElement>('start').disabled = false; $('start').textContent = selectedLevel === campaignIndex ? 'PLAY IRON MARCH' : 'PLAY PRACTICE'; $('loading').textContent = 'Drag to steer · Auto fire · Three relics on tap';
     previous = performance.now(); requestAnimationFrame(frame);
   } catch (error) {
     console.error(error); $('error').hidden = false;

@@ -27,7 +27,11 @@ for(const [html,script] of [['index.html','game.js'],['review.html','review.js']
 }
 for(const [source,dest] of [['relic-marshal-hf-rigged-source.glb','commander.glb'],['relic-marshal-hf-mobile.glb','troop.glb'],['rust-crawler-source-v2.glb','crawler.glb'],['cinder-reaver-v3.glb','cinder-reaver.glb'],['forge-tyrant-v3.glb','forge-tyrant.glb']])
  await fs.copyFile(path.join(root,'assets/exports',source),path.join(out,dest));
+const environmentAssets=['CoolingStack','ReactorBank','ArticulatedServiceArm','CitadelSpire','DistantFoundryWorks','DistantTransferGallery'];
+await fs.mkdir(path.join(out,'environment'),{recursive:true});
+for(const name of environmentAssets)await fs.copyFile(path.join(root,'assets/exports/reforged',name+'.glb'),path.join(out,'environment',name+'.glb'));
 const manifest={builtAt:new Date().toISOString(),coreAsset,coreSha256:coreHash,files:{}};
 for(const file of [coreAsset,'game.js','review.js','index.html','review.html','style.css','commander.glb','troop.glb','crawler.glb','cinder-reaver.glb','forge-tyrant.glb']){const bytes=await fs.readFile(path.join(out,file));manifest.files[file]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};}
+for(const name of environmentAssets){const file='environment/'+name+'.glb',bytes=await fs.readFile(path.join(out,file));manifest.files[file]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};}
 await fs.writeFile(path.join(root,'builds/playable-build-manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 const files=await fs.readdir(out);console.log('Playable preview built:',files.join(', '));

@@ -136,9 +136,9 @@ test('troop bullets are cyan-blue and commander bullets warm gold',()=>{
   const troop=new T.Color(),commander=new T.Color();missiles.tips.getColorAt(0,troop);missiles.tips.getColorAt(1,commander);assert(troop.b>troop.r*2);assert(commander.r>commander.b*2);assert(!troop.equals(commander));
   missiles.bullets.getColorAt(0,troop);missiles.bullets.getColorAt(1,commander);assert(troop.b>troop.r);assert(commander.r>commander.b);
 });
-test('hostile energy orbs have bounded solid red shells and orange cores',()=>{
+test('hostile induction slugs have bounded armored shells and recessed heat channels',()=>{
   missiles.update([],Array.from({length:120},(_,id)=>({id,x:0,z:9,dx:0,dz:-4,radius:.2,kind:'orb'})),missileOptions);assert.equal(missiles.orbs.count,96);assert.equal(missiles.orbCores.count,96);
-  assert(missiles.orbs.material.color.r>missiles.orbs.material.color.b);assert(missiles.orbCores.material.color.r>missiles.orbCores.material.color.b);missiles.reset();assert.equal(missiles.orbCores.count,0);
+  assert(missiles.orbs.material.vertexColors);assert(missiles.orbCores.material.vertexColors);missiles.orbs.geometry.computeBoundingBox();assert(missiles.orbs.geometry.boundingBox.getSize(new T.Vector3()).z>.7);assert.equal(missiles.orbs.name,'Hostile_InductionSlugs');missiles.reset();assert.equal(missiles.orbCores.count,0);
 });
 test('spatial rounds preserve authoritative height and velocity instead of inventing a reactor path',()=>{
   const shot={id:701,x:1.1,y:3.2,z:8,dx:0,dy:4.5,dz:32,kind:'cannon',owner:'commander',heavy:false};
@@ -215,11 +215,7 @@ test('authoritative lasers draw thick 3D beams only while active',()=>{
   const matrix=new T.Matrix4();missiles.beamShells.getMatrixAt(0,matrix);const center=new T.Vector3().setFromMatrixPosition(matrix),scale=new T.Vector3().setFromMatrixScale(matrix);assert(Math.abs(center.x+.5)<1e-6);assert(Math.abs(center.z+4.5)<1e-6);assert(Math.abs(scale.x-.65)<1e-6);assert(scale.z>9);
   missiles.update([],[],{...missileOptions,lasers:[{id:1,x:1,z:9,endX:-2,endZ:0,width:.65,time:0}]});assert.equal(missiles.beamShells.count,0);missiles.reset();assert.equal(missiles.beamCores.count,0);
 });
-test('shield encloses clamped army centroid and the tall commander',()=>{
-  abilities.update(state,abilityOptions,.016);assert(abilities.dome.visible);assert.equal(abilities.group.position.x,1.4);
-  const radius=abilities.dome.scale.x,height=abilities.dome.scale.y,heroDistance=Math.hypot(3-1.4,3.17);
-  assert(radius>=3.65);assert((heroDistance/radius)**2+(2.8/height)**2<1);
-});
+test('unused legacy shield adapter cannot resurrect the rejected dome',()=>{abilities.update(state,abilityOptions,.016);assert(!abilities.dome.visible&&!abilities.domeGrid.visible&&!abilities.boundary.visible);});
 test('EMP arcs attach only to authoritative affected enemy positions',()=>{
   state.relic=1;state.targets=[{id:1,kind:'enemy',hp:3,x:3,z:7},{id:2,kind:'enemy',hp:3,x:-3,z:7},{id:3,kind:'enemy',hp:3,x:3,z:14},{id:4,kind:'crate',hp:3,x:3,z:5}];
   abilities.update(state,abilityOptions,.016);assert(abilities.arcs.visible);assert.equal(abilities.arcs.geometry.drawRange.count,6);assert(abilities.wave.visible);assert.equal(abilities.dome.visible,false);

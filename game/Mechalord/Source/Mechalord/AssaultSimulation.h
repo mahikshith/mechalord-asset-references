@@ -9,17 +9,17 @@
 // Portable browser playtest. The legacy Unreal adapter still uses BattleSimulation.
 namespace mech::assault
 {
-enum class Phase { Ready, Run, Boss, Destroying, Won, Lost, LastStand };
+enum class Phase { Ready, Run, Boss, Destroying, Won, Lost, LastStand, Reward, Reviving };
 enum class Kind { Enemy, Crate, Gate, Hazard, Orb };
 enum class Relic { Shield, EMP, Overdrive };
-enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire, EmpPulse, EmpClear, EmpStun, ShieldHit, EscortBlock, CombatPower, ChainHit };
+enum class EffectKind { Hit, Kill, Recruit, Gate, Damage, Relic, BossShot, Win, Contact, Block, BossDeath, Missed, Drop, Pickup, Pass, Retreat, BossPhase, CommanderHit, CommanderDeath, HazardBreak, TroopDeath, CoreExpose, BossRevive, BossPartBreak, TroopSacrifice, Heal, Revive, CommanderDown, EnemyFire, EmpPulse, EmpClear, EmpStun, ShieldHit, EscortBlock, CombatPower, ChainHit, ShieldBreak, HealthPickup, RewardChosen, ClashStart, ClashWin, ClashLose, EnemySupport, ActStart };
 enum class ProjectileKind { Shell, Rocket, Orb };
 enum class WeaponEmitter { Gunner, ArmL, ArmR, ShoulderL, ShoulderR, Core };
 enum class FriendlyKind { Pulse, Arc, Rail, Missile, Cannon, Salvo };
 enum class WeaponPower { None, Guided, Cannons, Railburst, Escort };
 enum class CombatPower { None, Tempest, ArcStorm, Salvo };
 enum class TimePower { None, Freeze, Slow, Haste };
-enum class PickupKind { Guided=1, Cannons, Railburst, Freeze, Slow, Haste, Escort, Tempest, ArcStorm, Salvo };
+enum class PickupKind { Guided=1, Cannons, Railburst, Freeze, Slow, Haste, Escort, Tempest, ArcStorm, Salvo, Health };
 enum class BossState { Armored, Exposed, Rebuilding, Destroying, Guarded };
 enum class BossPattern { Heavy, Sweep, Rockets, Laser };
 enum class BossAction { Strafe, Advance, Retreat, Windup, Fire, Dying, Evade };
@@ -32,6 +32,7 @@ struct Target
     double originX=0,motion=0,motionRate=1,fireClock=0,motionPhase=0,depth=.3;
     FireState fireState=FireState::Idle; double aimX=0,charge=0,fireDelay=0; int role=0,burst=0,dropPower=0,dropAlternate=0;
     double stunTime=0,ventClock=0,ventTime=0; bool ventOpen=false;
+    int archetype=0,shieldHp=0,shieldMax=0,skillState=0; double blockFlash=0,skillClock=0;
 };
 struct Shot
 {
@@ -46,8 +47,9 @@ struct EnemyShot
     ProjectileKind kind=ProjectileKind::Shell; bool active=false,boss=false; double homing=0; int sourceId=0;
     WeaponEmitter emitter=WeaponEmitter::Gunner; double launchX=0,launchZ=0,launchY=1.65;
 };
-struct Laser { int id=0; double x=0,z=0,endX=0,endZ=-5,width=.36,time=0,tick=0; bool active=false; };
+struct Laser { int id=0; double x=0,z=0,endX=0,endZ=-5,width=.36,time=0,tick=0; bool active=false; double y=4.3,endY=.22; };
 struct FriendlyBeam { int id=0; double x=0,y=1.42,z=1.32,endX=0,endY=1.42,endZ=40,width=.28,time=0; };
+struct Clash { bool active=false; double progress=.5,time=0,x=0,y=0,z=0,heroX=0,heroY=1.42,heroZ=1.32,enemyX=0,enemyY=0,enemyZ=0; int result=0,laserId=0; };
 struct Pickup { int id=0; PickupKind kind=PickupKind::Guided; double x=0,z=0,radius=1.05; bool active=false; int choiceGroup=0,bonusTroops=0; };
 struct Effect
 {
@@ -60,6 +62,9 @@ public:
     static constexpr int MaxTargets=256,MaxShots=256,MaxEnemyShots=96,MaxEffects=192,MaxPickups=24;
     static constexpr double Frontline=2.6;
     Phase phase=Phase::Ready; Relic relic=Relic::Shield; BossAction bossAction=BossAction::Strafe;
+    bool campaign=false; int actIndex=0,laserCharges=0; double reviveCinematicTime=0;
+    std::array<double,3> relicEnergy{{55,55,55}},relicTime{};
+    int rewardLaser=0,rewardVitality=0,rewardEndurance=0; Clash clash{};
     CombatPower combatPower=CombatPower::None; double combatPowerTime=0,bossEvadeTime=0,bossEvadeTell=0,bossFiringWindow=0; FriendlyBeam friendlyBeam{};
     TimePower timePower=TimePower::None; BossState bossState=BossState::Armored;
     WeaponPower starterWeapon=WeaponPower::None;
@@ -94,6 +99,13 @@ public:
     void Start(Relic Equipped,int Level=0,int Rank=0);
     void Advance(double Seconds,double DesiredX);
     bool Activate();
+    bool ActivateRelic(Relic Equipped);
+    bool FireLaser();
+    bool ClashTap();
+    bool ChooseReward(int Choice);
+    bool ApplyLegacyReward(int Choice);
+    int StageLevel() const { return campaign?(actIndex==0?0:actIndex==1?3:4):level; }
+    bool RelicActive(Relic Type) const { return campaign?relicTime[int(Type)]>0:ability>0 && relic==Type; }
     bool Heal();
     bool Revive();
     bool DeclineRevive();
@@ -122,6 +134,12 @@ private:
     boss_pose::PoseDriver poseDriver{};
     int nextShotId=1; double collapseTime=0,collapseStartY=0;
     int combatPulses=0,combatEpoch=0,evades=0; double combatClock=0,beamSlope=0,nextEvade=7,evadeTarget=0;
+    bool bossClashed=false,legacyApplied=false; double clashTapCooldown=0,healthDropClock=0,actStartDistance=0;
+    void ConfigureAct(bool First);
+    void SpawnArchetype(int Type,double X,double Hp,double Delay=0);
+    void ArchetypeStep(Target& Enemy,double Dt);
+    bool BeginClash();
+    void ClashStep(double Dt);
     void BeginCombatPower(PickupKind Power);
     void CombatStep(double Dt);
     void GroundSalvo();
@@ -135,6 +153,7 @@ private:
     formation_safety::Workspace safetyWorkspace{};
     bool AdmitAttack(const formation_safety::Hazard* Proposed,int Count,int Source=0);
     bool AdmitRanged(const Target& Enemy);
+    void EnemyMuzzle(const Target& Enemy,double& X,double& Y,double& Z) const;
     bool AdmitBoss(double Windup,double Aim);
     int SweepCount() const;
     int RocketHalfCount() const;
