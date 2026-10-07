@@ -1,4 +1,8 @@
-# Backlog: Contra-style side-scrolling level (NOT approved to start)
+﻿# Contra-style side-scrolling level (approved and started 7 October 2026)
+
+The user approved a fresh start on 7 October 2026 on their personal laptop: build it in Unreal 5.8 (C++, Build Tools for VS 2022 installed instead of the full IDE), with Blender 5.2 for art. iOS is parked. Iron March stays as is. Blender look-dev lives in `tools/blender/sidescroller_*.py` (render with Cycles on CUDA; OptiX fails on this driver) and `delivery/sidescroller-lookdev/`. Slice 1 `Foundry Docks` v1 is a layout and lighting pass awaiting the user's direction.
+
+## Original backlog note
 
 Requested by the user on 7 October 2026. Do not start design or implementation until the user explicitly approves, and only after the current top-down Iron March level is finished. When approved, show initial renders of both the environments and the characters before building gameplay.
 
