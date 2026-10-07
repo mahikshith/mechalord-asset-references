@@ -83,7 +83,7 @@ export class Battlefield{
   const [ag,am]=parts(troop);this.crowd=new AnimatedTroopCrowd(this.scene,ag,am,this.model,hero.animations,64);this.allies=this.crowd.mesh;this.formationFraming.setBounds(this.crowd.bounds);ag.dispose();am.dispose();
   this.commanderMotion=new CommanderLocomotion(this.model,hero.animations);this.mixer=this.commanderMotion.mixer;
  }
- reset(){this.crowd?.reset();this.commanderMotion?.reset();this.absorption.reset();this.supportLinks.reset();this.specialEnemies.reset();this.revival.reset();this.clashVisuals.reset();this.strafe=0;this.formationFraming.reset();this.bossAdapter?.reset();this.enemyMotion.clear();this.projectileIDs.clear();this.emitterPositions={};this.bossPreviousZ=40;this.bossPreviousVz=0;this.bossPitch=0;this.bossBank=0;this.bossMotionReady=false;this.enemyRecoil.clear();this.enemyCues.reset();this.presentation=undefined;this.bossHitKick=0;this.bossFireKick=0;this.commanderHitKick=0;this.hostileAge=0;this.bossVisualAge=0;this.commanderExploded=false;this.hero.visible=true;this.formationPositions=[];this.hitNumbers.clear();this.arsenal?.reset();for(const p of this.pickups.values()){this.scene.remove(p.group);p.group.remove(p.badge.sprite);p.badge.dispose();disposePickup(p.group);}this.pickups.clear();for(const v of this.views.values())this.disposeView(v);this.views.clear();for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];this.fx.reset();this.powerVisuals?.reset();this.missiles.reset();this.robots.reset();this.abilities.reset();this.bossExploded=false;this.renderer.toneMappingExposure=1.06;this.camera.fov=30;this.camera.updateProjectionMatrix();this.recoil=0;this.previousX=0;this.bossPreviousX=0;this.lastMuzzle=0;this.shake=0;this.cameraBossBlend=0;this.armyZoom=0;}
+ reset(){this.crowd?.reset();this.commanderMotion?.reset();this.absorption.reset();this.supportLinks.reset();this.specialEnemies.reset();this.revival.reset();this.clashVisuals.reset();this.strafe=0;this.formationFraming.reset();this.bossAdapter?.reset();this.enemyMotion.clear();this.projectileIDs.clear();this.emitterPositions={};this.bossPreviousZ=40;this.bossPreviousVz=0;this.bossPitch=0;this.bossBank=0;this.bossMotionReady=false;this.enemyRecoil.clear();this.enemyCues.reset();this.presentation=undefined;this.bossHitKick=0;this.bossFireKick=0;this.commanderHitKick=0;this.hostileAge=0;this.bossVisualAge=0;this.commanderExploded=false;this.hero.visible=true;this.formationPositions=[];this.hitNumbers.clear();this.arsenal?.reset();for(const p of this.pickups.values()){this.scene.remove(p.group);p.group.remove(p.badge.sprite);p.badge.dispose();disposePickup(p.group);}this.pickups.clear();for(const v of this.views.values())this.disposeView(v);this.views.clear();for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];this.fx.reset();this.powerVisuals?.reset();this.missiles.reset();this.robots.reset();this.abilities.reset();this.bossExploded=false;this.renderer.toneMappingExposure=1.06;this.camera.fov=30;this.camera.updateProjectionMatrix();this.recoil=0;this.previousX=0;this.bossPreviousX=0;this.lastMuzzle=0;this.shake=0;this.cameraBossBlend=0;this.armyZoom=0;this.swarmState.clear();}
  set(mesh:T.InstancedMesh,i:number,x:number,y:number,z:number,scale=1,rot=0,width=1){this.dummy.position.set(x,y,z);this.dummy.rotation.set(0,rot,0);this.dummy.scale.set(scale*width,scale,scale);this.dummy.updateMatrix();mesh.setMatrixAt(i,this.dummy.matrix);}
  createView(t:Target):View{
   const group=new T.Group(),badge=new Badge(t.kind==='gate'?2.8:t.kind==='crate'?2.0:1.45),red=mat(0xe94f38),gold=mat(0xfbb94e),dark=mat(0x233942),white=mat(0xffefd0);let rotor:T.Object3D|undefined;
@@ -137,6 +137,17 @@ export class Battlefield{
   if(e.kind==='retreat')this.hitNumbers.delete(e.entityId);
   if(e.kind==='bossDeath'&&!this.bossExploded){this.scene.updateMatrixWorld(true);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.bossDeath(this.boss,core?new T.Vector3(core.x,core.y,-core.z):undefined);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
  }
+ /** Visual reinforcements: the core tracks the real army count but only 24
+  * formation slots. Fill the gaps between slots (up to the 64-troop crowd) so a
+  * big army looks big, each filler trailing its slot with its own lag so the
+  * crowd sways and swarms when steering. Never fed back into combat. */
+ swarmState=new Map<number,{x:number,z:number}>();
+ swarm(formation:ReadonlyArray<{index:number,x:number,z:number}>,army:number,dt:number,held:boolean){
+  const extra=Math.max(0,Math.min(army-formation.length,64-formation.length)),out:{index:number,x:number,z:number}[]=[],seen=new Set<number>();
+  const offsets=[[.44,.17],[-.44,-.17],[0,.3]];
+  for(let k=0;k<offsets.length&&out.length<extra;k++)for(const u of formation){if(out.length>=extra)break;const id=10000+u.index*4+k,h=Math.sin(id*12.9898)*43758.5453%1,tx=T.MathUtils.clamp(u.x+offsets[k][0]+h*.12,-4.3,4.3),tz=u.z-offsets[k][1];let p=this.swarmState.get(id);if(!p){p={x:tx,z:tz};this.swarmState.set(id,p);}if(!held){const lag=1-Math.exp(-dt*(5+Math.abs(h)*6));p.x+=(tx-p.x)*lag;p.z+=(tz-p.z)*lag;}seen.add(id);out.push({index:id,x:p.x+Math.sin(this.age*2.3+id)*.03,z:p.z});}
+  for(const id of this.swarmState.keys())if(!seen.has(id))this.swarmState.delete(id);return out;
+ }
  weaponUpgrade(previous:number,next:number){return this.abilities.weaponUpgrade(previous,next);}
  get absorptionRemaining(){return this.absorption.timeRemaining;}
  beginAbsorption(choice:CoreChoice,s:Snapshot){const core=s.bossRegions?.find(r=>r.id==='core');this.absorption.begin(choice,new T.Vector3(core?.x??s.bossX,core?.y??s.bossY+4.31,core?-core.z:-s.bossZ),new T.Vector3(s.x,1.7,0));}
@@ -179,7 +190,8 @@ export class Battlefield{
     const i=p.index,x=p.x,z=-p.z;this.formationPositions.push({index:i,x,z});
     allyCount++;
     this.set(this.shadowInstances,shadowCount++,x,.035,z,.95);
-   }this.crowd?.update(formation,{dt:renderDt,time:this.age,marching,strafe:this.strafe,held:combatHeld,visible:!intro&&!this.commanderExploded});
+   }const swarm=this.swarm(formation,s.army,renderDt,combatHeld);for(const p of swarm)if(shadowCount<200)this.set(this.shadowInstances,shadowCount++,p.x,.035,-p.z,.9);
+   this.crowd?.update(formation.concat(swarm),{dt:renderDt,time:this.age,marching,strafe:this.strafe,held:combatHeld,visible:!intro&&!this.commanderExploded});
   }
   this.set(this.shadowInstances,shadowCount++,this.hero.position.x,.033,this.hero.position.z,2);
   this.robots.begin();this.specialEnemies.begin();const live=new Set<number>(),moving=new Set<number>();for(const key of Object.keys(this.emitterPositions))delete this.emitterPositions[key];
