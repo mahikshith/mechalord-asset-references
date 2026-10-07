@@ -1,4 +1,4 @@
-﻿"""Side-scroller environment slice 1, "Foundry Docks": look-dev render.
+"""Side-scroller environment slice 1, "Foundry Docks": look-dev render.
 
 Run: blender -b --factory-startup -P tools/blender/sidescroller_slice1.py -- <out.png> [preview]
 Side view along +X. Playable surface z=0 (near bank and far bank), flooded
@@ -311,8 +311,6 @@ for i in range(22):
 # The Tyrant citadel: a jagged fortress on the right horizon with a furnace maw
 CX, CY = 30, 170
 K.box('Citadel_Base', (46, 20, 34), (CX, CY, G + 17), sil_far, bevel=0.0, collection=BG)
-for i, (dx, w, h) in enumerate([(-22, 7, 22), (-10, 9, 34), (4, 12, 48), (18, 8, 30), (28, 6, 18)]):
-    t = K.cyl(f'Citadel_Spire{i}', w / 2, h, (CX + dx, CY, G + 32 + h / 2), sil_far, verts=6, r2=w * 0.08, bevel=0.0, collection=BG)
 for k in range(9):
     K.box(f'Citadel_Win{k}', (1.6, 1.0, 0.7), (CX - 20 + k * 5 + random.uniform(-1, 1), CY - 10.5, -6 + random.uniform(0, 8)), furnace, bevel=0.0, collection=BG)
 _ = None  # K.box('Citadel_Slit1', (1.2, 1.0, 18), (CX - 10, CY - 10.5, 30), furnace, bevel=0.0, collection=BG)
@@ -345,6 +343,47 @@ def plume(name, x, y, z, s, density=0.8, color=(0.16, 0.15, 0.14)):
 plume('Plume_A', -13, 92, 36, (7, 5, 12), 0.5, (0.07, 0.06, 0.06))
 plume('Plume_B', -7, 112, 29, (5, 4, 9), 0.45, (0.07, 0.06, 0.06))
 plume('Plume_C', 20, 102, 43, (8, 6, 13), 0.5, (0.07, 0.06, 0.06))
+def cooling_tower(name, x, y, r, h):
+    """Hyperboloid cooling tower: a lathed profile, wide base, pinched waist, flared lip."""
+    import bmesh
+    me = bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    rings, seg = 14, 40
+    prof = []
+    for i in range(rings + 1):
+        t = i / rings
+        prof.append((r * (1.0 - 0.42 * math.sin(math.pi * min(1.0, t * 1.15)) + 0.05 * t), t * h))
+    vs = [[bm.verts.new((rr * math.cos(2 * math.pi * k / seg), rr * math.sin(2 * math.pi * k / seg), z)) for k in range(seg)] for rr, z in prof]
+    for i in range(rings):
+        for k in range(seg):
+            bm.faces.new((vs[i][k], vs[i][(k + 1) % seg], vs[i + 1][(k + 1) % seg], vs[i + 1][k]))
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(name, me)
+    sc.collection.objects.link(o)
+    o.location = (x, y, G)
+    o.data.materials.append(sil_far)
+    K.link(o, BG)
+    return o
+
+# Foundry complex on the right horizon: cooling towers, a gas holder and a blast furnace
+cooling_tower('Cooling_A', CX - 30, CY + 40, 7, 44)
+cooling_tower('Cooling_B', CX - 12, CY + 55, 8, 52)
+plume('Cooling_Steam_A', CX - 30, CY + 40, G + 50, (7, 7, 7), 0.25, (0.5, 0.45, 0.42))
+plume('Cooling_Steam_B', CX - 12, CY + 55, G + 59, (8, 8, 8), 0.25, (0.5, 0.45, 0.42))
+K.cyl('GasHolder', 10, 26, (CX + 22, CY - 2, G + 32 + 13), sil_far, verts=48, bevel=0.0, collection=BG)
+for k in range(10):
+    a_ = 2 * math.pi * k / 10
+    K.box(f'GasHolder_Col{k}', (0.6, 0.6, 30), (CX + 22 + 10.4 * math.cos(a_), CY - 2 + 10.4 * math.sin(a_), G + 32 + 15), sil_far, bevel=0.0, collection=BG)
+for z in (10, 20, 29):
+    K.cyl(f'GasHolder_Ring{z}', 10.6, 0.5, (CX + 22, CY - 2, G + 32 + z), sil_far, verts=48, bevel=0.0, collection=BG)
+K.cyl('BlastFurnace', 5, 30, (CX + 6, CY - 6, G + 32 + 15), sil_far, verts=32, r2=3.6, bevel=0.0, collection=BG)
+K.box('BlastFurnace_Top', (6, 6, 8), (CX + 6, CY - 6, G + 32 + 34), sil_far, bevel=0.0, collection=BG)
+K.tube('Downcomer', [(CX + 6, CY - 6, G + 32 + 37), (CX + 14, CY - 6, G + 32 + 40), (CX + 16, CY - 6, G + 32 + 4)], 1.1, sil_far, collection=BG)
+for k in range(3):
+    K.cyl(f'Stove{k}', 3.2, 34, (CX - 8 + k * 7.5, CY + 2, G + 32 + 17), sil_far, verts=24, bevel=0.0, collection=BG)
+    K.cyl(f'StoveDome{k}', 3.2, 2.5, (CX - 8 + k * 7.5, CY + 2, G + 32 + 35), sil_far, verts=24, r2=1.6, bevel=0.0, collection=BG)
+
 # low steam drifting off the channel
 plume('Steam_Channel', 0, 0.8, -0.6, (4.0, 2.0, 1.4), 0.08, (0.6, 0.6, 0.6))
 

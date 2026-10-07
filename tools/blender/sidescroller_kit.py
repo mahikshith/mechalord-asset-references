@@ -11,6 +11,7 @@ from mathutils import Vector
 # ---------------------------------------------------------------- utilities
 
 def reset():
+    _MATS.clear()
     bpy.ops.wm.read_factory_settings(use_empty=True)
     for c in list(bpy.data.collections):
         bpy.data.collections.remove(c)
