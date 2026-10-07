@@ -57,3 +57,9 @@ body.boss-warning .route i{background:#ef7954}body.boss-warning #phase-label{col
 @media(max-width:370px){.relic-pane{gap:4px;padding:5px}.relic-control{width:43px;height:53px}.weapon{width:130px}.mission-top>span{font-size:8px}.reward-panel{left:20px;right:20px}.campaign-card>strong{font-size:22px}}@media(max-height:680px){.campaign-card{padding:8px 11px;margin-top:9px}.campaign-card>strong{font-size:20px}.intro #relic-description{margin:6px 0 10px}.intro .instruction{font-size:10px}.clash-panel{bottom:95px}.reward-options button{min-height:58px;padding:9px}.reward-panel{padding:17px}.reward-panel h2{font-size:25px}}
 
 .practice-relic-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0 8px;font-size:9px;letter-spacing:.8px;color:#c1ddd3}.practice-relic-label select{color:#e4f3e6;background:#284953;border:1px solid #7bb1a5;border-radius:6px;min-height:36px;padding:4px 24px 4px 9px;font:inherit;letter-spacing:.2px;font-size:11px}.practice-relic-label select:focus-visible{outline:2px solid var(--teal);outline-offset:2px}.relic-control.unequipped{opacity:.28!important}
+
+.armory-open{display:block;width:100%;margin:0 0 10px;padding:10px;border-radius:12px;background:#24476a;color:#ffe2c2;font-weight:900;letter-spacing:.6px;border:2px solid #ff9a4b80}
+.armory-open b,.armory-panel .eyebrow b{color:#ffb15e}
+.armory-panel{max-height:88vh;overflow:auto}
+.armory-panel .reward-options button[disabled]{opacity:.45}
+.armory-panel small em{color:#7fe9ff;font-style:normal}

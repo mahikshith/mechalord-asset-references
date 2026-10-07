@@ -1,13 +1,13 @@
 {
-  "verifiedAt": "2026-10-07T08:32:51.363Z",
+  "verifiedAt": "2026-10-07T10:34:26.962Z",
   "status": "passed",
   "groups": 16,
   "scope": "Actual main.ts and audio.ts modules; deterministic DOM/storage/audio doubles and simulated combat boundary. Does not measure rendered graphics, native combat balance or a physical phone.",
   "sourceHashes": {
-    "main.ts": "064682a3e836e1c1578e563b9646946db6a4c3aa8b2d6e05f2df8aaaac00ef4c",
+    "main.ts": "0668fde85967210ec52e34cf2663856b8c162dc1f52d564347053b344b583f70",
     "audio.ts": "0a5f4d5680ea9c4b60e9574bb5f7b77aae98a5a98da27d0500b04a08cc390ccb",
-    "index.html": "54c12695edaba4ac78d53fef01197b0217740eb321c46ab5ed5d53c898d46002",
-    "style.css": "55d39c79c7c23d9265d94384560ef6e48628c25db9d09ff5ca920b5da7fcd9ae",
+    "index.html": "706ef6d79cb3fd03bb77fb497290662ff19a0804389ff6e44efeb1e63a16769f",
+    "style.css": "64839f3a60ca202db8eb29a7b3934ce4017021fd00a90332e45b461403e6cfca",
     "chapter-catalog.ts": "f139c445ca335405c2cbd47c648b39d3a85389f709a139b18f1999b640b8973d"
   },
   "checks": [

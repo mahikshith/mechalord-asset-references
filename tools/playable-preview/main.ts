@@ -57,10 +57,24 @@ const levelNames = chapters.map(chapter=>chapter.name);
 const challenges = chapters.map(chapter=>chapter.challenge);
 const levelTags = chapters.map(chapter=>chapter.tag);
 type LegacyImprint='laser'|'vitality'|'endurance';
-interface Progress { legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; lastLevel: number; commanderXP: number; }
-const progress: Progress = { cleared: chapters.map(()=>false), best: chapters.map(()=>0), gateHint: false, lastLevel: 0, commanderXP: 0 };
+interface Armory { credits:number; sentinel:number; havoc:number; wisp:number; weapon:number; }
+interface Progress { legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; lastLevel: number; commanderXP: number; armory: Armory; }
+const progress: Progress = { cleared: chapters.map(()=>false), best: chapters.map(()=>0), gateHint: false, lastLevel: 0, commanderXP: 0, armory: { credits: 0, sentinel: 0, havoc: 0, wisp: 0, weapon: 0 } };
 let migratedProgress = false;
 const rankThresholds = [0, 100, 250, 450];
+// Armory: permanent hires (each adds a machine and its persona power) and one-run starting weapons.
+const MAX_HIRES = 9; // the campaign squad caps at 16 machines; 7 deploy by default
+const HIRES = [
+  {key:'sentinel', name:'SENTINEL', price:80, icon:'◆', copy:'Swarm walker · <em>+1 machine</em>'},
+  {key:'havoc', name:'HAVOC', price:220, icon:'⬢', copy:'Siege strider · <em>+1 machine, Barrage starts +15%</em>'},
+  {key:'wisp', name:'WISP', price:180, icon:'●', copy:'Storm drone · <em>+1 machine, EMP starts +15%</em>'},
+] as const;
+const WEAPONS = [
+  {id:2, name:'HAND CANNONS', price:120, icon:'≡', copy:'Heavy rotary fire · <em>first 30 s of next run</em>'},
+  {id:1, name:'GUIDED MISSILES', price:160, icon:'➶', copy:'Homing volleys · <em>first 30 s of next run</em>'},
+  {id:3, name:'RAIL BURST', price:220, icon:'ϟ', copy:'Piercing rails · <em>first 30 s of next run</em>'},
+] as const;
+const hired = () => progress.armory.sentinel + progress.armory.havoc + progress.armory.wisp;
 const headStarts = ['STANDARD DEPLOYMENT', 'HAND CANNONS · FULL RUN', 'GUIDED MISSILES · FULL RUN', 'RAIL BURST · FULL RUN'];
 function commanderRank(): number { let rank = 0; for (let i = 1; i < rankThresholds.length; i++) if (progress.commanderXP >= rankThresholds[i]) rank = i; return rank; }
 try {
@@ -73,6 +87,8 @@ try {
       const score = saved.best?.[i]; progress.best[i] = Number.isFinite(score) ? Math.max(0, Math.min(1000000, Math.round(score))) : 0;
     }
     progress.gateHint = saved.gateHint === true;
+    const a = saved.armory ?? {}, n = (v:unknown,max:number)=>Number.isSafeInteger(v)?Math.max(0,Math.min(max,v as number)):0;
+    progress.armory = { credits:n(a.credits,10000000), sentinel:n(a.sentinel,MAX_HIRES), havoc:n(a.havoc,MAX_HIRES), wisp:n(a.wisp,MAX_HIRES), weapon:n(a.weapon,3) };
     progress.lastLevel = Number.isInteger(saved.lastLevel) ? Math.max(0, Math.min(chapters.length-1, saved.lastLevel)) : 0;
     progress.commanderXP = Number.isSafeInteger(saved.commanderXP) ? Math.max(0, Math.min(1000000, saved.commanderXP)) : 0;
     // An intermediate preview wrote schema 2 before crediting legacy clears.
@@ -86,10 +102,20 @@ try {
 if (migratedProgress) saveProgress();
 let selectedLevel = campaignSave ? progress.lastLevel : campaignIndex;
 const seenEffects = new Set<number>(), effectOrder: number[] = [];
+let armoryOpen = false;
+function renderArmory(cards = armoryOpen): void {
+  const a = progress.armory; $('armory-credits').textContent = $('armory-balance').textContent = String(a.credits);
+  $('armory-squad').textContent = `Squad ${7 + hired()}/16 · hires ${hired()}/${MAX_HIRES}${a.weapon ? ' · weapon ready' : ''}`;
+  if (!cards) return; // the item list only exists while the armory is open
+  const list = $('armory-items'); list.innerHTML = '';
+  const card = (icon:string, name:string, copy:string, price:number, owned:string, can:boolean, buy:()=>void) => { const b = document.createElement('button'); b.disabled = !can; b.innerHTML = `<span class="reward-icon">${icon}</span><span><strong>${name} ${owned}</strong><small>${copy}</small></span><b>${price}</b>`; b.onclick = () => { if (a.credits < price) return; a.credits -= price; buy(); saveProgress(); renderArmory(); }; list.append(b); };
+  for (const h of HIRES) card(h.icon, h.name, h.copy, h.price, `×${a[h.key]}`, a.credits >= h.price && hired() < MAX_HIRES, () => { a[h.key]++; });
+  for (const w of WEAPONS) card(w.icon, w.name, w.copy, w.price, a.weapon === w.id ? '✓' : '', a.credits >= w.price && !a.weapon, () => { a.weapon = w.id; });
+}
 function saveProgress(): void {
   try { localStorage.setItem('mechalord-iron-front-progress-v1', JSON.stringify({ schema: 4, ...progress })); } catch { /* Session state is retained. */ }
 }
-function refreshLevels(): void {
+function refreshLevels(): void { renderArmory();
   document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => {
     const index = Number(button.dataset.level); button.setAttribute('aria-pressed', String(index === selectedLevel));
     button.classList.toggle('cleared', progress.cleared[index]);
@@ -104,7 +130,7 @@ function refreshLevels(): void {
   $('start').textContent = selectedLevel === campaignIndex ? 'PLAY IRON MARCH' : 'PLAY PRACTICE';
   const rank = commanderRank(); $('commander-rank').textContent = `COMMANDER RANK ${rank + 1}`;
   $('commander-development').textContent = rank >= 3 ? headStarts[rank] : `${progress.commanderXP}/${rankThresholds[rank + 1]} XP · ${rank === 0 ? 'HAND CANNONS NEXT' : rank === 1 ? 'GUIDED MISSILES NEXT' : 'RAIL BURST NEXT'}`;
-  $('starter-troops').textContent = String(8 + rank * 2);
+  $('starter-troops').textContent = String(8 + rank * 2 + (selectedLevel === campaignIndex ? hired() : 0));
 }
 function previewLevel(): void {
   refreshLevels();
@@ -138,6 +164,7 @@ function clearInput(): void {
 function begin(): void {
   if (!ready || graphicsLost) return;
   clearInput(); audio.reset(); void audio.unlock(); clearDialogue(); core.start(selected, selectedLevel, commanderRank(), selectedLevel===campaignIndex?progress.legacyImprint:undefined); core.pause(false); world.reset();
+  if (selectedLevel === campaignIndex) { const ar = progress.armory; if (core.applyLoadout?.(ar.sentinel, ar.havoc, ar.wisp, ar.weapon)) ar.weapon = 0; if (world.heroSquad) world.heroSquad.roster = { havoc: ar.havoc, wisp: ar.wisp }; }
   progress.lastLevel = selectedLevel; saveProgress(); seenEffects.clear(); effectOrder.length = 0;
   intro = false; playing = true; paused = false; defeating = false; downed = false; defeatRemaining = 0; targetX = 0; lastArmy = 8 + commanderRank() * 2; lastWeapon = 1; previous = performance.now();
   bossIntroduced = false; secondPhaseAnnounced = false;
@@ -204,9 +231,10 @@ function finish(s: Snapshot): void {
   const level = Math.max(0, Math.min(chapters.length-1, s.level));
   const previousRank = commanderRank(), rewardXP = won ? progress.cleared[level] ? 35 : 100 : 0;
   if (won) { progress.commanderXP = Math.min(1000000, progress.commanderXP + rewardXP); progress.cleared[level] = true; progress.best[level] = Math.max(progress.best[level], Math.round(s.score)); saveProgress(); refreshLevels(); }
+  const earned = s.campaign ? Math.round(s.kills * 2 + (won ? 150 : 25)) : 0; progress.armory.credits += earned; if (earned) saveProgress();
   const rank = commanderRank(), promoted = rank > previousRank;
   $('result-development').hidden = !won;
-  $('result-rank').textContent = `${promoted ? 'RANK UP! ' : ''}COMMANDER ${rank + 1} · +${rewardXP} XP`;
+  $('result-rank').textContent = `${promoted ? 'RANK UP! ' : ''}COMMANDER ${rank + 1} · +${rewardXP} XP${earned ? ` · +${earned} CREDITS` : ''}`;
   $('result-unlock').textContent = promoted ? `${headStarts[rank]} UNLOCKED` : rank >= 3 ? 'ARSENAL MASTERED · REPLAY ANY FRONT' : `${progress.commanderXP}/${rankThresholds[rank + 1]} XP · ${headStarts[rank + 1]} NEXT`;
   const hasNext = won && level < 4;
   $('next-level').hidden = !hasNext; $('result').classList.toggle('has-next', hasNext);
@@ -342,6 +370,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => b
 $('practice-relic').addEventListener('change',()=>{selected=Number($<HTMLSelectElement>('practice-relic').value) as Relic;previewLevel();});
 refreshLevels();
 $('gate-flash').addEventListener('animationend',()=>{ $('gate-flash').textContent=''; $('gate-flash').hidden=true; });
+$('armory-open').addEventListener('click', () => { armoryOpen = true; $('armory').hidden = false; renderArmory(); }); $('armory-close').addEventListener('click', () => { armoryOpen = false; $('armory').hidden = true; renderArmory(); });
 $('start').addEventListener('click', begin); $('retry').addEventListener('click', begin); $('pause-retry').addEventListener('click', begin); $('back').addEventListener('click', showIntro);
 $('next-level').addEventListener('click', () => { selectedLevel = Math.min(chapters.length-1, selectedLevel + 1); refreshLevels(); begin(); });
 $('pause-levels').addEventListener('click', showIntro);

@@ -92,11 +92,12 @@ export class HeroMechCrowd {
 /** Allied formation renderer: Sentinels form the swarm, a Havoc anchors every
  * eighth slot and Wisps hover over every eighth slot offset by four. Visual only. */
 export class HeroSquad {
- ready=false;private sentinel?:HeroMechCrowd;private havoc?:HeroMechCrowd;private wisp?:HeroMechCrowd;private phases=new Map<number,number>();
+ ready=false;roster={havoc:0,wisp:0};private sentinel?:HeroMechCrowd;private havoc?:HeroMechCrowd;private wisp?:HeroMechCrowd;private phases=new Map<number,number>();
  async load(scene:T.Scene,base='herobots/'){[this.sentinel,this.havoc,this.wisp]=await Promise.all([HeroMechCrowd.create(scene,'sentinel',64,base),HeroMechCrowd.create(scene,'havoc',10,base),HeroMechCrowd.create(scene,'wisp',10,base)]);this.ready=true;}
  update(units:ReadonlyArray<{index:number,x:number,z:number}>,m:{dt:number,time:number,marching:boolean,strafe:number,held?:boolean,visible?:boolean}){
   if(!this.ready)return;const crowds=[this.sentinel!,this.havoc!,this.wisp!];crowds.forEach(c=>c.begin());
-  if(m.visible!==false)for(const u of units){const slot=u.index%8,kind=slot===3?1:slot===7?2:0,rate=kind===2?.5:m.marching?1.25:.35;const p=((this.phases.get(u.index)??(u.index*.618)%1)+(m.held?0:m.dt*rate))%1;this.phases.set(u.index,p);
+  // Hired Havocs take every fourth slot from slot 3, Wisps every fourth from slot 1; the rest are Sentinels.
+  if(m.visible!==false)for(const u of units){const q=Math.floor(u.index/4),kind=u.index%4===3&&q<this.roster.havoc?1:u.index%4===1&&q<this.roster.wisp?2:0,rate=kind===2?.5:m.marching?1.25:.35;const p=((this.phases.get(u.index)??(u.index*.618)%1)+(m.held?0:m.dt*rate))%1;this.phases.set(u.index,p);
    const yaw=Math.PI+m.strafe*.23,clip=kind===2?0:m.marching?0:1;
    if(kind===0)crowds[0].add(u.x,0,-u.z,yaw,1.0,clip,p);
    else if(kind===1)crowds[1].add(u.x,0,-u.z,yaw,.68,clip,p);

@@ -99,7 +99,7 @@ public:
     std::array<Effect,MaxEffects> effects{};
     std::array<Pickup,MaxPickups> pickups{};
     std::array<Laser,2> lasers{};
-    std::array<bool,24> formationAlive{};double machinePlating=0;
+    std::array<bool,24> formationAlive{};double machinePlating=0;bool loadoutApplied=false;
     int formationSpan=7;
     bool UsesSpatialBoss() const { return level==0 || level>=3; }
     void Start(Relic Equipped,int Level=0,int Rank=0);
@@ -113,6 +113,8 @@ public:
     bool ClashTap();
     bool ChooseReward(int Choice);
     bool ApplyLegacyReward(int Choice);
+    /** Armory loadout at run start: hired machines and a starting weapon (1 guided, 2 cannons, 3 railburst). */
+    bool ApplyLoadout(int Sentinels,int Havocs,int Wisps,int Weapon);
     int StageLevel() const { return campaign?(actIndex==0?0:actIndex==1?3:4):level; }
     double StageProgress() const;
     bool RelicActive(Relic Type) const { return campaign?relicTime[int(Type)]>0:ability>0 && relic==Type; }

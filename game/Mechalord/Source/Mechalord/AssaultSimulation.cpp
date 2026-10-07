@@ -142,6 +142,17 @@ bool Battle::ApplyLegacyReward(int Choice)
     legacyApplied=true;if(Choice==0)++rewardLaser;else if(Choice==1){++rewardVitality;commanderMaxHp+=20;commanderHp+=20;}else ++rewardEndurance;
     return true;
 }
+bool Battle::ApplyLoadout(int Sentinels,int Havocs,int Wisps,int Weapon)
+{
+    if(!campaign||phase!=Phase::Run||time>0||loadoutApplied)return false;
+    loadoutApplied=true;
+    Recruit(std::max(0,Sentinels)+std::max(0,Havocs)+std::max(0,Wisps));
+    // Persona powers: each Havoc pre-charges Barrage, each Wisp pre-charges EMP.
+    relicEnergy[int(Relic::StormBattery)]=std::min(100.,relicEnergy[int(Relic::StormBattery)]+15.*std::max(0,Havocs));
+    relicEnergy[int(Relic::EMP)]=std::min(100.,relicEnergy[int(Relic::EMP)]+15.*std::max(0,Wisps));
+    if(Weapon>=1&&Weapon<=3){weaponPower=static_cast<WeaponPower>(Weapon);powerTime=30;}
+    return true;
+}
 bool Battle::ChooseReward(int Choice)
 {
     if(paused||phase!=Phase::Reward||!campaign||actIndex!=2||Choice<0||Choice>2)return false;
