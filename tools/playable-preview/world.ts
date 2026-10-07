@@ -34,7 +34,7 @@ class Badge{
 export function enemyArmorLabel(t:Pick<Target,'role'|'variant'>&{guidedArmor?:boolean}){return t.guidedArmor?'GUIDED RESIST':t.role==='battery'?'BATTERY':t.variant===2?'GUNNER':t.role==='carrier'?'SALVAGE':'REAVER';}
  type View={group:T.Group;badge:Badge;bar:T.Mesh;kind:string;rotor?:T.Object3D};
 export class Battlefield{
- renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;empFlash=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
+ renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;empFlash=0;beamTrail=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
  environment:BattleEnvironment;routeEnvironment:ContinuousRouteEnvironment;powerVisuals:CommanderPowerVisuals;fx:CombatVisuals;missiles:CombatMissiles;robots:RobotFormation;abilities:RelicEffects;
  specialEnemies:EnemyArchetypes;dressing:FoundryDressing;revival:RevivalScene;clashVisuals:LaserClashVisuals;strafe=0;
  formationPositions:{index:number,x:number,z:number}[]=[];commanderExploded=false;hitNumbers=new Map<number,{at:number,value:number}>();heroArms:T.Object3D[]=[];bossMuzzles:T.Mesh[]=[];bossExploded=false;recoil=0;lastMuzzle=0;previousX=0;bossPreviousX=0;
@@ -106,7 +106,7 @@ export class Battlefield{
  disposeView(v:View){this.scene.remove(v.group);v.badge.dispose();const materials=new Set<T.Material>(),geometries=new Set<T.BufferGeometry>();v.group.traverse((o:any)=>{if(o.isMesh){geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());}
  trigger(e:Effect,current?:Snapshot){
   if(e.kind==='actStart')return; // A zone marker cannot reset live combat or presentation.
-  if(e.kind==='empPulse'){this.empFlash=1;this.destruction.shock(e.x,-e.z,16);this.shake=Math.max(this.shake,.14);}
+  if(e.kind==='empPulse'){this.empFlash=1;this.destruction.shock(e.x,-e.z,16);this.destruction.crack(e.x,-e.z-1.5,6,0x6fd8ff);this.shake=Math.max(this.shake,.14);}
   if(e.kind==='shieldHit')this.destruction.shock(e.x,-e.z,3);
   this.abilities.trigger(e,current);this.powerVisuals?.trigger(e);
   if((e.kind==='hit'||e.kind==='chainHit')&&e.hitRegion)this.bossAdapter?.notifyHit(e.hitRegion,e.value);
@@ -125,9 +125,9 @@ export class Battlefield{
   if(e.kind==='pickup'&&powerKind(e.value)!=='health')this.fx.powerAcquire(this.hero,powerKind(e.value));
   if(e.kind==='coreExpose'){this.punch(.12);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.impact(core?.x??e.x,core?.y??(current?.bossY??this.boss.position.y)+4.31,core?-core.z:z+.85,1.6);this.shake=.17;}
   if(e.kind==='bossRevive'){this.fx.impact(e.x,this.boss.position.y+2.7,z,2);this.shake=.24;}
-  if(e.kind==='bossPartBreak'){this.punch(.16);this.destruction.blast({x:this.boss.position.x,z:this.boss.position.z,radius:4.5,force:10});this.destruction.scar(this.boss.position.x+(Math.random()-.5)*2,this.boss.position.z+1,3);const part=['cannonL','cannonR','boosterL','boosterR','legL','legR'][e.value-1] as 'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'|undefined;if(part){this.scene.updateMatrixWorld(true);this.fx.bossPartBreak(this.boss,part);this.shake=.24;}}
+  if(e.kind==='bossPartBreak'){this.punch(.16);this.destruction.blast({x:this.boss.position.x,z:this.boss.position.z,radius:4.5,force:10});this.destruction.crack(this.boss.position.x+(Math.random()-.5)*2,this.boss.position.z+1.5,4);this.destruction.scar(this.boss.position.x+(Math.random()-.5)*2,this.boss.position.z+1,3);const part=['cannonL','cannonR','boosterL','boosterR','legL','legR'][e.value-1] as 'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'|undefined;if(part){this.scene.updateMatrixWorld(true);this.fx.bossPartBreak(this.boss,part);this.shake=.24;}}
   if(e.kind==='bossPhase'){this.shake=.20;this.fx.impact(e.x,2.8,z,2);}
-  if(e.kind==='kill'){this.hitNumbers.delete(e.entityId);if(e.variant<0)this.fx.impact(e.x,1,z,2);else{const point=combatImpactPoint(e,{depthScale:1,bossPhase:false,overdrive:false,weapon:1,targets:[...(current?.targets??[]),...(this.presentation?.targets??[])]});this.fx.enemyDeath(point.x,point.z,e.variant,e.variant>0?1.6:1,point.y);if(e.variant>0){this.punch(.06);this.destruction.scar(point.x,point.z,1.6);}this.destruction.blast({x:point.x,z:point.z,radius:e.variant>0?2.2:1.1,force:e.variant>0?8:5});}this.shake=Math.max(this.shake,e.variant>0?.10:.04);}
+  if(e.kind==='kill'){this.hitNumbers.delete(e.entityId);if(e.variant<0)this.fx.impact(e.x,1,z,2);else{const point=combatImpactPoint(e,{depthScale:1,bossPhase:false,overdrive:false,weapon:1,targets:[...(current?.targets??[]),...(this.presentation?.targets??[])]});this.fx.enemyDeath(point.x,point.z,e.variant,e.variant>0?1.6:1,point.y);if(e.variant>0){this.punch(.06);this.destruction.crack(point.x,point.z,2.2);}this.destruction.blast({x:point.x,z:point.z,radius:e.variant>0?2.2:1.1,force:e.variant>0?8:5});}this.shake=Math.max(this.shake,e.variant>0?.10:.04);}
   if(e.kind==='enemyFire'){if(this.enemyRecoil.size>=32&&!this.enemyRecoil.has(e.entityId))this.enemyRecoil.delete(this.enemyRecoil.keys().next().value!);this.enemyRecoil.set(e.entityId,.24);}
   if(e.kind==='contact'){this.destruction.blast({x:e.x,z,radius:1.2,force:5});this.fx.impact(e.x,.6,z,1.2);this.shake=Math.max(this.shake,.045);}
   if(e.kind==='block')this.fx.impact(e.x,1,z,.5);
@@ -136,10 +136,10 @@ export class Battlefield{
   if(e.kind==='damage'){this.shake=.12;this.float('-'+Math.abs(e.value),e.x,z,'#ff8469',2,true);}
   if(e.kind==='bossShot'){this.bossFireKick=.3;this.shake=.07;}
   if(e.kind==='commanderHit'){this.commanderHitKick=.35;this.fx.impact(e.x,1.3,z,1.2);this.shake=.2;this.float('-'+Math.abs(e.value)+' HP',e.x,z,'#ff8469',3.1,true);}
-  if(e.kind==='hazardBreak'){this.punch(.05);this.destruction.blast({x:e.x,z,radius:2.2,force:8});this.destruction.scar(e.x,z,2);this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
+  if(e.kind==='hazardBreak'){this.punch(.05);this.destruction.blast({x:e.x,z,radius:2.2,force:8});this.destruction.crack(e.x,z,2.4);this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
   if(e.kind==='commanderDeath'&&!this.commanderExploded){this.scene.updateMatrixWorld(true);this.fx.commanderDeath(this.hero);this.commanderExploded=true;this.hero.visible=false;this.shake=.4;}
   if(e.kind==='retreat')this.hitNumbers.delete(e.entityId);
-  if(e.kind==='bossDeath'&&!this.bossExploded){this.punch(.4);this.destruction.blast({x:this.boss.position.x,z:this.boss.position.z,radius:10,force:14});this.destruction.scar(this.boss.position.x,this.boss.position.z,6);this.scene.updateMatrixWorld(true);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.bossDeath(this.boss,core?new T.Vector3(core.x,core.y,-core.z):undefined);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
+  if(e.kind==='bossDeath'&&!this.bossExploded){this.punch(.4);this.destruction.blast({x:this.boss.position.x,z:this.boss.position.z,radius:10,force:14});for(let i=0;i<4;i++)this.destruction.crack(this.boss.position.x+(Math.random()-.5)*5,this.boss.position.z+(Math.random()-.5)*4,5+Math.random()*2);this.destruction.scar(this.boss.position.x,this.boss.position.z,6);this.scene.updateMatrixWorld(true);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.bossDeath(this.boss,core?new T.Vector3(core.x,core.y,-core.z):undefined);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
  }
  /** Visual reinforcements: the core tracks the real army count but only 24
   * formation slots. Fill the gaps between slots (up to the 64-troop crowd) so a
@@ -203,6 +203,8 @@ export class Battlefield{
    this.crowd?.update(formation.concat(swarm),{dt:renderDt,time:this.age,marching,strafe:this.strafe,held:combatHeld,visible:!intro&&!this.commanderExploded});
   }
   this.set(this.shadowInstances,shadowCount++,this.hero.position.x,.033,this.hero.position.z,2);
+  // Laser cannon: tears a glowing fissure down the deck and wrecks every prop in the lane.
+  const beam=s.friendlyBeams?.[0];if(beam&&beam.time>0&&active&&!combatHeld){this.beamTrail-=renderDt;this.shake=Math.max(this.shake,.07);if(this.beamTrail<=0){this.beamTrail=.09;const reach=Math.min(38,beam.endZ-beam.z),d=2+Math.random()*Math.max(1,reach-2);this.destruction.crack(beam.x+(Math.random()-.5)*.5,-(beam.z+d),1.3+Math.random()*.8,0x63e6ff,Math.random()<.5);for(let k=4;k<reach;k+=4)this.destruction.blast({x:beam.x,z:-(beam.z+k),radius:1.3,force:9});}}
   this.destruction.update(s.travelDistance,renderDt,!intro);if(marching&&formation.length)this.destruction.trample(centerX,outer+.4);
   this.robots.begin();this.specialEnemies.begin();const live=new Set<number>(),moving=new Set<number>();for(const key of Object.keys(this.emitterPositions))delete this.emitterPositions[key];
   for(const t of s.targets){if(t.z>90||t.z< -8||intro)continue;
