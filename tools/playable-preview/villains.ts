@@ -5,6 +5,7 @@ import {EnemyArchetypes} from './enemy-archetypes';
 import {RenderQuality,createDeckTexture} from './render-quality';
 import {enhanceVillain,VILLAIN_LOOKS,villainClock} from './villain-look';
 import type {Target} from './contract';
+import {createSkyreaver,type SkyreaverMode} from './skyreaver';
 
 /** Internal asset review: current villains (left) vs the upgraded pass (right),
  * under the same lights, deck and post-processing as the game. ?set=troops|bosses */
@@ -38,8 +39,13 @@ async function bosses(){
  label('NOW',-4.5,5.5);label('UPGRADED',4.5,5.5);
  tick=t=>{for(const o of [rb,ra,tb,ta])o.rotation.y=Math.PI+Math.sin(t*.4)*.35;};(globalThis as any).probe=()=>[rb,ra,tb,ta].map(o=>{o.updateMatrixWorld(true);const b=new T.Box3().setFromObject(o);let core:any;o.traverse((n:any)=>{if(/core|chest|Head/i.test(n.name)&&!core)core=n;});const p=core?core.getWorldPosition(new T.Vector3()):null;return [o.position.x,core?.name,p?.z.toFixed(2),b.min.z.toFixed(2),b.max.z.toFixed(2)];});
 }
+async function skyreaver(){
+ camera.position.set(0,4.4,13.5);camera.lookAt(0,1.9,0);
+ const modes:SkyreaverMode[]=['hover','dash','fire'],units=modes.map((m,i)=>{const u=createSkyreaver();u.root.position.set(-4+i*4,0,0);u.root.rotation.y=i===1?-.5:i===2?.35:.15;scene.add(u.root);enhanceVillain(u.root,VILLAIN_LOOKS.elite);label(m==='hover'?'HOVER':m==='dash'?'BOOST DASH':'FIRING',-4+i*4,3.2);return u;});
+ let last=0;tick=t=>{const dt=t-last;last=t;units.forEach((u,i)=>u.update(t+i*.7,modes[i],dt));};
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;
