@@ -8,6 +8,7 @@ import type {Target} from './contract';
 import {createSkyreaver,type SkyreaverMode} from './skyreaver';
 import {HOSTILE_MECHS,loadHostileMech} from './hostile-mechs';
 import {ArsenalVisuals} from './arsenal-visuals';
+import {BakedMechCrowd} from './baked-mech-crowd';
 
 /** Internal asset review: current villains (left) vs the upgraded pass (right),
  * under the same lights, deck and post-processing as the game. ?set=troops|bosses */
@@ -51,7 +52,7 @@ async function mechs(){
  camera.position.set(0,4.4,14.5);camera.lookAt(0,1.3,0);
  const loaded=await Promise.all(HOSTILE_MECHS.map(n=>loadHostileMech(n)));const mixers:T.AnimationMixer[]=[];const names:Record<string,string[]>={};
  loaded.forEach(({model,animations},i)=>{const wrap=new T.Group();wrap.add(model);wrap.position.set(-5.1+i*3.4,0,0);wrap.rotation.y=-.35+i*.18;scene.add(wrap);enhanceVillain(wrap,VILLAIN_LOOKS.elite);
-  names[HOSTILE_MECHS[i]]=animations.map(a=>a.name);const mixer=new T.AnimationMixer(model);const clip=animations.find(a=>pose&&a.name.toLowerCase().includes(pose))??animations.find(a=>/idle/i.test(a.name))??animations[0];if(clip)mixer.clipAction(clip).play();mixers.push(mixer);label(HOSTILE_MECHS[i].toUpperCase(),-5.1+i*3.4,2.6);});
+  let meshes=0,skinned=0,verts=0,bones=0;model.traverse((o:any)=>{if(o.isMesh){meshes++;verts+=o.geometry.getAttribute('position').count;if(o.isSkinnedMesh){skinned++;bones=o.skeleton.bones.length;}}});names[HOSTILE_MECHS[i]]=[`meshes ${meshes} skinned ${skinned} verts ${verts} bones ${bones}`,...animations.filter(a=>a.name.startsWith('RobotArmature|')).map(a=>a.name.slice(14)+':'+a.duration.toFixed(2))];const mixer=new T.AnimationMixer(model);const clip=animations.find(a=>pose&&a.name.toLowerCase().includes(pose))??animations.find(a=>/idle/i.test(a.name))??animations[0];if(clip)mixer.clipAction(clip).play();mixers.push(mixer);label(HOSTILE_MECHS[i].toUpperCase(),-5.1+i*3.4,2.6);});
  (globalThis as any).probe=()=>names;let last=0;tick=t=>{const dt=t-last;last=t;mixers.forEach(m=>m.update(dt));};
 }
 async function weapons(){
@@ -63,8 +64,19 @@ async function weapons(){
   const holder=new T.Group();holder.position.set(k?1.55:-1.55,1-lift[n]*1.3+(n==='lance'?0:0),0);holder.rotation.y=-Math.PI/2-.45;g.visible=true;if(n==='lance')g.position.set(0,lift[n],-.2);holder.add(g);holder.scale.setScalar(1.3);scene.add(holder);holder.updateMatrixWorld(true);const box=new T.Box3().setFromObject(g),c=box.getCenter(new T.Vector3());holder.position.x+=(k?1.55:-1.55)-c.x;holder.position.z-=c.z;holder.position.y+=1-c.y;for(const glowName of ['powerGlow'])void glowName;
   label(k?'DETAILED':'NOW',k?1.55:-1.55,1.7);}
 }
+async function crowd(){
+ camera.position.set(0,9,15);camera.lookAt(0,0,-4);
+ const stan=await loadHostileMech('Stan'),leela=await loadHostileMech('Leela');
+ const clip=(m:{animations:T.AnimationClip[]},n:string)=>m.animations.find(a=>a.name==='RobotArmature|'+n)!;
+ const mat=(m:T.Object3D)=>{let map:T.Texture|null=null;m.traverse((o:any)=>{if(o.isMesh)map=o.material.map;});return new T.MeshStandardMaterial({map,metalness:.55,roughness:.48});};
+ const t0=performance.now(),runners=new BakedMechCrowd(scene,stan.model,[{clip:clip(stan,'Run'),frames:16}],60,mat(stan.model));enhanceVillain([runners.mesh.material as T.Material],VILLAIN_LOOKS.grunt);
+ const heavy=new BakedMechCrowd(scene,leela.model,[{clip:clip(leela,'Walk'),frames:16},{clip:clip(leela,'Shoot'),frames:12}],8,mat(leela.model));enhanceVillain([heavy.mesh.material as T.Material],VILLAIN_LOOKS.elite);
+ const bakeMs=performance.now()-t0;(globalThis as any).probe=()=>({bakeMs:Math.round(bakeMs),stanH:runners.height.toFixed(2)});
+ tick=t=>{runners.begin();for(let r=0;r<5;r++)for(let c=0;c<8;c++)runners.add(-3.3+c*.95,0,-2-r*2.05+((t*1.5)%2.05),0,1,0,t*1.0+((r*8+c)*.37)%1,(r*8+c)%13===0&&Math.sin(t*8)>0?1:0);runners.end();
+  heavy.begin();heavy.add(-2.6,0,-14,0,1.6,1,t*1.6);heavy.add(2.6,0,-14,0,1.6,0,t);heavy.end();};
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;

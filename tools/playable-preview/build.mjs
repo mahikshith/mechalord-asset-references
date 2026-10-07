@@ -31,6 +31,8 @@ for(const [source,dest] of [['relic-marshal-hf-rigged-source.glb','commander.glb
  await fs.copyFile(path.join(root,'assets/exports',source),path.join(out,dest));
 const environmentAssets=['SuspendedIsland','SpineConnector','SunkenRoute','CitadelBowl','TaperedButtress','PressureVessel','CoolingStack','ArticulatedServiceArm','ReactorBank','CitadelSpire','CableDrum','DistantFoundryWorks','DistantTransferGallery','ReactorBulkhead'];
 await fs.mkdir(path.join(out,'environment'),{recursive:true});
+// CC0 Quaternius mech cast (see assets/originals/quaternius-animated-mech-pack/SOURCE.md).
+await fs.mkdir(path.join(out,'mechs'),{recursive:true});for(const name of ['George','Leela','Mike','Stan'])for(const file of [name+'.fbx',name+'_Texture.png'])await fs.copyFile(path.join(root,'assets/originals/quaternius-animated-mech-pack',file),path.join(out,'mechs',file));
 for(const name of environmentAssets)await fs.copyFile(path.join(root,'assets/exports/reforged',name+'.glb'),path.join(out,'environment',name+'.glb'));
 const manifest={builtAt:new Date().toISOString(),coreAsset,coreSha256:coreHash,files:{}};
 for(const file of [coreAsset,'game.js','review.js','index.html','review.html','style.css','commander.glb','troop.glb','crawler.glb','cinder-reaver.glb','forge-tyrant.glb']){const bytes=await fs.readFile(path.join(out,file));manifest.files[file]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};}
