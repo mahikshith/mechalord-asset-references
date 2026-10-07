@@ -22,7 +22,7 @@ export class RenderQuality {
   if(low)return;
   const size=renderer.getDrawingBufferSize(new T.Vector2()),target=new T.WebGLRenderTarget(size.x,size.y,{type:T.HalfFloatType,samples:4});
   this.composer=new EffectComposer(renderer,target);this.composer.addPass(new RenderPass(scene,camera));
-  this.bloom=new UnrealBloomPass(new T.Vector2(size.x*.5,size.y*.5),.45,.35,1.35);this.composer.addPass(this.bloom);
+  this.bloom=new UnrealBloomPass(new T.Vector2(size.x*.5,size.y*.5),.36,.3,1.35);this.composer.addPass(this.bloom);
   this.composer.addPass(new OutputPass());
   this.composer.addPass(new ShaderPass({uniforms:{tDiffuse:{value:null},strength:{value:.32}},
    vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
@@ -31,7 +31,7 @@ export class RenderQuality {
  /** Sky follows the route palette so zone colour transitions stay continuous. */
  setSky(horizon:number){const h=this.skyMaterial.uniforms.horizon.value as T.Color;h.setHex(horizon);(this.skyMaterial.uniforms.zenith.value as T.Color).copy(h).multiplyScalar(.42).lerp(new T.Color(0x1f4f76),.45);}
  resize(width:number,height:number){this.composer?.setPixelRatio(this.renderer.getPixelRatio());this.composer?.setSize(width,height);}
- render(){this.sky.position.copy(this.camera.position);if(this.composer)this.composer.render();else this.renderer.render(this.scene,this.camera);}
+ render(){this.sky.position.copy(this.camera.position);this.renderer.info.autoReset=false;this.renderer.info.reset();if(this.composer)this.composer.render();else this.renderer.render(this.scene,this.camera);}
  dispose(){this.composer?.dispose();this.envTarget.dispose();this.sky.geometry.dispose();this.skyMaterial.dispose();this.scene.remove(this.sky);}
 }
 
