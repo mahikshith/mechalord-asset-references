@@ -18,6 +18,8 @@ await build({absWorkingDir:here,entryPoints:['main.ts'],bundle:true,platform:'br
 for(const name of ['index.html','style.css'])await fs.copyFile(path.join(here,name),path.join(out,name));
 await build({absWorkingDir:here,entryPoints:['review.ts'],bundle:true,platform:'browser',format:'esm',target:'es2022',minify:true,define,nodePaths:[path.join(root,'tools/asset-viewer/node_modules')],outfile:path.join(out,'review.js')});
 await fs.copyFile(path.join(here,'review.html'),path.join(out,'review.html'));
+await build({absWorkingDir:here,entryPoints:['villains.ts'],bundle:true,platform:'browser',format:'esm',target:'es2022',minify:true,nodePaths:[path.join(root,'tools/asset-viewer/node_modules')],outfile:path.join(out,'villains.js')});
+await fs.copyFile(path.join(here,'villains.html'),path.join(out,'villains.html'));
 // Reloading a local playtest must show the newly built code, not a cached revision.
 for(const [html,script] of [['index.html','game.js'],['review.html','review.js']]){
  const hash=createHash('sha256').update(await fs.readFile(path.join(out,script))).digest('hex').slice(0,12);

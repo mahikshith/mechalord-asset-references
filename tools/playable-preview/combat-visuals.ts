@@ -2,6 +2,7 @@ import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {Snapshot, Shot, EnemyShot, Target, Effect, FormationUnit, FriendlyBeam} from './contract';
 import {plasmaBeamGeometry,plasmaBeamMaterial,beamFilamentPoint} from './plasma-beam-style';
+import {rustTrooperParts} from './rust-trooper';
 
 /** These classes render combat already decided by the simulation. They never deal damage. */
 function standard(color:number){return new T.MeshStandardMaterial({color,roughness:.67,metalness:.36});}
@@ -312,7 +313,13 @@ export class RobotFormation {
   private body:T.InstancedMesh;private eyes:T.InstancedMesh;private treadMark:T.InstancedMesh;
   private arms:T.InstancedMesh;private legs:T.InstancedMesh;private count=0;private dummy=new T.Object3D();private local=new T.Object3D();private matrix=new T.Matrix4();
   private poses=new Map<number,{yaw:number;phase:number;speed:number}>();private seen=new Set<number>();
-  constructor(private scene:T.Scene,readonly capacity=200){
+  readonly design:'classic'|'v2';
+  constructor(private scene:T.Scene,readonly capacity=200,design:'classic'|'v2'='classic'){
+    this.design=design;
+    if(design==='v2'){const p=rustTrooperParts(painted);const material=standard(0xffffff);material.vertexColors=true;material.roughness=.5;material.metalness=.5;
+      this.body=pool(scene,joined(p.body),material,capacity);this.body.castShadow=true;const eyes=basic(0xffffff);eyes.vertexColors=true;eyes.toneMapped=false;eyes.color.setScalar(2.2);this.eyes=pool(scene,joined(p.glow),eyes,capacity);
+      const limb=standard(0xffffff);limb.vertexColors=true;limb.roughness=.5;limb.metalness=.5;this.arms=pool(scene,joined(p.arm),limb,capacity*2);this.legs=pool(scene,joined(p.leg),limb.clone(),capacity*2);for(const m of [this.arms,this.legs])m.castShadow=true;
+      this.treadMark=pool(scene,new T.BoxGeometry(.001,.001,.001),standard(0xa48c63),capacity*2);return;}
     const dark=0x25323c,red=0x963729,bronze=0x96754a,parts:T.BufferGeometry[]=[];
     for(const side of [-1,1])parts.push(painted(new T.SphereGeometry(.20,10,6),red,side*.31,.73,0));
     parts.push(painted(new T.CylinderGeometry(.29,.35,.35,10),dark,0,.46,0),painted(new T.SphereGeometry(.34,12,8),red,0,.66,0),painted(new T.CylinderGeometry(.16,.20,.25,8),dark,0,.95,0),painted(new T.BoxGeometry(.35,.11,.04),dark,0,.98,.16),painted(new T.CylinderGeometry(.065,.085,.55,8),dark,.16,.70,.39,Math.PI/2),painted(new T.TorusGeometry(.075,.025,4,8),bronze,.16,.70,.68));
@@ -339,6 +346,7 @@ export class RobotFormation {
     }this.count++;
   }
   end(){changed(this.body,this.count);changed(this.eyes,this.count);for(const mesh of [this.arms,this.legs,this.treadMark])changed(mesh,this.count*2);for(const id of this.poses.keys())if(!this.seen.has(id))this.poses.delete(id);}
+  materials(){return [this.body,this.eyes,this.arms,this.legs].map(m=>m.material as T.Material);}
   reset(){this.poses.clear();this.begin();this.end();}
   dispose(){for(const mesh of [this.body,this.eyes,this.arms,this.legs,this.treadMark]){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}this.poses.clear();}
 }
