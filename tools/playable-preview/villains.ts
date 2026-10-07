@@ -7,6 +7,7 @@ import {enhanceVillain,VILLAIN_LOOKS,villainClock} from './villain-look';
 import type {Target} from './contract';
 import {createSkyreaver,type SkyreaverMode} from './skyreaver';
 import {HOSTILE_MECHS,loadHostileMech} from './hostile-mechs';
+import {ArsenalVisuals} from './arsenal-visuals';
 
 /** Internal asset review: current villains (left) vs the upgraded pass (right),
  * under the same lights, deck and post-processing as the game. ?set=troops|bosses */
@@ -53,8 +54,17 @@ async function mechs(){
   names[HOSTILE_MECHS[i]]=animations.map(a=>a.name);const mixer=new T.AnimationMixer(model);const clip=animations.find(a=>pose&&a.name.toLowerCase().includes(pose))??animations.find(a=>/idle/i.test(a.name))??animations[0];if(clip)mixer.clipAction(clip).play();mixers.push(mixer);label(HOSTILE_MECHS[i].toUpperCase(),-5.1+i*3.4,2.6);});
  (globalThis as any).probe=()=>names;let last=0;tick=t=>{const dt=t-last;last=t;mixers.forEach(m=>m.update(dt));};
 }
+async function weapons(){
+ // One weapon per page (?w=0..4): current model left, detailed model right, barrels toward the viewer's right.
+ const names=['cannons','guided','rail','lance','storm'],w=Math.min(4,+(new URLSearchParams(location.search).get('w')??0)),n=names[w];
+ const lift:Record<string,number>={cannons:1.42,guided:2.08,rail:1.8,lance:1.42,storm:1.9};
+ camera.position.set(0,2.4,n==='cannons'?6.4:5.2);camera.lookAt(0,.95,0);
+ for(const [k,detail] of [[0,false],[1,true]] as const){const hero=new T.Group(),boss=new T.Group();const a:any=new ArsenalVisuals(hero,boss,detail);const g:T.Group=a[n];
+  const holder=new T.Group();holder.position.set(k?1.55:-1.55,1-lift[n]*1.3+(n==='lance'?0:0),0);holder.rotation.y=-Math.PI/2-.45;g.visible=true;if(n==='lance')g.position.set(0,lift[n],-.2);holder.add(g);holder.scale.setScalar(1.3);scene.add(holder);holder.updateMatrixWorld(true);const box=new T.Box3().setFromObject(g),c=box.getCenter(new T.Vector3());holder.position.x+=(k?1.55:-1.55)-c.x;holder.position.z-=c.z;holder.position.y+=1-c.y;for(const glowName of ['powerGlow'])void glowName;
+  label(k?'DETAILED':'NOW',k?1.55:-1.55,1.7);}
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;

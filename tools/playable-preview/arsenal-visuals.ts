@@ -2,6 +2,7 @@ import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {Snapshot} from './contract';
 import {WeaponSockets,flightAttitude,type EmitterPositions} from './weapon-sockets';
+import {handCannonHousing,handCannonRotor,guidedRack,railLance,tempestLanceBody,arcInductors} from './weapon-models';
 
 export type ArsenalPickupKind='guided'|'cannons'|'railburst'|'freeze'|'slow'|'haste'|'escort'|'tempest'|'arcstorm'|'salvo'|'health';
 export const PICKUP_COLORS={guided:0x49cfff,cannons:0xffb24a,railburst:0xba83ff,freeze:0xa7f0ff,slow:0x61d694,haste:0xff6639,escort:0x9cfcb3,tempest:0x50e5ff,arcstorm:0xba8cff,salvo:0xff7148,health:0x5deb9e} as const;
@@ -45,12 +46,12 @@ export class ArsenalVisuals {
   private socketCharges=new Map<string,T.Mesh>();private socketFlashes=new Map<string,T.Mesh>();private flashTimes=new Map<string,number>();private shotIDs=new Set<number>();
   private boosters:{key:string,group:T.Group,plumes:T.Mesh[]}[]=[];private boosterThrust=.45;private boosterMode='idle';private previousBoss=new T.Vector3();private previousVelocityZ=0;private hasBossPosition=false;
   private bossCharge:T.Mesh;private laserCharges:T.Mesh[]=[];private faceRig=new T.Group();private faceHead?:T.Object3D;
-  constructor(private hero:T.Group,private boss:T.Group){
+  constructor(private hero:T.Group,private boss:T.Group,detail=false){
     this.sockets=new WeaponSockets(boss);
     this.heroRig.name='Arsenal_Hero';this.bossRig.name='Arsenal_Boss';this.heroRig.add(this.cannons,this.guided,this.rail,this.lance,this.storm);hero.add(this.heroRig);boss.add(this.bossRig);
     for(const side of [-1,1]){
       const group=new T.Group();group.name='HandCannon_'+(side<0?'L':'R');group.position.set(side*.90,1.42,-.22);group.rotation.y=Math.PI;this.cannons.add(group);
-      const housing=assembly([
+      const housing=detail?handCannonHousing(side):assembly([
         paint(new T.CylinderGeometry(.29,.32,.45,10),STEEL,0,0,-.12,Math.PI/2),
         paint(new T.TorusGeometry(.31,.055,4,12),BRONZE,0,0,-.28),
         paint(new T.SphereGeometry(.24,8,5),IVORY,side*.12,.20,-.15),
@@ -58,11 +59,11 @@ export class ArsenalVisuals {
         paint(new T.CylinderGeometry(.12,.12,.19,8),BRONZE,side*.33,.01,-.12,0,0,Math.PI/2),
         paint(new T.BoxGeometry(.16,.16,.26),BLACK,0,-.23,-.2)
       ]);housing.name='HandCannonHousing';group.add(housing);
-      const rotor=cannonRotor(.19,.92);rotor.position.z=.12;rotor.name='HandCannonRotatingBarrels';group.add(rotor);
+      const rotor=detail?handCannonRotor(.19,.92):cannonRotor(.19,.92);rotor.position.z=.12;rotor.name='HandCannonRotatingBarrels';group.add(rotor);
       const flash=glow(.23,0xffcf68);flash.position.z=1.1;flash.scale.z=1.8;group.add(flash);flash.visible=false;this.hands.push({group,rotor,flash,side});
 
       const rack=new T.Group();rack.position.set(side*.68,2.08,.18);rack.rotation.y=Math.PI;this.guided.add(rack);
-      rack.add(assembly([
+      if(detail)rack.add(guidedRack());else rack.add(assembly([
         paint(new T.BoxGeometry(.35,.38,.65),STEEL,0,0,0),
         paint(new T.CylinderGeometry(.11,.11,.9,8),IVORY,0,.03,.18,Math.PI/2),
         paint(new T.ConeGeometry(.12,.24,8),BRONZE,0,.03,.74,Math.PI/2),
@@ -70,21 +71,21 @@ export class ArsenalVisuals {
       ]));const light=glow(.12,0x74e8ff);light.position.set(0,.03,.55);rack.add(light);this.powerGlow.push(light);
     }
     this.rail.position.set(0,1.8,-.40);this.rail.rotation.y=Math.PI;
-    this.rail.add(assembly([
+    if(detail)this.rail.add(railLance());else this.rail.add(assembly([
       paint(new T.BoxGeometry(.36,.32,1.10),STEEL,0,0,.35),
       paint(new T.CylinderGeometry(.11,.15,1.3,8),BRONZE,0,0,.45,Math.PI/2),
       paint(new T.BoxGeometry(.16,.22,.92),IVORY,-.19,.08,.38),
       paint(new T.BoxGeometry(.16,.22,.92),IVORY,.19,.08,.38)
     ]));
-    const coils:T.BufferGeometry[]=[];for(let i=0;i<4;i++)coils.push(paint(new T.TorusGeometry(.16,.025,4,10),0xc293ff,0,0,.25+i*.19));this.rail.add(assembly(coils,true));
+    if(!detail){const coils:T.BufferGeometry[]=[];for(let i=0;i<4;i++)coils.push(paint(new T.TorusGeometry(.16,.025,4,10),0xc293ff,0,0,.25+i*.19));this.rail.add(assembly(coils,true));}
     this.railFlash=glow(.23,0xe4c1ff);this.railFlash.position.z=1.2;this.rail.add(this.railFlash);
 
     // The straight Lance pitches around its authoritative muzzle rather than moving the ray.
     this.lance.name='TempestLance_MuzzlePivot';this.lance.position.set(0,1.42,-1.32);this.lance.rotation.y=Math.PI;
-    this.lance.add(assembly([paint(new T.CylinderGeometry(.17,.23,.82,12),STEEL,0,0,-.41,Math.PI/2),paint(new T.TorusGeometry(.20,.045,5,24),BRONZE,0,0,-.05),paint(new T.BoxGeometry(.46,.12,.44),IVORY,0,.16,-.46)]));
-    const lanceCoils:T.BufferGeometry[]=[];for(let i=0;i<4;i++)lanceCoils.push(paint(new T.TorusGeometry(.19,.025,5,20),0x48dbff,0,0,-.18-i*.15));this.lance.add(assembly(lanceCoils,true));this.lanceMuzzle.name='CommanderSocket_tempest';this.lance.add(this.lanceMuzzle);this.lanceTip=glow(.13,0x71edff);this.lance.add(this.lanceTip);
+    if(detail)this.lance.add(tempestLanceBody());else this.lance.add(assembly([paint(new T.CylinderGeometry(.17,.23,.82,12),STEEL,0,0,-.41,Math.PI/2),paint(new T.TorusGeometry(.20,.045,5,24),BRONZE,0,0,-.05),paint(new T.BoxGeometry(.46,.12,.44),IVORY,0,.16,-.46)]));
+    if(!detail){const lanceCoils:T.BufferGeometry[]=[];for(let i=0;i<4;i++)lanceCoils.push(paint(new T.TorusGeometry(.19,.025,5,20),0x48dbff,0,0,-.18-i*.15));this.lance.add(assembly(lanceCoils,true));}this.lanceMuzzle.name='CommanderSocket_tempest';this.lance.add(this.lanceMuzzle);this.lanceTip=glow(.13,0x71edff);this.lance.add(this.lanceTip);
     this.storm.name='ArcStorm_InductionRig';this.storm.position.set(0,1.9,-.48);
-    const inductors:T.BufferGeometry[]=[];for(const side of [-1,1]){inductors.push(paint(new T.CylinderGeometry(.14,.19,.38,8),STEEL,side*.32,0,0),paint(new T.TorusGeometry(.22,.035,5,20),0xba8cff,side*.32,.10,0,Math.PI/2),paint(new T.OctahedronGeometry(.10),0xe1cbff,side*.32,.28,0));}this.storm.add(assembly(inductors));
+    const inductors:T.BufferGeometry[]=[];for(const side of [-1,1]){inductors.push(paint(new T.CylinderGeometry(.14,.19,.38,8),STEEL,side*.32,0,0),paint(new T.TorusGeometry(.22,.035,5,20),0xba8cff,side*.32,.10,0,Math.PI/2),paint(new T.OctahedronGeometry(.10),0xe1cbff,side*.32,.28,0));}if(detail){inductors.forEach(g=>g.dispose());this.storm.add(arcInductors());}else this.storm.add(assembly(inductors));
 
     // Rigs use boss-local units; the parent scales the whole boss consistently.
     const back=assembly([
