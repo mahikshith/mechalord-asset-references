@@ -6,6 +6,7 @@ import {RenderQuality,createDeckTexture} from './render-quality';
 import {enhanceVillain,VILLAIN_LOOKS,villainClock} from './villain-look';
 import type {Target} from './contract';
 import {createSkyreaver,type SkyreaverMode} from './skyreaver';
+import {HOSTILE_MECHS,loadHostileMech} from './hostile-mechs';
 
 /** Internal asset review: current villains (left) vs the upgraded pass (right),
  * under the same lights, deck and post-processing as the game. ?set=troops|bosses */
@@ -44,8 +45,16 @@ async function skyreaver(){
  const modes:SkyreaverMode[]=['hover','dash','fire'],units=modes.map((m,i)=>{const u=createSkyreaver();u.root.position.set(-4+i*4,0,0);u.root.rotation.y=i===1?-.5:i===2?.35:.15;scene.add(u.root);enhanceVillain(u.root,VILLAIN_LOOKS.elite);label(m==='hover'?'HOVER':m==='dash'?'BOOST DASH':'FIRING',-4+i*4,3.2);return u;});
  let last=0;tick=t=>{const dt=t-last;last=t;units.forEach((u,i)=>u.update(t+i*.7,modes[i],dt));};
 }
+async function mechs(){
+ const pose=new URLSearchParams(location.search).get('pose')??'';
+ camera.position.set(0,4.4,14.5);camera.lookAt(0,1.3,0);
+ const loaded=await Promise.all(HOSTILE_MECHS.map(n=>loadHostileMech(n)));const mixers:T.AnimationMixer[]=[];const names:Record<string,string[]>={};
+ loaded.forEach(({model,animations},i)=>{const wrap=new T.Group();wrap.add(model);wrap.position.set(-5.1+i*3.4,0,0);wrap.rotation.y=-.35+i*.18;scene.add(wrap);enhanceVillain(wrap,VILLAIN_LOOKS.elite);
+  names[HOSTILE_MECHS[i]]=animations.map(a=>a.name);const mixer=new T.AnimationMixer(model);const clip=animations.find(a=>pose&&a.name.toLowerCase().includes(pose))??animations.find(a=>/idle/i.test(a.name))??animations[0];if(clip)mixer.clipAction(clip).play();mixers.push(mixer);label(HOSTILE_MECHS[i].toUpperCase(),-5.1+i*3.4,2.6);});
+ (globalThis as any).probe=()=>names;let last=0;tick=t=>{const dt=t-last;last=t;mixers.forEach(m=>m.update(dt));};
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;
