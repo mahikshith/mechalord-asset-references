@@ -49,3 +49,7 @@ Human normal-game review and threat/recovery tuning; audible SFX/music mix; full
 Gems, revival bundles, skins, characters with different powers, weapon unlocks and paid shortcuts are later research. No payment, wait timer, store or paywall is active. Keep the current local POC free to retry/winnable.
 
 Continue from this single-siege implementation and user gameplay feedback. Avoid another full visual restart. Preserve accepted results and document actual limitations.
+
+## Claude Code tooling (7 October 2026)
+
+Installed skills and plugins are listed in `SKILLS.md` (ponytail, game-dev team, Jeffallan frontend/mobile skills, three.js best practices). Load `three-best-practices` before renderer work. New work continues on branch `claude/top-lords-upgrade`, cut from `codex/iron-front-single-siege` at `db22db3`; the user wants every new or changed asset shown to them before it is embedded in the level.
