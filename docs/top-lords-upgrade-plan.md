@@ -29,3 +29,16 @@ Every new or changed asset is rendered and shown to the user for approval before
 ## Build prerequisite
 
 Tasks 1 to 5 and 7 are renderer changes and rebuild with Node only. Task 6 changes the C++ simulation, which needs the Zig compiler at `tools/vendor/zig-x86_64-windows-0.17.0/zig.exe`; it is not on this machine yet.
+
+## Phone check (step 8), 7 October 2026
+
+Measured in headless Chrome on this machine's Intel integrated GPU at a 412x915 phone viewport (device pixel ratio 2.6, renderer capped at 1.6), during the first minute of Iron March. This is a desktop proxy, not a phone measurement.
+
+| Build | Avg frame | 95th percentile |
+|---|---|---|
+| Baseline `db22db3` | 17.7 ms | 38.1 ms |
+| Upgrade, bloom forced on (first seconds) | 48 to 55 ms | 65 to 92 ms |
+| Upgrade after adaptive fallback | 19.1 ms | 37.6 ms |
+| Upgrade with `?quality=low` | 21.0 ms | 45.4 ms |
+
+Bloom and the half-float MSAA target cost about 20 ms on a weak GPU, so `RenderQuality` now watches the first 90 frames and drops to direct rendering when more than half exceed 24 ms. Stronger phones keep bloom. Real-device measurement (Nothing Phone (3) and an older phone) is still required.
