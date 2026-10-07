@@ -53,3 +53,11 @@ Continue from this single-siege implementation and user gameplay feedback. Avoid
 ## Claude Code tooling (7 October 2026)
 
 Installed skills and plugins are listed in `SKILLS.md` (ponytail, game-dev team, Jeffallan frontend/mobile skills, three.js best practices). Load `three-best-practices` before renderer work. New work continues on branch `claude/top-lords-upgrade`, cut from `codex/iron-front-single-siege` at `db22db3`; the user wants every new or changed asset shown to them before it is embedded in the level.
+
+## Top Lords upgrade state (branch `claude/top-lords-upgrade`, 7 October 2026)
+
+- Zig 0.17.0 is installed (untracked) at `tools/vendor/zig-x86_64-windows-0.17.0`; downloads here need `curl --ssl-no-revoke` (corporate cert revocation check fails).
+- Core changes: 64-event Iron March (ledger is full; adding events needs a wider spawn bitmask), six wave shapes (`Event.dropPower` = shape id on Wave events), trap gates (`Gate` variant 1), boss enrage +9% attack rate per broken part, campaign Tempest laser lasts 3.5 s and erases every non-boss target in its lane (boss takes 6/pulse).
+- Renderer additions: `render-quality.ts` (bloom/env/sky, adaptive fallback), `battlefield-destruction.ts` (props, debris, scorch, cracks), `lightning-strikes.ts`, `villain-look.ts`, `baked-mech-crowd.ts` + `hostile-mech-cast.ts` (CC0 Quaternius mechs as instanced vertex-animated crowds).
+- User rejected procedural villains (Skyreaver, called "AI slop"); prefers sourced open-licence models or clean from-scratch builds, always shown as renders before embedding. Approved: CC0 mech cast, villain surface pass. Pending: detailed weapon models, hero troop replacement (CC0 "Sci-fi Soldier" by Irondust proposed; needs Blender to convert its FBX 6100 file).
+- QA: headless Chrome via playwright-core in the scratchpad drives `review.html` (`select #level`, `#start`, `#toggle-tools`); the in-app browser pane pauses when hidden. Asset review pages: `villains.html?set=troops|bosses|mechs|crowd|weapons&w=N|soldier`.
