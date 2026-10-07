@@ -21,3 +21,7 @@ tools/asset-viewer/node_modules/
 *.blend2
 assets/experiments/trellis-local/*.glb
 assets/experiments/trellis-local/*.ply
+
+# Free CC0 downloads, re-fetch with tools/fetch_free_assets.py
+assets/originals/polyhaven/
+assets/originals/irondust-scifi-soldier/

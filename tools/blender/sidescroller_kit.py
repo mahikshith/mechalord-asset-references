@@ -563,3 +563,122 @@ def setup_render(path, w=2340, h=1080, samples=160, engine='CYCLES', look='AgX -
     except Exception:
         pass
     sc.view_settings.exposure = exposure
+
+
+# ------------------------------------------------------- scanned PBR (CC0)
+import os as _os
+TEX_ROOT = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..', '..', 'assets', 'originals', 'polyhaven', 'textures'))
+
+
+def _img(nodes, path, noncolor, loc):
+    n = nodes.new('ShaderNodeTexImage')
+    n.location = loc
+    n.image = bpy.data.images.load(path, check_existing=True)
+    if noncolor:
+        n.image.colorspace_settings.name = 'Non-Color'
+    n.projection = 'BOX'
+    n.projection_blend = 0.25
+    return n
+
+
+def pbr(name, tex, scale=1.0, tint=(1, 1, 1), tint_amt=0.0, value=1.0, wear=0.0, bump=0.35, rough_add=0.0, metal=None, grime=0.4):
+    """Box-projected Poly Haven material with optional tint, edge wear and crevice grime."""
+    def build():
+        mv = metal
+        m = bpy.data.materials.new(name)
+        nt, nodes, links = _nodes(m)
+        d = _os.path.join(TEX_ROOT, tex, tex)
+        out = _n(nodes, 'ShaderNodeOutputMaterial', (900, 0))
+        bsdf = _n(nodes, 'ShaderNodeBsdfPrincipled', (600, 0))
+        links.new(bsdf.outputs[0], out.inputs[0])
+        tc = _n(nodes, 'ShaderNodeTexCoord', (-1300, 0))
+        mp = _n(nodes, 'ShaderNodeMapping', (-1100, 0))
+        mp.inputs['Scale'].default_value = (scale, scale, scale)
+        links.new(tc.outputs['Object'], mp.inputs['Vector'])
+        diff = _img(nodes, d + '_diff_2k.jpg', False, (-800, 300))
+        arm = _img(nodes, d + '_arm_2k.jpg', True, (-800, 0))
+        disp = _img(nodes, d + '_disp_2k.jpg', True, (-800, -300))
+        for t in (diff, arm, disp):
+            links.new(mp.outputs['Vector'], t.inputs['Vector'])
+        sep = _n(nodes, 'ShaderNodeSeparateColor', (-500, 0))
+        links.new(arm.outputs['Color'], sep.inputs[0])
+        col = diff.outputs['Color']
+        if tint_amt > 0:
+            tm = _n(nodes, 'ShaderNodeMix', (-500, 400))
+            tm.data_type = 'RGBA'
+            tm.blend_type = 'COLOR'
+            tm.inputs['Factor'].default_value = tint_amt
+            tm.inputs['B'].default_value = (*tint, 1)
+            links.new(col, tm.inputs['A'])
+            col = tm.outputs['Result']
+        hv = _n(nodes, 'ShaderNodeHueSaturation', (-300, 400))
+        hv.inputs['Value'].default_value = value
+        links.new(col, hv.inputs['Color'])
+        col = hv.outputs['Color']
+        # AO from the scan plus scene crevice grime
+        ao = _n(nodes, 'ShaderNodeMix', (-100, 400))
+        ao.data_type = 'RGBA'
+        ao.blend_type = 'MULTIPLY'
+        ao.inputs['Factor'].default_value = 1.0
+        links.new(col, ao.inputs['A'])
+        links.new(sep.outputs['Red'], ao.inputs['B'])
+        col = ao.outputs['Result']
+        if grime > 0:
+            dirt = _grime(nodes, links, tc)
+            gm = _n(nodes, 'ShaderNodeMix', (100, 400))
+            gm.data_type = 'RGBA'
+            gm.blend_type = 'MULTIPLY'
+            gm.inputs['B'].default_value = (0.3, 0.26, 0.22, 1)
+            gf = _n(nodes, 'ShaderNodeMath', (0, 550))
+            gf.operation = 'MULTIPLY'
+            gf.inputs[1].default_value = grime
+            links.new(dirt, gf.inputs[0])
+            links.new(gf.outputs[0], gm.inputs['Factor'])
+            links.new(col, gm.inputs['A'])
+            col = gm.outputs['Result']
+        rough = sep.outputs['Green']
+        if rough_add:
+            ra = _n(nodes, 'ShaderNodeMath', (100, 0))
+            ra.operation = 'ADD'
+            ra.use_clamp = True
+            ra.inputs[1].default_value = rough_add
+            links.new(rough, ra.inputs[0])
+            rough = ra.outputs[0]
+        met = sep.outputs['Blue']
+        if wear > 0:
+            wm, _tc = _wear_mask(nodes, links, amount=wear, breakup=7)
+            em = _n(nodes, 'ShaderNodeMix', (300, 400))
+            em.data_type = 'RGBA'
+            em.inputs['B'].default_value = (0.5, 0.48, 0.45, 1)
+            links.new(wm, em.inputs['Factor'])
+            links.new(col, em.inputs['A'])
+            col = em.outputs['Result']
+            rm = _n(nodes, 'ShaderNodeMix', (300, 0))
+            rm.data_type = 'FLOAT'
+            rm.inputs['B'].default_value = 0.3
+            links.new(wm, rm.inputs['Factor'])
+            links.new(rough, rm.inputs['A'])
+            rough = rm.outputs['Result']
+            mm = _n(nodes, 'ShaderNodeMix', (300, -150))
+            mm.data_type = 'FLOAT'
+            mm.inputs['B'].default_value = 1.0
+            if mv is not None:
+                mm.inputs['A'].default_value = mv
+            else:
+                links.new(met, mm.inputs['A'])
+            links.new(wm, mm.inputs['Factor'])
+            met = mm.outputs['Result']
+            mv = None
+        links.new(col, bsdf.inputs['Base Color'])
+        links.new(rough, bsdf.inputs['Roughness'])
+        if mv is not None:
+            bsdf.inputs['Metallic'].default_value = mv
+        else:
+            links.new(met, bsdf.inputs['Metallic'])
+        bp = _n(nodes, 'ShaderNodeBump', (300, -350))
+        bp.inputs['Strength'].default_value = bump
+        bp.inputs['Distance'].default_value = 0.02
+        links.new(disp.outputs['Color'], bp.inputs['Height'])
+        links.new(bp.outputs['Normal'], bsdf.inputs['Normal'])
+        return m
+    return _cache(name, build)

@@ -25,20 +25,22 @@ FX = K.coll('Atmosphere')
 CAST = K.coll('ScaleCast')
 
 # ---------------------------------------------------------------- materials
-olive = K.painted_metal('Steel_Olive', (0.16, 0.17, 0.13), wear=0.9, streak=0.6)
-gunmetal = K.painted_metal('Steel_Gunmetal', (0.07, 0.075, 0.08), wear=0.7, rough=0.38)
-rustred = K.painted_metal('Steel_OxideRed', (0.30, 0.06, 0.035), wear=1.0, streak=0.8)
-bone = K.painted_metal('Steel_Bone', (0.42, 0.39, 0.32), wear=1.0, streak=0.9)
+olive = K.pbr('Scan_OliveSteel', 'green_metal_rust', scale=0.7, tint=(0.2, 0.22, 0.14), tint_amt=0.5, value=0.6, wear=0.7, metal=0.2)
+gunmetal = K.pbr('Scan_Gunmetal', 'metal_plate_02', scale=0.8, tint=(0.1, 0.1, 0.11), tint_amt=0.7, value=0.55, wear=0.6, metal=0.6)
+tread = K.pbr('Scan_Tread', 'metal_plate', scale=0.55, tint=(0.12, 0.12, 0.12), tint_amt=0.6, value=0.7, wear=0.3, bump=0.6)
+rustred = K.pbr('Scan_OxideRed', 'rusty_painted_metal', scale=0.6, value=0.75, wear=0.5, metal=0.3)
+bone = K.pbr('Scan_BoneSteel', 'rusty_metal_02', scale=0.6, value=0.7, wear=0.5)
 dark = K.painted_metal('Steel_Dark', (0.035, 0.035, 0.04), wear=0.4, rough=0.5)
-conc = K.concrete('Concrete', (0.24, 0.235, 0.22))
-tank_paint = K.painted_metal('Steel_TankGreen', (0.11, 0.12, 0.1), wear=0.8, streak=1.0)
-conc_dark = K.concrete('Concrete_Dark', (0.2, 0.2, 0.19))
+conc = K.pbr('Scan_Concrete', 'concrete_wall_008', scale=0.35, value=0.55, grime=0.8, bump=0.5)
+tank_paint = K.pbr('Scan_TankSteel', 'rusty_metal_02', scale=0.15, tint=(0.25, 0.22, 0.18), tint_amt=0.6, value=0.35, grime=0.6)
+conc_dark = K.pbr('Scan_ConcreteDark', 'concrete_floor_worn_001', scale=0.4, value=0.6, grime=0.8, bump=0.4)
 haz = K.hazard()
+crate_skin = K.pbr('Scan_CrateSkin', 'container_side', scale=0.9, tint=(0.18, 0.2, 0.13), tint_amt=0.75, value=0.55, wear=0.8, metal=0.3)
 wat = K.water()
 lamp_warm = K.emissive('Lamp_Warm', (1.0, 0.55, 0.22), 25)
 lamp_red = K.emissive('Lamp_Red', (1.0, 0.08, 0.03), 30)
 furnace = K.emissive('Furnace', (1.0, 0.32, 0.06), 1.5)
-window = K.emissive('Window_Amber', (1.0, 0.45, 0.15), 6)
+window = K.emissive('Window_Amber', (1.0, 0.42, 0.14), 2.5)
 sil_near = K.flat('Silhouette_Near', (0.05, 0.05, 0.055), rough=0.7, metal=0.5)
 sil_far = K.flat('Silhouette_Far', (0.06, 0.055, 0.055), rough=0.8)
 sandbag = K.concrete('Sandbag', (0.28, 0.24, 0.17), grime=1.0)
@@ -52,7 +54,7 @@ def pier(x0, x1, top=0.0, depth=5.0, height=14.0, name='Pier'):
     parts = []
     parts.append(K.box(name + '_Mass', (w, depth, height), (cx, depth / 2 - 2.5, top - height / 2 - 0.25), conc, bevel=0.06, collection=PLAY))
     # steel deck cap with lip
-    parts.append(K.box(name + '_Cap', (w + 0.1, depth, 0.25), (cx, depth / 2 - 2.5, top - 0.125), gunmetal, bevel=0.03, collection=PLAY))
+    parts.append(K.box(name + '_Cap', (w + 0.1, depth, 0.25), (cx, depth / 2 - 2.5, top - 0.125), tread, bevel=0.03, collection=PLAY))
     parts.append(K.box(name + '_Lip', (w + 0.14, 0.18, 0.42), (cx, -2.55, top - 0.16), haz, bevel=0.025, collection=PLAY))
     # vertical ribs on the concrete face
     n = max(2, int(w / 2.4))
@@ -142,8 +144,8 @@ def crate(name, loc, s=1.1, mat=None):
     st.parent = c
     return c
 
-crate('Crate_A', (-5.0, -0.3, 0))
-crate('Crate_B', (-4.15, 0.25, 0), 0.95)
+crate('Crate_A', (-5.0, -0.3, 0), mat=crate_skin)
+crate('Crate_B', (-4.15, 0.25, 0), 0.95, crate_skin)
 crate('Crate_C', (-4.85, -0.15, 1.1), 0.9, bone)
 
 def lamp(name, x, y, h=4.6, side=1):
@@ -270,14 +272,14 @@ def stack(name, x, y, r, h, top_glow=False):
     for k in range(3):
         K.cyl(name + f'_Beacon{k}', 0.25, 0.25, (x + r * 0.9, y - r * 0.2, G + h * (0.4 + k * 0.25)), lamp_red, verts=8, bevel=0.0, collection=BG)
 
-stack('Stack_A', -22, 70, 2.4, 22, True)
-stack('Stack_B', -16, 85, 2.0, 16, True)
-stack('Stack_C', 12, 95, 2.6, 28, True)
-stack('Stack_D', 30, 80, 1.8, 14)
+stack('Stack_A', -16, 90, 1.5, 30, True)
+stack('Stack_B', -10, 110, 1.2, 24, True)
+stack('Stack_C', 16, 100, 1.6, 36, True)
+
 
 # refinery skyline: varied industrial silhouettes, backlit by the low sun
 def refinery_unit(i, x, y):
-    base_h = 28 + random.uniform(1.5, 6)
+    base_h = 28 + random.uniform(-5, 1.5)
     w = random.uniform(5, 10)
     K.box(f'Sky{i}_Base', (w, 6, base_h), (x, y, G + base_h / 2), sil_far, bevel=0.0, collection=BG)
     top = G + base_h
@@ -301,26 +303,26 @@ def refinery_unit(i, x, y):
                 K.box(f'Sky{i}_TwX{k}_{j}', (1.3, 0.1, 0.08), (px, y, top + 0.75 + j * 1.5), sil_far, bevel=0.0, rot=(0, (0.6 if j % 2 else -0.6), 0), collection=BG)
     if random.random() < 0.5:
         K.box(f'Sky{i}_Pipe', (random.uniform(6, 14), 0.4, 0.4), (x + w / 2, y - 1, top - random.uniform(2, 6)), sil_far, bevel=0.0, collection=BG)
-    for k in range(random.randint(0, 3)):
+    for k in range(random.randint(0, 1)):
         K.box(f'Sky{i}_Win{k}', (0.9, 0.1, 0.35), (x + random.uniform(-w / 2.5, w / 2.5), y - 3.05, top - random.uniform(1, 4)), window, bevel=0.0, collection=BG)
 
 for i in range(22):
     refinery_unit(i, -75 + i * 7 + random.uniform(-2, 2), random.uniform(105, 130))
 # The Tyrant citadel: a jagged fortress on the right horizon with a furnace maw
 CX, CY = 30, 170
-K.box('Citadel_Base', (60, 20, 56), (CX, CY, G + 28), sil_far, bevel=0.0, collection=BG)
+K.box('Citadel_Base', (46, 20, 34), (CX, CY, G + 17), sil_far, bevel=0.0, collection=BG)
 for i, (dx, w, h) in enumerate([(-22, 7, 22), (-10, 9, 34), (4, 12, 48), (18, 8, 30), (28, 6, 18)]):
-    t = K.cyl(f'Citadel_Spire{i}', w / 2, h, (CX + dx, CY, G + 30 + h / 2), sil_far, verts=6, r2=w * 0.08, bevel=0.0, collection=BG)
+    t = K.cyl(f'Citadel_Spire{i}', w / 2, h, (CX + dx, CY, G + 32 + h / 2), sil_far, verts=6, r2=w * 0.08, bevel=0.0, collection=BG)
 for k in range(9):
-    K.box(f'Citadel_Win{k}', (1.6, 1.0, 0.7), (CX - 20 + k * 5 + random.uniform(-1, 1), CY - 10.5, 6 + random.uniform(0, 14)), furnace, bevel=0.0, collection=BG)
+    K.box(f'Citadel_Win{k}', (1.6, 1.0, 0.7), (CX - 20 + k * 5 + random.uniform(-1, 1), CY - 10.5, -6 + random.uniform(0, 8)), furnace, bevel=0.0, collection=BG)
 _ = None  # K.box('Citadel_Slit1', (1.2, 1.0, 18), (CX - 10, CY - 10.5, 30), furnace, bevel=0.0, collection=BG)
 _ = None  # K.box('Citadel_Slit2', (1.2, 1.0, 22), (CX + 4, CY - 10.5, 38), furnace, bevel=0.0, collection=BG)
 fl = bpy.data.lights.new('CitadelGlow', 'POINT')
-fl.energy = 2.5e6
+fl.energy = 4e4
 fl.color = (1.0, 0.35, 0.08)
 fl.shadow_soft_size = 8
 fo = bpy.data.objects.new('CitadelGlow', fl)
-fo.location = (CX + 4, CY - 18, 18)
+fo.location = (CX + 4, CY - 13, -6)
 sc.collection.objects.link(fo)
 K.link(fo, BG)
 
@@ -340,9 +342,9 @@ def plume(name, x, y, z, s, density=0.8, color=(0.16, 0.15, 0.14)):
     K.link(o, FX)
     return o
 
-plume('Plume_A', -20, 70, 27, (6, 5, 9), 0.35, (0.06, 0.055, 0.055))
-plume('Plume_B', -14, 85, 21, (4, 4, 7), 0.3, (0.06, 0.055, 0.055))
-plume('Plume_C', 15, 95, 35, (7, 6, 11), 0.35, (0.06, 0.055, 0.055))
+plume('Plume_A', -13, 92, 36, (7, 5, 12), 0.5, (0.07, 0.06, 0.06))
+plume('Plume_B', -7, 112, 29, (5, 4, 9), 0.45, (0.07, 0.06, 0.06))
+plume('Plume_C', 20, 102, 43, (8, 6, 13), 0.5, (0.07, 0.06, 0.06))
 # low steam drifting off the channel
 plume('Steam_Channel', 0, 0.8, -0.6, (4.0, 2.0, 1.4), 0.08, (0.6, 0.6, 0.6))
 
@@ -354,7 +356,7 @@ nt, nodes, links = K._nodes(hm)
 out = K._n(nodes, 'ShaderNodeOutputMaterial', (300, 0))
 pv = K._n(nodes, 'ShaderNodeVolumePrincipled', (0, 0))
 pv.inputs['Color'].default_value = (0.55, 0.45, 0.42, 1)
-pv.inputs['Density'].default_value = 0.0006
+pv.inputs['Density'].default_value = 0.0018
 pv.inputs['Anisotropy'].default_value = 0.2
 links.new(pv.outputs[0], out.inputs['Volume'])
 haze.data.materials.append(hm)
@@ -436,8 +438,17 @@ g2.inputs['B'].default_value = (1.0, 0.8, 0.55, 1)
 k2 = K._n(wn, 'ShaderNodeMath', (-450, -250)); k2.operation = 'MULTIPLY'; k2.inputs[1].default_value = 6.0
 wl.new(p2.outputs[0], k2.inputs[0]); wl.new(k2.outputs[0], g2.inputs['Factor'])
 wl.new(g1.outputs['Result'], g2.inputs['A'])
+env = wn.new('ShaderNodeTexEnvironment'); env.location = (-700, 500)
+env.image = bpy.data.images.load(os.path.join(REPO, 'assets', 'originals', 'polyhaven', 'hdri', 'belfast_sunset_puresky_4k.hdr'))
+emp = K._n(wn, 'ShaderNodeMapping', (-900, 500)); emp.inputs['Rotation'].default_value = (0, 0, math.radians(-69.6))
+wl.new(tc.outputs['Generated'], emp.inputs['Vector']); wl.new(emp.outputs['Vector'], env.inputs['Vector'])
+bw = K._n(wn, 'ShaderNodeRGBToBW', (-500, 500)); wl.new(env.outputs['Color'], bw.inputs[0])
+cf = K._n(wn, 'ShaderNodeMapRange', (-350, 500)); cf.inputs['From Min'].default_value = 0.0; cf.inputs['From Max'].default_value = 1.6; cf.inputs['To Min'].default_value = 0.2; cf.inputs['To Max'].default_value = 2.2
+wl.new(bw.outputs[0], cf.inputs['Value'])
+cm = K._n(wn, 'ShaderNodeMix', (-150, 300)); cm.data_type = 'RGBA'; cm.blend_type = 'MULTIPLY'; cm.inputs['Factor'].default_value = 1.0
+wl.new(g2.outputs['Result'], cm.inputs['A']); wl.new(cf.outputs['Result'], cm.inputs['B'])
 sky_bg = K._n(wn, 'ShaderNodeBackground', (-100, 100)); sky_bg.inputs[1].default_value = 1.0
-wl.new(g2.outputs['Result'], sky_bg.inputs[0])
+wl.new(cm.outputs['Result'], sky_bg.inputs[0])
 amb = K._n(wn, 'ShaderNodeBackground', (-100, -100)); amb.inputs[0].default_value = (0.16, 0.1, 0.1, 1); amb.inputs[1].default_value = 0.35
 lp = K._n(wn, 'ShaderNodeLightPath', (-300, 300))
 seen = K._n(wn, 'ShaderNodeMath', (-100, 300)); seen.operation = 'MAXIMUM'
@@ -455,7 +466,7 @@ so = bpy.data.objects.new('Sun', sun)
 so.rotation_euler = (-SUN_DIR).to_track_quat('-Z', 'Y').to_euler()
 sc.collection.objects.link(so)
 key = bpy.data.lights.new('KeyFill', 'AREA')
-key.energy = 6000
+key.energy = 7500
 key.size = 30
 key.color = (0.62, 0.72, 0.9)
 ko = bpy.data.objects.new('KeyFill', key)
@@ -479,7 +490,7 @@ cam.data.clip_end = 1000
 cam.location = (2.5, -30.0, 5.2)
 cam.rotation_euler = Euler((math.radians(85), 0, 0))
 
-K.setup_render(OUT, *(1170, 540) if PREVIEW else (2340, 1080), samples=48 if PREVIEW else 256)
+K.setup_render(OUT, *(1170, 540) if PREVIEW else (2340, 1080), samples=48 if PREVIEW else 256, exposure=0.35)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(REPO, 'assets', 'source', 'sidescroller', 'slice1-foundry-docks.blend'))
 bpy.ops.render.render(write_still=True)
 print('RENDERED', OUT)
