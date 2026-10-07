@@ -10,6 +10,8 @@ import {HOSTILE_MECHS,loadHostileMech} from './hostile-mechs';
 import {ArsenalVisuals} from './arsenal-visuals';
 import {BakedMechCrowd} from './baked-mech-crowd';
 import {bakeTrooper,trooperAtlas,TROOPER_CLASSES} from './hero-trooper';
+import {heroBotCrowd} from './hero-bots';
+import {HostileMechCast} from './hostile-mech-cast';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 import {TGALoader} from 'three/addons/loaders/TGALoader.js';
 import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
@@ -113,8 +115,29 @@ async function troopers(){
  tick=t=>{crowds.forEach((c,i)=>{c.begin();c.add(-2.4+i*2.4,0,0,Math.PI+.45,1,clipParam,t*(clipParam===0?1.2:clipParam===1?.3:1.5));c.end();});};
  (globalThis as any).probe=()=>crowds.map(c=>c.mesh.geometry.getAttribute('position').count);
 }
+async function herobots(){
+ camera.position.set(0,3.4,-8.5);camera.lookAt(0,1,0);
+ const files=['Enemy_QuadShell','Enemy_Trilobite','Enemy_EyeDrone'],loader=new GLTFLoader(),mixers:T.AnimationMixer[]=[],info:Record<string,string>={};
+ const all=await Promise.all(files.map(f=>loader.loadAsync('../_review/herobots/'+f+'.gltf')));
+ all.forEach((g,i)=>{const m=g.scene;const box=new T.Box3().setFromObject(m),h=box.max.y-box.min.y,k=(i===2?1.2:1.9)/h;m.scale.setScalar(k);m.position.set(3.2-i*3.2,i===2?1.6:-box.min.y*k,0);m.rotation.y=Math.PI+.4;m.traverse((o:any)=>{if(o.isMesh)o.castShadow=true;});scene.add(m);
+  info[files[i]]=g.animations.map(a=>a.name+':'+a.duration.toFixed(2)).join(',');const mx=new T.AnimationMixer(m);const c=g.animations.find(a=>/^run$/i.test(a.name))??g.animations.find(a=>/walk|fly|idle/i.test(a.name))??g.animations[0];if(c)mx.clipAction(c).play();mixers.push(mx);});
+ (globalThis as any).probe=()=>info;let last=0;tick=t=>{const dt=t-last;last=t;mixers.forEach(m=>m.update(dt));};
+}
+async function squad(){
+ const view=new URLSearchParams(location.search).get('view')??'game';
+ if(view==='close'){camera.position.set(0,2.6,6.2);camera.lookAt(0,.9,0);}else{camera.position.set(0,11,15.5);camera.lookAt(0,0,-2.5);}
+ const [van,hav,volt]=await Promise.all([heroBotCrowd(scene,'vanguard',40),heroBotCrowd(scene,'havoc',8),heroBotCrowd(scene,'volt',8)]);
+ const foes=new HostileMechCast(scene);if(view==='game')await foes.load();
+ if(view==='close'){label('VANGUARD',-2.6,1.6);label('HAVOC',0,1.6);label('VOLT',2.6,1.6);}
+ tick=t=>{for(const c of [van,hav,volt])c.begin();
+  if(view==='close'){van.add(-2.6,0,0,.5,1,0,t*1.2);hav.add(0,0,0,.5,1,0,t*1.1);volt.add(2.6,1.0+Math.sin(t*2)*.1,0,.5,1.6,0,t*.5);}
+  else{for(let r=0;r<4;r++)for(let c=0;c<6;c++){const i=r*6+c;van.add(-2.4+c*.95+(r%2)*.3,0,1.6+r*.9,Math.PI,1,0,t*1.3+i*.37%1);}
+   hav.add(-3.2,0,2.4,Math.PI,1,0,t*1.1);hav.add(3.2,0,2.4,Math.PI,1,0,t*1.1+.5);for(let i=0;i<4;i++)volt.add(-2.7+i*1.8,2.6+Math.sin(t*2+i)*.15,3.2,Math.PI,1,0,t*.6+i*.25);
+   foes.begin();for(let r=0;r<3;r++)for(let c=0;c<7;c++)foes.grunt(100+r*7+c,-2.9+c*.95,-8-r*2.05,0,1.2,1/60,false);foes.end();}
+  for(const c of [van,hav,volt])c.end();};
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():set==='herobots'?herobots():set==='squad'?squad():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;

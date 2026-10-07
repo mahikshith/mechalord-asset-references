@@ -25,6 +25,30 @@ export function bakeSkinned(model:T.Object3D,bake:BakeClip[]):BakedFrames{
  return {base,frames,clipFrames:bake.map(b=>b.frames)};
 }
 
+/** Bake every mesh in a model (skinned or bone-attached), keeping smooth normals:
+ * each normal is skinned by transforming a point offset along it. Meshes must share
+ * one material/texture set. Used for multi-part rigs such as the Sci-Fi Essentials robots. */
+export function bakeModel(model:T.Object3D,bake:BakeClip[]):BakedFrames{
+ const meshes:T.Mesh[]=[];model.traverse(o=>{if((o as T.Mesh).isMesh)meshes.push(o as T.Mesh);});
+ const sources=meshes.map(m=>{const g=m.geometry.index?m.geometry.toNonIndexed():m.geometry.clone();if(!g.getAttribute('normal'))g.computeVertexNormals();return g;});
+ const count=sources.reduce((n,g)=>n+g.getAttribute('position').count,0),mixer=new T.AnimationMixer(model),p=new T.Vector3(),q=new T.Vector3(),nm=new T.Matrix3();
+ const frames:BakedFrames['frames']=[];
+ for(const b of bake){mixer.stopAllAction();const action=mixer.clipAction(b.clip).reset().play();
+  for(let f=0;f<b.frames;f++){mixer.setTime(b.clip.duration*f/b.frames);model.updateMatrixWorld(true);const pos=new Float32Array(count*3),nor=new Float32Array(count*3);let o=0;
+   meshes.forEach((m,mi)=>{const g=sources[mi],P=g.getAttribute('position'),N=g.getAttribute('normal'),sk=(m as T.SkinnedMesh).isSkinnedMesh?m as T.SkinnedMesh:undefined;nm.getNormalMatrix(m.matrixWorld);
+    // Skinned path needs the source attribute order; toNonIndexed keeps skinIndex/skinWeight per vertex.
+    for(let i=0;i<P.count;i++,o++){
+     if(sk){p.fromBufferAttribute(P,i);q.fromBufferAttribute(N,i).multiplyScalar(.01).add(p);const tmp=sk.geometry;sk.geometry=g;sk.applyBoneTransform(i,p);sk.applyBoneTransform(i,q);sk.geometry=tmp;p.applyMatrix4(m.matrixWorld);q.applyMatrix4(m.matrixWorld);q.sub(p).normalize();}
+     else{p.fromBufferAttribute(P,i).applyMatrix4(m.matrixWorld);q.fromBufferAttribute(N,i).applyMatrix3(nm).normalize();}
+     pos[o*3]=p.x;pos[o*3+1]=p.y;pos[o*3+2]=p.z;nor[o*3]=q.x;nor[o*3+1]=q.y;nor[o*3+2]=q.z;}});
+   frames.push({pos,nor});}
+  action.stop();}
+ mixer.uncacheRoot(model);
+ const base=new T.BufferGeometry(),uv=new Float32Array(count*2);let o=0;for(const g of sources){const U=g.getAttribute('uv');for(let i=0;i<g.getAttribute('position').count;i++,o++){uv[o*2]=U?U.getX(i):0;uv[o*2+1]=U?U.getY(i):0;}}
+ base.setAttribute('position',new T.BufferAttribute(frames[0].pos.slice(),3));base.setAttribute('uv',new T.BufferAttribute(uv,2));sources.forEach(g=>g.dispose());
+ return {base,frames,clipFrames:bake.map(b=>b.frames)};
+}
+
 export class BakedMechCrowd {
  readonly mesh:T.InstancedMesh;readonly capacity:number;readonly height:number;
  private positions:T.DataTexture;private normals:T.DataTexture;private anim:T.InstancedBufferAttribute;private tint:T.InstancedBufferAttribute;

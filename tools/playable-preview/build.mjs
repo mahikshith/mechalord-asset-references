@@ -31,6 +31,8 @@ for(const [source,dest] of [['relic-marshal-hf-rigged-source.glb','commander.glb
  await fs.copyFile(path.join(root,'assets/exports',source),path.join(out,dest));
 const environmentAssets=['SuspendedIsland','SpineConnector','SunkenRoute','CitadelBowl','TaperedButtress','PressureVessel','CoolingStack','ArticulatedServiceArm','ReactorBank','CitadelSpire','CableDrum','DistantFoundryWorks','DistantTransferGallery','ReactorBulkhead'];
 await fs.mkdir(path.join(out,'environment'),{recursive:true});
+// CC0 Quaternius Sci-Fi Essentials robots for the allied machines.
+await fs.mkdir(path.join(out,'herobots'),{recursive:true});for(const file of await fs.readdir(path.join(root,'assets/originals/quaternius-scifi-essentials')))if(file!=='SOURCE.md')await fs.copyFile(path.join(root,'assets/originals/quaternius-scifi-essentials',file),path.join(out,'herobots',file));
 // CC0 Quaternius mech cast (see assets/originals/quaternius-animated-mech-pack/SOURCE.md).
 await fs.mkdir(path.join(out,'mechs'),{recursive:true});for(const name of ['George','Leela','Mike','Stan']){await fs.copyFile(path.join(root,'assets/originals/quaternius-animated-mech-pack',name+'_Texture.png'),path.join(out,'mechs',name+'_Texture.png'));await fs.copyFile(path.join(root,'assets/exports',name.toLowerCase()+'-hostile-mech.glb'),path.join(out,'mechs',name.toLowerCase()+'-hostile-mech.glb'));await fs.rm(path.join(out,'mechs',name+'.fbx'),{force:true});}
 for(const name of environmentAssets)await fs.copyFile(path.join(root,'assets/exports/reforged',name+'.glb'),path.join(out,'environment',name+'.glb'));

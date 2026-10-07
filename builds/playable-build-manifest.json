@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-10-07T08:01:00.840Z",
+  "builtAt": "2026-10-07T08:06:51.095Z",
   "coreAsset": "assault.472ba715bfa244b8.wasm",
   "coreSha256": "472ba715bfa244b8e4c3f89701e17b3906989ef75e0f7d21fe38fec08f1bdcc6",
   "files": {
@@ -13,7 +13,7 @@
     },
     "review.js": {
       "bytes": 916273,
-      "sha256": "e9e2a185ed3ebc45893bfc6c2f6d681795d3a58acf77ce1f49a31181031ed282"
+      "sha256": "3581815aa6525a7d7d0e5c919cb8a423f071bfe4d349e603cfb70186b44edff3"
     },
     "index.html": {
       "bytes": 9474,
@@ -21,7 +21,7 @@
     },
     "review.html": {
       "bytes": 5165,
-      "sha256": "0419d792a9e09fbca5079eff8a5af250d08a0c5f680045036f6047c0e4a3acb5"
+      "sha256": "51f35a38258526fc523f3c2a36b629f7aa64e7f65935e9bfb09091a60793413b"
     },
     "style.css": {
       "bytes": 30396,
