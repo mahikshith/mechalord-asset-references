@@ -44,7 +44,7 @@ export class Battlefield{
  emitterPositions:EmitterPositions={};enemyMotion=new Map<number,{x:number,z:number,yaw:number,age:number}>();eliteSockets:WeaponSockets[]=[];projectileIDs=new Set<number>();bossPreviousZ=40;bossPreviousVz=0;bossPitch=0;bossBank=0;bossMotionReady=false;
  enemyCues:EnemyWeaponCues;enemyRecoil=new Map<number,number>();
  heroRing:T.Mesh;shadowInstances:T.InstancedMesh;
- floating:{badge:Badge,life:number,x:number,y:number,z:number}[]=[];age=0;hostileAge=0;bossVisualAge=0;shake=0;cameraBossBlend=0;armyZoom=0;resizeObserver:ResizeObserver;
+ floating:{badge:Badge,life:number,x:number,y:number,z:number,base?:number}[]=[];age=0;hostileAge=0;bossVisualAge=0;shake=0;cameraBossBlend=0;armyZoom=0;resizeObserver:ResizeObserver;
  constructor(public canvas:HTMLCanvasElement){
   this.renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
   this.renderer.setClearColor(0xadc5c7);this.renderer.outputColorSpace=T.SRGBColorSpace;this.renderer.toneMapping=T.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.06;
@@ -83,7 +83,7 @@ export class Battlefield{
   const [ag,am]=parts(troop);this.crowd=new AnimatedTroopCrowd(this.scene,ag,am,this.model,hero.animations,64);this.allies=this.crowd.mesh;this.formationFraming.setBounds(this.crowd.bounds);ag.dispose();am.dispose();
   this.commanderMotion=new CommanderLocomotion(this.model,hero.animations);this.mixer=this.commanderMotion.mixer;
  }
- reset(){this.crowd?.reset();this.commanderMotion?.reset();this.absorption.reset();this.supportLinks.reset();this.specialEnemies.reset();this.revival.reset();this.clashVisuals.reset();this.strafe=0;this.formationFraming.reset();this.bossAdapter?.reset();this.enemyMotion.clear();this.projectileIDs.clear();this.emitterPositions={};this.bossPreviousZ=40;this.bossPreviousVz=0;this.bossPitch=0;this.bossBank=0;this.bossMotionReady=false;this.enemyRecoil.clear();this.enemyCues.reset();this.presentation=undefined;this.bossHitKick=0;this.bossFireKick=0;this.commanderHitKick=0;this.hostileAge=0;this.bossVisualAge=0;this.commanderExploded=false;this.hero.visible=true;this.formationPositions=[];this.hitNumbers.clear();this.arsenal?.reset();for(const p of this.pickups.values()){this.scene.remove(p.group);p.group.remove(p.badge.sprite);p.badge.dispose();disposePickup(p.group);}this.pickups.clear();for(const v of this.views.values())this.disposeView(v);this.views.clear();for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];this.fx.reset();this.powerVisuals?.reset();this.missiles.reset();this.robots.reset();this.abilities.reset();this.bossExploded=false;this.renderer.toneMappingExposure=1.06;this.camera.fov=30;this.camera.updateProjectionMatrix();this.recoil=0;this.previousX=0;this.bossPreviousX=0;this.lastMuzzle=0;this.shake=0;this.cameraBossBlend=0;this.armyZoom=0;this.swarmState.clear();}
+ reset(){this.crowd?.reset();this.commanderMotion?.reset();this.absorption.reset();this.supportLinks.reset();this.specialEnemies.reset();this.revival.reset();this.clashVisuals.reset();this.strafe=0;this.formationFraming.reset();this.bossAdapter?.reset();this.enemyMotion.clear();this.projectileIDs.clear();this.emitterPositions={};this.bossPreviousZ=40;this.bossPreviousVz=0;this.bossPitch=0;this.bossBank=0;this.bossMotionReady=false;this.enemyRecoil.clear();this.enemyCues.reset();this.presentation=undefined;this.bossHitKick=0;this.bossFireKick=0;this.commanderHitKick=0;this.hostileAge=0;this.bossVisualAge=0;this.commanderExploded=false;this.hero.visible=true;this.formationPositions=[];this.hitNumbers.clear();this.arsenal?.reset();for(const p of this.pickups.values()){this.scene.remove(p.group);p.group.remove(p.badge.sprite);p.badge.dispose();disposePickup(p.group);}this.pickups.clear();for(const v of this.views.values())this.disposeView(v);this.views.clear();for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];this.fx.reset();this.powerVisuals?.reset();this.missiles.reset();this.robots.reset();this.abilities.reset();this.bossExploded=false;this.renderer.toneMappingExposure=1.06;this.camera.fov=30;this.camera.updateProjectionMatrix();this.recoil=0;this.previousX=0;this.bossPreviousX=0;this.lastMuzzle=0;this.shake=0;this.cameraBossBlend=0;this.armyZoom=0;this.swarmState.clear();this.hitStop=0;this.slowFactor=1;}
  set(mesh:T.InstancedMesh,i:number,x:number,y:number,z:number,scale=1,rot=0,width=1){this.dummy.position.set(x,y,z);this.dummy.rotation.set(0,rot,0);this.dummy.scale.set(scale*width,scale,scale);this.dummy.updateMatrix();mesh.setMatrixAt(i,this.dummy.matrix);}
  createView(t:Target):View{
   const group=new T.Group(),badge=new Badge(t.kind==='gate'?2.8:t.kind==='crate'?2.0:1.45),red=mat(0xe94f38),gold=mat(0xfbb94e),dark=mat(0x233942),white=mat(0xffefd0);let rotor:T.Object3D|undefined;
@@ -119,11 +119,11 @@ export class Battlefield{
   if(e.kind==='chainHit'){const link=e;if([link.endX,link.endY,link.endZ].every(Number.isFinite)){this.fx.energyImpact(link.endX!,link.endY!,-link.endZ!,0xc5adff);if(link.hitRegion&&e.value>0)this.bossHitKick=Math.max(this.bossHitKick,.20);}}
   if(e.kind==='drop')this.fx.impact(e.x,1.2,z,1.2);
   if(e.kind==='pickup'&&powerKind(e.value)!=='health')this.fx.powerAcquire(this.hero,powerKind(e.value));
-  if(e.kind==='coreExpose'){const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.impact(core?.x??e.x,core?.y??(current?.bossY??this.boss.position.y)+4.31,core?-core.z:z+.85,1.6);this.shake=.17;}
+  if(e.kind==='coreExpose'){this.punch(.12);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.impact(core?.x??e.x,core?.y??(current?.bossY??this.boss.position.y)+4.31,core?-core.z:z+.85,1.6);this.shake=.17;}
   if(e.kind==='bossRevive'){this.fx.impact(e.x,this.boss.position.y+2.7,z,2);this.shake=.24;}
-  if(e.kind==='bossPartBreak'){const part=['cannonL','cannonR','boosterL','boosterR','legL','legR'][e.value-1] as 'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'|undefined;if(part){this.scene.updateMatrixWorld(true);this.fx.bossPartBreak(this.boss,part);this.shake=.24;}}
+  if(e.kind==='bossPartBreak'){this.punch(.16);const part=['cannonL','cannonR','boosterL','boosterR','legL','legR'][e.value-1] as 'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'|undefined;if(part){this.scene.updateMatrixWorld(true);this.fx.bossPartBreak(this.boss,part);this.shake=.24;}}
   if(e.kind==='bossPhase'){this.shake=.20;this.fx.impact(e.x,2.8,z,2);}
-  if(e.kind==='kill'){this.hitNumbers.delete(e.entityId);if(e.variant<0)this.fx.impact(e.x,1,z,2);else{const point=combatImpactPoint(e,{depthScale:1,bossPhase:false,overdrive:false,weapon:1,targets:[...(current?.targets??[]),...(this.presentation?.targets??[])]});this.fx.enemyDeath(point.x,point.z,e.variant,e.variant>0?1.6:1,point.y);}this.shake=Math.max(this.shake,e.variant>0?.10:.04);}
+  if(e.kind==='kill'){this.hitNumbers.delete(e.entityId);if(e.variant<0)this.fx.impact(e.x,1,z,2);else{const point=combatImpactPoint(e,{depthScale:1,bossPhase:false,overdrive:false,weapon:1,targets:[...(current?.targets??[]),...(this.presentation?.targets??[])]});this.fx.enemyDeath(point.x,point.z,e.variant,e.variant>0?1.6:1,point.y);if(e.variant>0)this.punch(.06);}this.shake=Math.max(this.shake,e.variant>0?.10:.04);}
   if(e.kind==='enemyFire'){if(this.enemyRecoil.size>=32&&!this.enemyRecoil.has(e.entityId))this.enemyRecoil.delete(this.enemyRecoil.keys().next().value!);this.enemyRecoil.set(e.entityId,.24);}
   if(e.kind==='contact'){this.fx.impact(e.x,.6,z,1.2);this.shake=Math.max(this.shake,.045);}
   if(e.kind==='block')this.fx.impact(e.x,1,z,.5);
@@ -132,10 +132,10 @@ export class Battlefield{
   if(e.kind==='damage'){this.shake=.12;this.float('-'+Math.abs(e.value),e.x,z,'#ff8469',2,true);}
   if(e.kind==='bossShot'){this.bossFireKick=.3;this.shake=.07;}
   if(e.kind==='commanderHit'){this.commanderHitKick=.35;this.fx.impact(e.x,1.3,z,1.2);this.shake=.2;this.float('-'+Math.abs(e.value)+' HP',e.x,z,'#ff8469',3.1,true);}
-  if(e.kind==='hazardBreak'){this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
+  if(e.kind==='hazardBreak'){this.punch(.05);this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
   if(e.kind==='commanderDeath'&&!this.commanderExploded){this.scene.updateMatrixWorld(true);this.fx.commanderDeath(this.hero);this.commanderExploded=true;this.hero.visible=false;this.shake=.4;}
   if(e.kind==='retreat')this.hitNumbers.delete(e.entityId);
-  if(e.kind==='bossDeath'&&!this.bossExploded){this.scene.updateMatrixWorld(true);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.bossDeath(this.boss,core?new T.Vector3(core.x,core.y,-core.z):undefined);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
+  if(e.kind==='bossDeath'&&!this.bossExploded){this.punch(.4);this.scene.updateMatrixWorld(true);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.bossDeath(this.boss,core?new T.Vector3(core.x,core.y,-core.z):undefined);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
  }
  /** Visual reinforcements: the core tracks the real army count but only 24
   * formation slots. Fill the gaps between slots (up to the 64-troop crowd) so a
@@ -148,6 +148,11 @@ export class Battlefield{
   for(let k=0;k<offsets.length&&out.length<extra;k++)for(const u of formation){if(out.length>=extra)break;const id=10000+u.index*4+k,h=Math.sin(id*12.9898)*43758.5453%1,tx=T.MathUtils.clamp(u.x+offsets[k][0]+h*.12,-4.3,4.3),tz=u.z-offsets[k][1];let p=this.swarmState.get(id);if(!p){p={x:tx,z:tz};this.swarmState.set(id,p);}if(!held){const lag=1-Math.exp(-dt*(5+Math.abs(h)*6));p.x+=(tx-p.x)*lag;p.z+=(tz-p.z)*lag;}seen.add(id);out.push({index:id,x:p.x+Math.sin(this.age*2.3+id)*.03,z:p.z});}
   for(const id of this.swarmState.keys())if(!seen.has(id))this.swarmState.delete(id);return out;
  }
+ /** Hit-stop: big confirmed impacts briefly slow simulation and effects to
+  * 12% so the hit lands. Only delays time; it never changes combat outcomes. */
+ hitStop=0;slowFactor=1;
+ punch(seconds:number){if(!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false))this.hitStop=Math.max(this.hitStop,seconds);}
+ timeScale(dt:number){if(this.hitStop<=0){this.slowFactor=1;return dt;}this.hitStop-=dt;this.slowFactor=.12;return dt*.12;}
  weaponUpgrade(previous:number,next:number){return this.abilities.weaponUpgrade(previous,next);}
  get absorptionRemaining(){return this.absorption.timeRemaining;}
  beginAbsorption(choice:CoreChoice,s:Snapshot){const core=s.bossRegions?.find(r=>r.id==='core');this.absorption.begin(choice,new T.Vector3(core?.x??s.bossX,core?.y??s.bossY+4.31,core?-core.z:-s.bossZ),new T.Vector3(s.x,1.7,0));}
@@ -269,7 +274,7 @@ export class Battlefield{
   }
   const impact=this.abilities.sceneImpact;this.renderer.toneMappingExposure=1.06+impact.exposureLift;const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;this.armyZoom+=(T.MathUtils.clamp((s.army-8)/40,0,1)-this.armyZoom)*(1-Math.exp(-renderDt*1.2));const powerFov=(30+this.armyZoom*5)*(1-impact.zoom-(reduced?0:this.revival.cameraStrength));if(Math.abs(this.camera.fov-powerFov)>.0001){this.camera.fov=powerFov;this.camera.updateProjectionMatrix();}
   this.fx.update(renderDt);
-  for(let i=this.floating.length-1;i>=0;i--){const f=this.floating[i];f.life-=renderDt;f.y+=renderDt*1.6;f.badge.sprite.position.set(f.x,f.y,f.z);f.badge.sprite.material.opacity=Math.min(1,f.life*3);if(f.life<=0){this.scene.remove(f.badge.sprite);f.badge.dispose();this.floating.splice(i,1);}}
+  for(let i=this.floating.length-1;i>=0;i--){const f=this.floating[i];f.life-=renderDt;f.y+=renderDt*1.6;f.badge.sprite.position.set(f.x,f.y,f.z);if(f.base===undefined)f.base=f.badge.sprite.scale.x;const pop=1+Math.max(0,f.life-.8)*3.2;f.badge.sprite.scale.set(f.base*pop,f.base*pop*160/384,1);f.badge.sprite.material.opacity=Math.min(1,f.life*3);if(f.life<=0){this.scene.remove(f.badge.sprite);f.badge.dispose();this.floating.splice(i,1);}}
   if(draw)this.quality.render();
  }
 }
