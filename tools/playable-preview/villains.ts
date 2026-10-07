@@ -9,6 +9,9 @@ import {createSkyreaver,type SkyreaverMode} from './skyreaver';
 import {HOSTILE_MECHS,loadHostileMech} from './hostile-mechs';
 import {ArsenalVisuals} from './arsenal-visuals';
 import {BakedMechCrowd} from './baked-mech-crowd';
+import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
+import {TGALoader} from 'three/addons/loaders/TGALoader.js';
+import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
 
 /** Internal asset review: current villains (left) vs the upgraded pass (right),
  * under the same lights, deck and post-processing as the game. ?set=troops|bosses */
@@ -67,7 +70,7 @@ async function weapons(){
 async function crowd(){
  camera.position.set(0,9,15);camera.lookAt(0,0,-4);
  const stan=await loadHostileMech('Stan'),leela=await loadHostileMech('Leela');
- const clip=(m:{animations:T.AnimationClip[]},n:string)=>m.animations.find(a=>a.name==='RobotArmature|'+n)!;
+ const clip=(m:{animations:T.AnimationClip[]},n:string)=>(m.animations.find(a=>a.name==='RobotArmature|'+n)??m.animations.find(a=>a.name===n))!;
  const mat=(m:T.Object3D)=>{let map:T.Texture|null=null;m.traverse((o:any)=>{if(o.isMesh)map=o.material.map;});return new T.MeshStandardMaterial({map,metalness:.55,roughness:.48});};
  const t0=performance.now(),runners=new BakedMechCrowd(scene,stan.model,[{clip:clip(stan,'Run'),frames:16}],60,mat(stan.model));enhanceVillain([runners.mesh.material as T.Material],VILLAIN_LOOKS.grunt);
  const heavy=new BakedMechCrowd(scene,leela.model,[{clip:clip(leela,'Walk'),frames:16},{clip:clip(leela,'Shoot'),frames:12}],8,mat(leela.model));enhanceVillain([heavy.mesh.material as T.Material],VILLAIN_LOOKS.elite);
@@ -75,8 +78,34 @@ async function crowd(){
  tick=t=>{runners.begin();for(let r=0;r<5;r++)for(let c=0;c<8;c++)runners.add(-3.3+c*.95,0,-2-r*2.05+((t*1.5)%2.05),0,1,0,t*1.0+((r*8+c)*.37)%1,(r*8+c)%13===0&&Math.sin(t*8)>0?1:0);runners.end();
   heavy.begin();heavy.add(-2.6,0,-14,0,1.6,1,t*1.6);heavy.add(2.6,0,-14,0,1.6,0,t);heavy.end();};
 }
+async function heroes(){
+ camera.position.set(0,3.6,10.5);camera.lookAt(0,1,0);
+ const files=['Mech','Mech-4UvIHxnoSR','Mech-D5wW2jDO42','Mech-o3Ps8z8ByP','Astronaut','Astronaut-0D54W8yfrA','Astronaut-OgeSH89Nmx'];const loader=new GLTFLoader();const mixers:T.AnimationMixer[]=[];const info:Record<string,string>={};
+ const all=await Promise.all(files.map(f=>loader.loadAsync('../_review/heroes/'+f+'.glb')));
+ all.forEach((g,i)=>{const m=g.scene;const box=new T.Box3().setFromObject(m),h=box.max.y-box.min.y,k=(i<4?2.2:1.6)/h;m.scale.setScalar(k);m.position.set(-6.6+i*2.2,-box.min.y*k,i<4?0:-2.5);m.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;}});scene.add(m);
+  info[files[i]]=g.animations.map(a=>a.name).join(',');const mx=new T.AnimationMixer(m);const c=g.animations.find(a=>/run/i.test(a.name))??g.animations[0];if(c)mx.clipAction(c).play();mixers.push(mx);});
+ (globalThis as any).probe=()=>info;let last=0;tick=t=>{const dt=t-last;last=t;mixers.forEach(m=>m.update(dt));};
+}
+async function soldier(){
+ camera.position.set(0,2.2,6.5);camera.lookAt(0,1,0);
+ const base='../_review/soldier/',fbx=await new FBXLoader().loadAsync(base+'Mesh.fbx');const info:any={anims:fbx.animations.map(a=>a.name),meshes:[] as string[],bones:0};
+ fbx.traverse((o:any)=>{if(o.isMesh)info.meshes.push(o.name+(o.isSkinnedMesh?'*':'')+':'+o.geometry.getAttribute('position').count);if(o.isBone)info.bones++;});
+ const skins=['FederalSoldierSkin','MilitarySkin','EvilSkin'],tga=new TGALoader(),tl=new T.TextureLoader();
+ const mats=await Promise.all(skins.map(async k=>{const map=await tga.loadAsync(base+k+'_Albedo.tga');map.colorSpace=T.SRGBColorSpace;const nm=await tl.loadAsync(base+k+'_NormalMap.png');const em=await tl.loadAsync(base+k+'_Emission.png');em.colorSpace=T.SRGBColorSpace;return new T.MeshStandardMaterial({map,normalMap:nm,emissiveMap:em,emissive:new T.Color(1,1,1),metalness:.6,roughness:.45});}));
+ const box=new T.Box3().setFromObject(fbx),k=1.9/(box.max.y-box.min.y);
+ for(let i=0;i<3;i++){const c=i===0?fbx:(await new FBXLoader().loadAsync(base+'Mesh.fbx'));c.scale.setScalar(k);c.position.set(-1.6+i*1.6,-box.min.y*k,0);c.traverse((o:any)=>{if(o.isMesh){o.material=mats[i];o.castShadow=true;}});scene.add(c);}
+ (globalThis as any).probe=()=>info;
+}
+/** Tooling: FBX -> compact GLB keeping only the clips the game bakes. ?set=export&name=Stan */
+async function exportMech(){
+ const name=new URLSearchParams(location.search).get('name')!;const fbx=await new FBXLoader().loadAsync('mechs/'+name+'.fbx');
+ const keep=['Walk','Run','Shoot'].map(n=>fbx.animations.find(a=>a.name==='RobotArmature|'+n)).filter(Boolean) as T.AnimationClip[];keep.forEach(c=>c.name=c.name.replace('RobotArmature|',''));
+ fbx.traverse((o:any)=>{if(o.isMesh)o.material=new T.MeshStandardMaterial({color:0xffffff});});
+ const glb=await new GLTFExporter().parseAsync(fbx,{binary:true,animations:keep,onlyVisible:false}) as ArrayBuffer;
+ const bytes=new Uint8Array(glb);let bin='';for(let i=0;i<bytes.length;i+=32768)bin+=String.fromCharCode(...bytes.subarray(i,i+32768));(globalThis as any).probe=()=>btoa(bin);
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;

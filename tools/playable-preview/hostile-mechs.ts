@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
 /** Quaternius Animated Mech Pack (CC0, assets/originals/quaternius-animated-mech-pack)
  * repainted into the Iron Front hostile livery: teal/green armour becomes crimson,
@@ -19,7 +19,8 @@ export function hostileLivery(image:CanvasImageSource&{width:number;height:numbe
 }
 
 export async function loadHostileMech(name:HostileMechName,base='mechs/'){
- const [model,img]=await Promise.all([new FBXLoader().loadAsync(base+name+'.fbx'),new T.ImageLoader().loadAsync(base+name+'_Texture.png')]);
+ // Compact GLBs (Walk/Run/Shoot only) exported from the CC0 FBX sources: assets/exports/<name>-hostile-mech.glb.
+ const [gltf,img]=await Promise.all([new GLTFLoader().loadAsync(base+name.toLowerCase()+'-hostile-mech.glb'),new T.ImageLoader().loadAsync(base+name+'_Texture.png')]);const model=gltf.scene;model.animations=gltf.animations;
  const map=hostileLivery(img);
  model.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;o.material=new T.MeshStandardMaterial({map,metalness:.55,roughness:.48});}});
  // FBX exports from Blender come in centimetres; normalise to ~2.6 units tall.
