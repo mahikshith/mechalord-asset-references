@@ -79,6 +79,17 @@ public:
 	UPROPERTY(EditAnywhere, Category="Iron|Melee")
 	float MeleeCooldown = 0.45f;
 
+	/** Phone-friendly assist: aim snaps to the nearest enemy in 45-degree steps when no aim input is held */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Iron|Weapon")
+	bool bAutoAim = false;
+
+	/** With auto-aim, fire whenever a target is in range */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Iron|Weapon")
+	bool bAutoFire = false;
+
+	UPROPERTY(EditAnywhere, Category="Iron|Weapon")
+	float AutoAimRange = 1500.0f;
+
 	// ---- state read by the animation instance and UI ----------------------------------------
 
 	UPROPERTY(BlueprintReadOnly, Category="Iron|State")
@@ -143,6 +154,8 @@ protected:
 	virtual void FellOutOfWorld(const class UDamageType& DmgType) override;
 
 	void UpdateAim();
+	AActor* FindAutoAimTarget() const;
+	bool bGodMode = false;
 	void UpdateSwim(float DeltaSeconds);
 	void FireShot();
 	FVector MuzzleLocation(const FVector& AimDir) const;

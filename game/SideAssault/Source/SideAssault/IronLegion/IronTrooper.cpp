@@ -2,6 +2,9 @@
 #include "IronProjectile.h"
 #include "IronWaterZone.h"
 #include "IronLevelInfo.h"
+#include "IronEnemy.h"
+#include "IronFX.h"
+#include "IronCameraManager.h"
 #include "EngineUtils.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -314,8 +317,62 @@ void AIronTrooper::Tick(float DeltaSeconds)
 	}
 }
 
+AActor* AIronTrooper::FindAutoAimTarget() const
+{
+	AActor* Best = nullptr;
+	float BestScore = TNumericLimits<float>::Max();
+	const FVector Me = GetActorLocation();
+	for (TActorIterator<AIronEnemy> It(GetWorld()); It; ++It)
+	{
+		if (It->bDead)
+		{
+			continue;
+		}
+		const FVector D = It->GetActorLocation() - Me;
+		const float Dist = D.Size();
+		if (Dist > AutoAimRange)
+		{
+			continue;
+		}
+		// prefer what is in front, then what is close
+		const float Behind = (FMath::Sign(D.X) != GetFacing() && FMath::Abs(D.X) > 60.0f) ? 600.0f : 0.0f;
+		if (Dist + Behind < BestScore)
+		{
+			BestScore = Dist + Behind;
+			Best = *It;
+		}
+	}
+	return Best;
+}
+
 void AIronTrooper::UpdateAim()
 {
+	if (bAutoAim && !bAimUpHeld && !bDownHeld)
+	{
+		if (AActor* Target = FindAutoAimTarget())
+		{
+			const FVector D = Target->GetActorLocation() - GetActorLocation();
+			if (FMath::Abs(ActionValueY) < 0.2f && FMath::Abs(D.X) > 40.0f)
+			{
+				SetActorRotation(FRotator(0.0f, D.X > 0.0f ? 0.0f : 180.0f, 0.0f));
+			}
+			// snap to the nearest of the 8 Contra directions
+			const float Raw = FMath::RadiansToDegrees(FMath::Atan2(D.Z, FMath::Abs(D.X) * (FMath::Sign(D.X) == GetFacing() ? 1.0f : -1.0f)));
+			float Snapped = FMath::RoundToFloat(Raw / 45.0f) * 45.0f;
+			if (Snapped > 90.0f) Snapped = 90.0f;
+			if (Snapped < -90.0f) Snapped = -90.0f;
+			AimPitch = Snapped;
+			if (bAutoFire)
+			{
+				bFiring = true;
+			}
+			return;
+		}
+		if (bAutoFire)
+		{
+			bFiring = false;
+		}
+	}
 	const bool bGrounded = GetCharacterMovement()->IsMovingOnGround();
 	const bool bMoving = FMath::Abs(ActionValueY) >= 0.2f;
 	float Target = 0.0f;
@@ -361,6 +418,8 @@ void AIronTrooper::UpdateSwim(float DeltaSeconds)
 	{
 		// splash down: kill most of the fall speed and start floating
 		bInWater = true;
+		UIronFX::Sound(this, TEXT("SFX_Splash"), GetActorLocation(), 0.8f, 1.0f);
+		UIronFX::Impact(this, FVector(GetActorLocation().X, GetActorLocation().Y, Water->GetSurfaceZ()), FLinearColor(0.6f, 0.75f, 0.8f), false);
 		Move->SetMovementMode(MOVE_Flying);
 		Move->Velocity.Z *= 0.25f;
 	}
@@ -399,7 +458,13 @@ void AIronTrooper::DoJumpStart()
 
 FVector AIronTrooper::MuzzleLocation(const FVector& AimDir) const
 {
-	const float Height = bIsCrouched ? 18.0f : (bInWater ? 40.0f : 52.0f);
+	// rounds leave from the rifle barrel: the gun hand plus the barrel length along the aim
+	const FVector Hand = GetMesh()->GetBoneLocation(WeaponBone);
+	if (!Hand.IsNearlyZero())
+	{
+		return FVector(Hand.X, GetActorLocation().Y, Hand.Z + 6.0f) + AimDir * 58.0f;
+	}
+	const float Height = bIsCrouched ? 18.0f : (bInWater ? 40.0f : 60.0f);
 	return GetActorLocation() + FVector(GetFacing() * 28.0f, 0.0f, Height) + AimDir * 62.0f;
 }
 
@@ -421,18 +486,37 @@ void AIronTrooper::FireShot()
 		Round->Damage = BulletDamage;
 		Round->Fire(AimDir, BulletSpeed, this);
 	}
+	UIronFX::MuzzleFlash(this, Start, AimDir, FLinearColor(1.0f, 0.62f, 0.25f), false);
+	UIronFX::Sound(this, TEXT("SFX_RifleShot"), Start, 0.4f, 1.0f);
 }
 
 // ------------------------------------------------------------------------------------- health
 
 float AIronTrooper::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	if (DamageCauser && (DamageCauser == this || DamageCauser->GetOwner() == this))
+	{
+		return 0.0f;
+	}
+	if (bGodMode)
+	{
+		LastHurtTime = GetWorld()->GetTimeSeconds();
+		return 0.0f;
+	}
 	if (IsInvulnerable() || Damage <= 0.0f)
 	{
 		return 0.0f;
 	}
 	Health = FMath::Max(0.0f, Health - Damage);
 	LastHurtTime = GetWorld()->GetTimeSeconds();
+	UIronFX::Sound(this, TEXT("SFX_Hurt"), GetActorLocation(), 0.8f, 1.0f);
+	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (AIronCameraManager* Cam = Cast<AIronCameraManager>(PC->PlayerCameraManager))
+		{
+			Cam->AddTrauma(0.35f);
+		}
+	}
 	const float Away = DamageCauser ? FMath::Sign(GetActorLocation().X - DamageCauser->GetActorLocation().X) : -GetFacing();
 	LaunchCharacter(FVector((Away == 0.0f ? -GetFacing() : Away) * 380.0f, 0.0f, 320.0f), true, true);
 	if (Health <= 0.0f)
@@ -509,6 +593,49 @@ void AIronTrooper::RunAutopilot(float DeltaSeconds)
 		if (T > 1.9f)
 		{
 			UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
+		}
+		return;
+	}
+
+	if (FParse::Param(FCommandLine::Get(), TEXT("IronFight")))
+	{
+		bAutoAim = true;
+		bAutoFire = true;
+		bGodMode = FParse::Param(FCommandLine::Get(), TEXT("IronGod"));
+		// advance with short stops to shoot; climb whatever blocks the way (jump, then double jump)
+		const float Phase = FMath::Fmod(T, 3.2f);
+		const bool bAdvance = Phase < 2.2f;
+		if (bAdvance) DoMove(1.0f); else ActionValueY = 0.0f;
+		static float Stuck = 0.0f;
+		Stuck = (bAdvance && FMath::Abs(GetVelocity().X) < 40.0f) ? Stuck + DeltaSeconds : 0.0f;
+		if (bInWater || Stuck > 0.2f)
+		{
+			DoJumpStart();
+			Stuck = -0.35f;
+		}
+		else if (Stuck < -0.05f && Stuck > -0.1f && GetCharacterMovement()->IsFalling())
+		{
+			DoJumpStart();  // second press = double jump
+		}
+		if (GetCharacterMovement()->IsFalling() && GetVelocity().Z < 0.0f)
+		{
+			DoJumpEnd();
+		}
+		float Seconds = 20.0f;
+		FParse::Value(FCommandLine::Get(), TEXT("IronSeconds="), Seconds);
+		FString FightDir;
+		if (FParse::Value(FCommandLine::Get(), TEXT("IronCapture="), FightDir))
+		{
+			CaptureAccum += DeltaSeconds;
+			if (CaptureAccum >= 1.0f / 12.0f)
+			{
+				CaptureAccum = 0.0f;
+				FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("%s/frame_%04d.png"), *FightDir, CaptureFrame++), false, false);
+			}
+			if (T > Seconds)
+			{
+				UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
+			}
 		}
 		return;
 	}

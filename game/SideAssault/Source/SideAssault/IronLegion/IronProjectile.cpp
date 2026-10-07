@@ -7,6 +7,8 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/StaticMesh.h"
+#include "DrawDebugHelpers.h"
+#include "IronFX.h"
 
 AIronProjectile::AIronProjectile()
 {
@@ -64,6 +66,19 @@ void AIronProjectile::Fire(const FVector& Direction, float Speed, AActor* Shoote
 	Movement->Activate(true);
 }
 
+void AIronProjectile::FireWithVelocity(const FVector& Velocity, float GravityScale, AActor* Shooter)
+{
+	SetOwner(Shooter);
+	SetInstigator(Cast<APawn>(Shooter));
+	Collision->IgnoreActorWhenMoving(Shooter, true);
+	Movement->ProjectileGravityScale = GravityScale;
+	Movement->Velocity = FVector(Velocity.X, 0.0f, Velocity.Z);
+	SetLifeSpan(4.0f);
+	Tracer->SetRelativeScale3D(FVector(0.18f, 0.18f, 0.22f));
+	Glow->SetIntensity(6000.0f);
+	Movement->Activate(true);
+}
+
 void AIronProjectile::SetTracerColor(const FLinearColor& Color)
 {
 	Glow->SetLightColor(Color);
@@ -102,6 +117,19 @@ void AIronProjectile::Impact(AActor* Other, const FHitResult& Hit)
 	{
 		return;
 	}
+	if (ExplosionRadius > 0.0f)
+	{
+		TArray<AActor*> Ignore;
+		if (GetOwner())
+		{
+			Ignore.Add(GetOwner());
+		}
+		UGameplayStatics::ApplyRadialDamage(this, Damage, GetActorLocation(), ExplosionRadius, nullptr, Ignore, this, GetInstigatorController(), true);
+		UIronFX::Explosion(this, GetActorLocation(), ExplosionRadius, true);
+		Destroy();
+		return;
+	}
+	UIronFX::Impact(this, Hit.ImpactPoint.IsNearlyZero() ? GetActorLocation() : FVector(Hit.ImpactPoint), Glow->GetLightColor(), false);
 	if (Other && Other != GetOwner())
 	{
 		UGameplayStatics::ApplyPointDamage(Other, Damage, GetVelocity().GetSafeNormal(), Hit, GetInstigatorController(), this, nullptr);

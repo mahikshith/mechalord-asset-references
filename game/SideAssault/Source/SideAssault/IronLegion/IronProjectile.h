@@ -38,8 +38,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile")
 	float Damage = 1.0f;
 
+	/** Splash radius on impact (0 = a plain bullet) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile")
+	float ExplosionRadius = 0.0f;
+
 	/** Launches the round along a direction on the XZ plane */
 	void Fire(const FVector& Direction, float Speed, AActor* Shooter);
+
+	/** Launches a ballistic round (shells, grenades) with an explicit velocity and gravity scale */
+	void FireWithVelocity(const FVector& Velocity, float GravityScale, AActor* Shooter);
 
 	/** Tints the tracer (player rounds warm, enemy rounds red) */
 	void SetTracerColor(const FLinearColor& Color);
