@@ -5,6 +5,7 @@ import {plasmaBeamGeometry,plasmaBeamMaterial,beamFilamentPoint} from './plasma-
 import {rustTrooperParts} from './rust-trooper';
 
 /** These classes render combat already decided by the simulation. They never deal damage. */
+const TRAIL_POOL=720;
 function standard(color:number){return new T.MeshStandardMaterial({color,roughness:.67,metalness:.36});}
 function basic(color:number,opacity=1){return new T.MeshBasicMaterial({color,transparent:opacity<1,opacity,depthWrite:opacity===1});}
 function pool(scene:T.Scene,geometry:T.BufferGeometry,material:T.Material,capacity:number){
@@ -462,7 +463,7 @@ export class CombatMissiles {
   private color=new T.Color();readonly capacity=768;
   private beamShells:T.InstancedMesh;private beamCores:T.InstancedMesh;private hostileLaunchZ=new Map<number,HostileLaunch>();
   private hostileShells:T.InstancedMesh;private hostileTips:T.InstancedMesh;
-  private trails:T.InstancedMesh;private hotTrails:T.InstancedMesh;private shellStreaks:T.InstancedMesh;private trailParticles:MissileTrail[]=Array.from({length:192},()=>({p:new T.Vector3(),life:0,color:new T.Color(),size:0,max:.18,hot:false,enemy:true}));private trailIndex=0;
+  private trails:T.InstancedMesh;private hotTrails:T.InstancedMesh;private shellStreaks:T.InstancedMesh;private trailParticles:MissileTrail[]=Array.from({length:TRAIL_POOL},()=>({p:new T.Vector3(),life:0,color:new T.Color(),size:0,max:.18,hot:false,enemy:true}));private trailIndex=0;
   private beamFlow:T.InstancedMesh;private beamContact:T.InstancedMesh;private beamEmitter:T.InstancedMesh;private beamSheath:T.InstancedMesh;private beamCorona:T.InstancedMesh;private beamGround:T.InstancedMesh;private beamLight:T.PointLight;
   private clock=0;private hostileClock=0;private plasmaTime={value:0};private beamLightning:T.InstancedMesh;
   private friendlyPaths:FriendlyPath[]=[];private previousTime?:number;
@@ -489,8 +490,8 @@ export class CombatMissiles {
     this.beamCores=pool(scene,plasmaBeamGeometry(.24,16),new T.MeshBasicMaterial({color:0xffd4a6,transparent:true,opacity:.91,depthWrite:false,toneMapped:false}),4);this.beamCores.name='Colossus_WhiteHotCore';
     this.wakes=pool(scene,new T.CapsuleGeometry(.05,.75,2,6).rotateX(Math.PI/2).translate(0,0,-.62),new T.MeshBasicMaterial({color:new T.Color(2.4,2.4,2.4),transparent:true,opacity:.62,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),this.capacity);
     const trailMaterial=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.38,depthWrite:false,toneMapped:false});
-    trailMaterial.dispose();this.trails=pool(scene,new T.PlaneGeometry(2,2),combustionMaterial(this.plasmaTime,true),192);this.trails.geometry.setAttribute('instanceOpacity',new T.InstancedBufferAttribute(new Float32Array(192),1));
-    this.hotTrails=pool(scene,new T.PlaneGeometry(2,2),combustionMaterial(this.plasmaTime,false),192);this.hotTrails.geometry.setAttribute('instanceOpacity',new T.InstancedBufferAttribute(new Float32Array(192),1));
+    trailMaterial.dispose();this.trails=pool(scene,new T.PlaneGeometry(2,2),combustionMaterial(this.plasmaTime,true),TRAIL_POOL);this.trails.geometry.setAttribute('instanceOpacity',new T.InstancedBufferAttribute(new Float32Array(192),1));
+    this.hotTrails=pool(scene,new T.PlaneGeometry(2,2),combustionMaterial(this.plasmaTime,false),TRAIL_POOL);this.hotTrails.geometry.setAttribute('instanceOpacity',new T.InstancedBufferAttribute(new Float32Array(192),1));
     this.shellStreaks=pool(scene,new T.CapsuleGeometry(.035,.40,2,6).rotateX(Math.PI/2).translate(0,0,-.42),new T.MeshBasicMaterial({color:0xffa651,transparent:true,opacity:.48,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),96);
     this.beamFlow=pool(scene,new T.CylinderGeometry(.5,.5,1,5).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.48,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),48);instanceFade(this.beamFlow,48);
     // The beam terminates on the road at its existing simulated far endpoint. Sparks spray above this contact.
@@ -560,11 +561,14 @@ export class CombatMissiles {
     }
     for(const id of this.hostileLaunchZ.keys())if(!live.has(id))this.hostileLaunchZ.delete(id);
     changed(this.bodies,count);changed(this.exhaust,count);changed(this.orbs,orbCount);changed(this.orbCores,orbCount);changed(this.bullets,bulletCount);changed(this.tips,bulletCount);changed(this.wakes,wakeCount);changed(this.hostileShells,shellCount);changed(this.hostileTips,shellCount);changed(this.shellStreaks,shellCount);
-    let trailCount=0,hotCount=0;for(const particle of this.trailParticles){if(particle.life<=0)continue;const progress=1-particle.life/particle.max,mesh=particle.hot?this.hotTrails:this.trails,index=particle.hot?hotCount++:trailCount++;this.dummy.position.copy(particle.p);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(particle.size*(particle.hot?1-progress*.55:1+progress*1.7));this.dummy.updateMatrix();mesh.setMatrixAt(index,this.dummy.matrix);mesh.setColorAt(index,particle.color);mesh.geometry.getAttribute('instanceOpacity').setX(index,particle.life/particle.max);}changed(this.trails,trailCount);changed(this.hotTrails,hotCount);
+    let trailCount=0,hotCount=0;for(const particle of this.trailParticles){if(particle.life<=0)continue;const progress=1-particle.life/particle.max,mesh=particle.hot?this.hotTrails:this.trails,index=particle.hot?hotCount++:trailCount++;this.dummy.position.copy(particle.p);this.dummy.rotation.set(0,0,0);if(!particle.hot)particle.p.y+=(options.dt??0)*.55*(1-progress);this.dummy.scale.setScalar(particle.size*(particle.hot?1-progress*.45:1+progress*3.2));this.dummy.updateMatrix();mesh.setMatrixAt(index,this.dummy.matrix);mesh.setColorAt(index,particle.color);mesh.geometry.getAttribute('instanceOpacity').setX(index,particle.life/particle.max);}changed(this.trails,trailCount);changed(this.hotTrails,hotCount);
     this.updateBeams(options);
   }
   private leaveTrail(position:T.Vector3,direction:T.Vector3,enemy:boolean,color:number){
-    for(const hot of [true,false]){const particle=this.trailParticles[this.trailIndex++%192];particle.p.copy(position).addScaledVector(direction,hot?-.90:-1.15);particle.life=particle.max=hot?.18:.42;particle.size=hot?.14:.12;particle.hot=hot;particle.enemy=enemy;particle.color.set(hot?color:0x66737a);}
+    // Heavier exhaust: a hot flame core, a flickering fire plume and two billowing smoke puffs per frame.
+    for(const kind of [0,1,2,2]){const hot=kind<2,particle=this.trailParticles[this.trailIndex++%TRAIL_POOL],j=(Math.random()-.5)*.12;particle.p.copy(position).addScaledVector(direction,kind===0?-.85:kind===1?-1.05:-1.2-Math.random()*.3);particle.p.x+=j;particle.p.y+=j;
+      particle.life=particle.max=kind===0?.16:kind===1?.32:.9+Math.random()*.6;particle.size=kind===0?.15:kind===1?.26:.24+Math.random()*.1;particle.hot=hot;particle.enemy=enemy;
+      if(kind===0)particle.color.set(0xfff1c8);else if(kind===1)particle.color.set(color);else{const g=.32+Math.random()*.22;particle.color.setRGB(g,g*1.02,g*1.06);}}
   }
   private updateBeams(options:MissileOptions){
     let count=0,flow=0,emitters=0,sparks=0,corona=0,lightning=0;this.beamLight.visible=false;

@@ -41,12 +41,12 @@ test('posed muzzle height is cached once and descends smoothly instead of fading
 
 test('stationary and frozen missiles do not manufacture smoke samples',()=>{
   missiles.reset();missiles.update([],[rocket],options);for(let i=1;i<=30;i++)missiles.update([],[rocket],{...options,simulationTime:1+i*.05});assert.equal(missiles.trails.count,0);
-  const moving={...rocket,z:9.5};missiles.update([],[moving],{...options,simulationTime:2.6});assert.equal(missiles.trails.count,1);const ages=missiles.trailParticles.map(p=>p.life),clock=missiles.hostileClock;
-  for(let i=1;i<=30;i++)missiles.update([],[moving],{...options,hostileRate:0,simulationTime:2.6+i*.05});assert.deepEqual(missiles.trailParticles.map(p=>p.life),ages);assert.equal(missiles.hostileClock,clock);assert.equal(missiles.trails.count,1);
+  const moving={...rocket,z:9.5};missiles.update([],[moving],{...options,simulationTime:2.6});assert.equal(missiles.trails.count,2);const ages=missiles.trailParticles.map(p=>p.life),clock=missiles.hostileClock;
+  for(let i=1;i<=30;i++)missiles.update([],[moving],{...options,hostileRate:0,simulationTime:2.6+i*.05});assert.deepEqual(missiles.trailParticles.map(p=>p.life),ages);assert.equal(missiles.hostileClock,clock);assert.equal(missiles.trails.count,2);
 });
-test('moving missile trails fade shortly and remain inside 192 slots',()=>{
-  missiles.reset();for(let frame=0;frame<30;frame++)missiles.update([],Array.from({length:120},(_,id)=>({...rocket,id,z:10-frame*.15})),{...options,simulationTime:1+frame*.05});assert(missiles.trails.count>0);assert(missiles.trails.count<=192);assert(missiles.hostileLaunchZ.size<=96);
-  for(let i=0;i<10;i++)missiles.update([],[],{...options,simulationTime:3+i*.05});assert.equal(missiles.trails.count,0);assert.equal(missiles.hostileLaunchZ.size,0);
+test('moving missile trails fade shortly and remain inside 720 slots',()=>{
+  missiles.reset();for(let frame=0;frame<30;frame++)missiles.update([],Array.from({length:120},(_,id)=>({...rocket,id,z:10-frame*.15})),{...options,simulationTime:1+frame*.05});assert(missiles.trails.count>0);assert(missiles.trails.count<=720);assert(missiles.hostileLaunchZ.size<=96);
+  for(let i=0;i<40;i++)missiles.update([],[],{...options,simulationTime:3+i*.05});assert.equal(missiles.trails.count,0);assert.equal(missiles.hostileLaunchZ.size,0);
 });
 test('beam buildup stays at actual core and cannot show a damaging beam early',()=>{
   missiles.reset();const socket=new T.Vector3(.4,5,-11);missiles.update([],[],{...options,emitters:{core:socket},bossCharging:true,bossCharge:.8});assert.equal(missiles.beamEmitter.count,1);assert(position(missiles.beamEmitter).distanceTo(socket)<1e-6);assert.equal(missiles.beamShells.count,0);assert.equal(missiles.beamContact.count,0);
@@ -93,9 +93,9 @@ test('electrical lightning branches span the full active beam and freeze exactly
   missiles.update([],[],{...opts,lasers:Array.from({length:9},(_,id)=>({...beam,id})),simulationTime:1.3});assert.equal(missiles.beamLightning.count,144);missiles.reset();assert.equal(missiles.beamLightning.count,0);
 });
 test('commander rockets and hostile rockets leave distinct hot tails only on displacement',()=>{
-  missiles.reset();const shot={x:0,z:1,dx:0,dz:20,kind:'missile',owner:'commander',heavy:true};missiles.update([shot],[],options);missiles.update([{...shot,z:2}],[],{...options,simulationTime:1.05});assert.equal(missiles.hotTrails.count,1);assert.equal(missiles.trails.count,1);const color=new T.Color();missiles.hotTrails.getColorAt(0,color);assert(color.r>color.b);
+  missiles.reset();const shot={x:0,z:1,dx:0,dz:20,kind:'missile',owner:'commander',heavy:true};missiles.update([shot],[],options);missiles.update([{...shot,z:2}],[],{...options,simulationTime:1.05});assert.equal(missiles.hotTrails.count,2);assert.equal(missiles.trails.count,2);const color=new T.Color();missiles.hotTrails.getColorAt(0,color);assert(color.r>color.b);
   const clock=missiles.hostileClock;missiles.update([{...shot,z:3}],[],{...options,simulationTime:1.1,hostileRate:0});assert.equal(missiles.hostileClock,clock);assert(missiles.hotTrails.count>=1);assert(missiles.trailParticles.filter(p=>p.life>0).every(p=>!p.enemy));
-  missiles.reset();missiles.update([],[rocket],options);missiles.update([],[{...rocket,z:9.5}],{...options,simulationTime:1.05});assert.equal(missiles.hotTrails.count,1);assert.equal(missiles.trails.count,1);assert(missiles.trailParticles.filter(p=>p.life>0).every(p=>p.enemy));assert(missiles.hotTrails.material.transparent);assert(!missiles.hotTrails.material.depthWrite);
+  missiles.reset();missiles.update([],[rocket],options);missiles.update([],[{...rocket,z:9.5}],{...options,simulationTime:1.05});assert.equal(missiles.hotTrails.count,2);assert.equal(missiles.trails.count,2);assert(missiles.trailParticles.filter(p=>p.life>0).every(p=>p.enemy));assert(missiles.hotTrails.material.transparent);assert(!missiles.hotTrails.material.depthWrite);
 });
 test('solid bullets and actual shell streaks remain bounded, separate and readable',()=>{
   missiles.reset();missiles.update(Array.from({length:900},(_,i)=>({x:i%8,z:3,dx:0,dz:32,kind:'pulse',owner:i%2?'commander':'troop',heavy:false})),Array.from({length:120},(_,id)=>({...rocket,id,kind:'shell',radius:.58})),options);assert.equal(missiles.bullets.count,768);assert.equal(missiles.wakes.count,768);assert.equal(missiles.hostileShells.count,96);assert.equal(missiles.shellStreaks.count,96);missiles.bullets.geometry.computeBoundingBox();assert(missiles.bullets.geometry.boundingBox.getSize(new T.Vector3()).z>.49);assert.equal(missiles.shellStreaks.geometry.type,'CapsuleGeometry');missiles.reset();assert.equal(missiles.shellStreaks.count,0);assert.equal(missiles.hotTrails.count,0);
