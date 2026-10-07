@@ -101,6 +101,13 @@ export class Battlefield{
    const floor=new T.Mesh(new T.PlaneGeometry(3,.32),new T.MeshBasicMaterial({color:positive?0x45dfff:0xff7556,transparent:true,opacity:.65,side:T.DoubleSide}));floor.rotation.x=-Math.PI/2;floor.position.y=.045;group.add(floor);group.userData.gateTint=[blue,panel.material,floor.material];
   }else if(t.kind==='orb'){
    rotor=createPickup(powerKind(t.value),true);group.add(rotor);badge.sprite.position.y=2.65;
+  }else if(t.kind==='crate'&&t.variant===7){
+   // Topple pillar: a cracked reactor column in hazard paint; its cracks glow hotter as it weakens.
+   const col=new T.Group();col.name='TopplePillar';const shaft=mat(0x3b4148);shaft.metalness=.6;shaft.roughness=.45;
+   const sh=new T.Mesh(new T.CylinderGeometry(.62,.78,5.2,24),shaft);sh.position.y=2.6;sh.castShadow=true;col.add(sh);
+   const stripe=new T.MeshStandardMaterial({color:0xffb21e,emissive:0x3a2500,roughness:.5});for(const y of [.4,4.9]){const r=new T.Mesh(new T.CylinderGeometry(.86,.86,.36,24),stripe);r.position.y=y;col.add(r);}
+   const crack=new T.MeshBasicMaterial({color:new T.Color(2.4,.7,.15),toneMapped:false});for(let i=0;i<5;i++){const c=new T.Mesh(new T.BoxGeometry(.05,.9+Math.random()*.7,.02),crack);const a2=Math.random()*Math.PI*2;c.position.set(Math.cos(a2)*.7,1.3+i*.75,Math.sin(a2)*.7);c.rotation.set(0,-a2,(Math.random()-.5)*.8);col.add(c);}
+   col.userData.crack=crack;group.add(col);group.userData.pillar=col;badge.sprite.position.y=5.9;
   }else if(t.kind==='crate'&&this.supplyCrate&&this.supplyHolo){
    const crateBody=this.supplyCrate.clone(true);crateBody.traverse(o=>{o.userData.sharedGeometry=true;});group.add(crateBody);rotor=new T.Group();rotor.position.y=2.3;group.add(rotor);
    const holo=new T.Mesh(this.supplyHolo,new T.MeshBasicMaterial({color:new T.Color(.5,1.6,2.2),transparent:true,opacity:.7,blending:T.AdditiveBlending,depthWrite:false,toneMapped:false}));holo.userData.sharedGeometry=true;rotor.add(holo);
@@ -150,6 +157,7 @@ export class Battlefield{
   if(e.kind==='damage'){this.shake=.12;this.float('-'+Math.abs(e.value),e.x,z,'#ff8469',2,true);}
   if(e.kind==='bossShot'){this.bossFireKick=.3;this.shake=.07;}
   if(e.kind==='commanderHit'){this.commanderHitKick=.35;this.fx.impact(e.x,1.3,z,1.2);this.shake=.2;this.float('-'+Math.abs(e.value)+' HP',e.x,z,'#ff8469',3.1,true);}
+  if(e.kind==='hazardBreak'&&e.variant===-7){this.topple(e.x,z);return;}
   if(e.kind==='hazardBreak'){this.punch(.05);this.destruction?.blast({x:e.x,z,radius:2.2,force:8});this.destruction?.crack(e.x,z,2.4);this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
   if(e.kind==='commanderDeath'&&!this.commanderExploded){this.scene.updateMatrixWorld(true);this.fx.commanderDeath(this.hero);this.commanderExploded=true;this.hero.visible=false;this.shake=.4;}
   if(e.kind==='retreat')this.hitNumbers.delete(e.entityId);
@@ -172,6 +180,12 @@ export class Battlefield{
  hitStop=0;slowFactor=1;
  punch(seconds:number){if(!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false))this.hitStop=Math.max(this.hitStop,seconds);}
  timeScale(dt:number){if(this.hitStop<=0){this.slowFactor=1;return dt;}this.hitStop-=dt;this.slowFactor=.12;return dt*.12;}
+ /** Pillar falls across the lane, then rips the deck along its length. */
+ topples:{obj:T.Group,t:number,x:number,z:number,dir:number,landed:boolean}[]=[];
+ topple(x:number,z:number){const dir=-Math.sign(x)||1,pivot=new T.Group();pivot.position.set(x,0,z);const shaft=new T.Mesh(new T.CylinderGeometry(.62,.78,6.6,20),new T.MeshStandardMaterial({color:0x3b4148,metalness:.6,roughness:.45}));shaft.position.y=3.3;shaft.castShadow=true;pivot.add(shaft);this.scene.add(pivot);this.topples.push({obj:pivot,t:0,x,z,dir,landed:false});this.shake=Math.max(this.shake,.15);}
+ updateTopples(dt:number){for(let i=this.topples.length-1;i>=0;i--){const p=this.topples[i];p.t+=dt;const k=Math.min(1,p.t/.55);p.obj.rotation.z=-p.dir*Math.PI/2*k*k;
+  if(k>=1&&!p.landed){p.landed=true;this.punch(.14);this.shake=Math.max(this.shake,.4);for(let s=0;s<7;s++){const cx=p.x+p.dir*(.8+s*.95);this.destruction?.crack(cx,p.z+(Math.random()-.5)*.6,2.2,0xff7a2a);this.fx.impact(cx,.4,p.z,1.4);}this.destruction?.blast({x:p.x+p.dir*3.3,z:p.z,radius:4.5,force:11});this.thunder?.strike(p.x+p.dir*3,p.z,0,.8);}
+  if(p.t>2.4){this.scene.remove(p.obj);p.obj.traverse((o:any)=>{if(o.isMesh){o.geometry.dispose();o.material.dispose();}});this.topples.splice(i,1);}}}
  weaponUpgrade(previous:number,next:number){return this.abilities.weaponUpgrade(previous,next);}
  get absorptionRemaining(){return this.absorption.timeRemaining;}
  beginAbsorption(choice:CoreChoice,s:Snapshot){const core=s.bossRegions?.find(r=>r.id==='core');this.absorption.begin(choice,new T.Vector3(core?.x??s.bossX,core?.y??s.bossY+4.31,core?-core.z:-s.bossZ),new T.Vector3(s.x,1.7,0));}
@@ -243,6 +257,8 @@ export class Battlefield{
     for(const m of v.group.userData.gateTint??[])m.color.set(t.value>=0?0x1dabc2:0xe94f38);
    }else if(t.kind==='orb'){
     const info=powers[powerKind(t.value)];v.badge.set(String(Math.ceil(t.hp)),info.color,info.short);v.bar.scale.x=Math.max(.02,t.hp/t.maxHp);if(v.rotor)updatePickup(v.rotor as T.Group,this.age,t.hit>0);
+   }else if(t.kind==='crate'&&t.variant===7){
+    const k=1-t.hp/t.maxHp;v.badge.set(String(Math.ceil(t.hp)),'#ff8a3a','SHOOT TO TOPPLE');v.bar.scale.x=Math.max(.02,t.hp/t.maxHp);v.bar.position.y=5.6;const pc=v.group.userData.pillar;if(pc){(pc.userData.crack as T.MeshBasicMaterial).color.setRGB(2.4+k*3,.7+k,.15);pc.rotation.z=(t.hit>0?.03:0)*Math.sign(-t.x);}
    }else if(t.kind==='crate'){
     v.badge.set(String(Math.ceil(t.hp)),'#ffc851','UPGRADE');v.bar.scale.x=Math.max(.02,t.hp/t.maxHp);if(v.rotor){v.rotor.rotation.y=this.age*.85;v.rotor.position.y=2.05+Math.sin(this.age*3)*.12;}
    }else if(t.kind==='hazard'){
@@ -296,7 +312,7 @@ export class Battlefield{
    for(const p of this.formationPositions.filter(p=>s.shots.some(shot=>shot.owner==='troop'&&Math.abs(shot.x-p.x)<.15&&shot.z+p.z>=0&&shot.z+p.z<1.2)).slice(0,8))this.fx.muzzle(p.x,.9,p.z-.3,false);
    this.lastMuzzle=this.age;if(s.shots.some(p=>p.owner!=='troop'&&p.z<2.8)){this.recoil=1;this.fx.muzzle(s.x,s.weaponPower==='guided'?2.08:s.weaponPower==='railburst'?1.8:s.weaponPower==='cannons'?1.42:1.35,-.85,false);}
   }
-  this.thunder?.update(renderDt);const impact=this.abilities.sceneImpact;this.renderer.toneMappingExposure=1.06+impact.exposureLift+(this.thunder?.flash??0)*.45;const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;this.armyZoom+=(T.MathUtils.clamp((s.army-8)/40,0,1)-this.armyZoom)*(1-Math.exp(-renderDt*1.2));const powerFov=(30+this.armyZoom*5)*(1-impact.zoom-(reduced?0:this.revival.cameraStrength));if(Math.abs(this.camera.fov-powerFov)>.0001){this.camera.fov=powerFov;this.camera.updateProjectionMatrix();}
+  this.thunder?.update(renderDt);this.updateTopples(renderDt);const impact=this.abilities.sceneImpact;this.renderer.toneMappingExposure=1.06+impact.exposureLift+(this.thunder?.flash??0)*.45;const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;this.armyZoom+=(T.MathUtils.clamp((s.army-8)/40,0,1)-this.armyZoom)*(1-Math.exp(-renderDt*1.2));const powerFov=(30+this.armyZoom*5)*(1-impact.zoom-(reduced?0:this.revival.cameraStrength));if(Math.abs(this.camera.fov-powerFov)>.0001){this.camera.fov=powerFov;this.camera.updateProjectionMatrix();}
   this.fx.update(renderDt);
   for(let i=this.floating.length-1;i>=0;i--){const f=this.floating[i];f.life-=renderDt;f.y+=renderDt*1.6;f.badge.sprite.position.set(f.x,f.y,f.z);if(f.base===undefined)f.base=f.badge.sprite.scale.x;const pop=1+Math.max(0,f.life-.8)*3.2;f.badge.sprite.scale.set(f.base*pop,f.base*pop*160/384,1);f.badge.sprite.material.opacity=Math.min(1,f.life*3);if(f.life<=0){this.scene.remove(f.badge.sprite);f.badge.dispose();this.floating.splice(i,1);}}
   if(draw)this.quality.render();

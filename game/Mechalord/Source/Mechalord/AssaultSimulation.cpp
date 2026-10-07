@@ -517,7 +517,8 @@ void Battle::SpawnTimeline()
             case campaign::Kind::Gunner:SpawnRanged(E.x,E.hp,false,E.delay);break;
             case campaign::Kind::Battery:SpawnRanged(E.x,E.hp,true,E.delay);break;
             case campaign::Kind::Carrier:SpawnCarrier(E.x,E.hp,E.dropPower);for(auto& T:targets)if(T.active&&T.id==nextTargetId-1)T.dropAlternate=E.value;break;
-            case campaign::Kind::Crate:Spawn(Kind::Crate,E.x,40,E.hp,E.value,0,.55,-1);break;
+            // Campaign: supply crates became topple pillars at the lane edge (variant 7): shoot them down onto the enemy line.
+            case campaign::Kind::Crate:Spawn(Kind::Crate,E.x<0?-3.35:3.35,40,E.hp*2.4,E.value,0,.8,7);break;
             case campaign::Kind::Gate:Spawn(Kind::Gate,E.x<0?-1.8:1.8,40,0,E.value+4,0,1.2);Spawn(Kind::Gate,E.x<0?1.8:-1.8,40,0,E.variant==1?-E.value:E.value,0,1.2);break;
             case campaign::Kind::Roller:Spawn(Kind::Hazard,E.x,40,0,E.value,0,.85,0,E.motion);break;
             case campaign::Kind::Archetype:SpawnArchetype(E.variant,E.x,E.hp,E.delay);break;
@@ -1029,6 +1030,12 @@ void Battle::HitTarget(Target& T,double Damage,FriendlyKind WeaponKind,bool Igno
     Emit(EffectKind::Kill,T.x,T.z,Reward,T.id,T.variant,T.size);
     if(T.kind==Kind::Enemy && T.variant>0 && commanderHp<commanderMaxHp-15 && healthDropClock<=0){DropPickup(T.x,std::max(2.,T.z),PickupKind::Health,T.id);healthDropClock=12;}
     if(T.kind==Kind::Crate) AwardWeaponXP(timePower==TimePower::Haste?int(T.value*1.25):T.value);
+    if(campaign&&T.kind==Kind::Enemy) AwardWeaponXP(T.variant>0?5:1); // weapon XP now comes from kills
+    if(campaign&&T.kind==Kind::Crate&&T.variant==7)
+    {   // The pillar falls across the lane: everything in its band is crushed.
+        Emit(EffectKind::HazardBreak,T.x,T.z,0,T.id,-7,T.size);
+        for(auto& O:targets) if(O.active&&O.kind==Kind::Enemy&&O.hp>0&&std::abs(O.z-T.z)<1.8) HitTarget(O,O.hp,FriendlyKind::Arc,true);
+    }
     if(UsesSpatialBoss() && T.role==3)
     {
         if(T.dropPower>=8) { const auto A=static_cast<PickupKind>(T.dropPower); const auto B=static_cast<PickupKind>(T.dropAlternate>0?T.dropAlternate:8+(T.dropPower-7)%3);DropPickup(-2.,std::max(.9,T.z),A,T.id,T.id);DropPickup(2.,std::max(.9,T.z),B,T.id,T.id); }

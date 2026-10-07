@@ -2,10 +2,10 @@
   "schema": 4,
   "scope": "Actual continuous-travel Assault browser adapter/current WASM. Automated normal controls; no Unreal, physical-device or first-time-player validation.",
   "binary": "C:\\Users\\30025722\\Music\\Iron legion\\delivery\\playable\\assault.wasm",
-  "bytes": 1914156,
-  "sha256": "a60e6202b8779a3e190327f47615ec99614bbebebd219bb0e934e948a196fb4f",
+  "bytes": 1914832,
+  "sha256": "957a30a842766045412e993dbd83942e58852eda562d72b747fedcec5c50a27f",
   "memoryBytes": 1376256,
-  "testedAt": "2026-10-07T10:36:12.563Z",
+  "testedAt": "2026-10-07T11:04:43.640Z",
   "winningRuns": [
     {
       "level": 0,
