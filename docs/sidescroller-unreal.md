@@ -38,3 +38,12 @@ Started 7–8 October 2026 on the user's personal laptop, branch `claude/project
 - Look: dusk dockyard (slice 1), industrial silhouettes only (no triangular spires). Very high art bar, no childish assets.
 - Enemies: Mech pack George (Lancer), Mike (Bulwark), Stan (Raider), Leela (Sentry); Eye drone (Watcher), Quad shell (Scuttler), Trilobite (Wallrunner). Evil trooper rejected. Each gets its own behaviour, weight, hit reacts and a break-apart death; shared Tyrant-red paint.
 - Later: jetpack (short burst, upgradable duration), store/followers, Android packaging. iOS parked.
+
+## Level, enemies and effects (8 October 2026)
+
+- Level: `/Game/IronLegion/Maps/Lvl_FoundryDocks` built by `tools/unreal/build_docks_level.py` (run in the full editor: `UnrealEditor.exe <uproject> -ExecutePythonScript=<script>` with env `IRON_QUIT_EDITOR=1`) from `tools/blender/export_slice_to_unreal.py` output. World-projected CC0 scan materials (biplanar XZ/XY), hidden box blockers for the lane, `AIronWaterZone` (float, dive = untargetable, leap out), dusk sun + a channel-1 key light that only lights the lane and characters, `AIronLevelInfo` camera limits.
+- `AIronCameraManager` (set on BP_SideScrollingPlayerController): look-ahead, Contra-style height hold, above-water framing, trauma shake.
+- Enemies: `AIronEnemy` roles Lancer (George), Bulwark (Mike, 85% frontal armour), Raider (Stan), Sentry (Leela, telegraphed sweeping beam), Watcher (Eye drone, dives), Scuttler (Quad shell, explodes), Wallrunner (Trilobite, pounces). Imported by `tools/unreal/import_enemies.py`; paint via `tools/unreal/fixup_enemy_materials.py` (mechs get MI_<Name> Tyrant paint through the `paint_material` property at spawn because slot edits on imported skeletal meshes do not persist; drones/crawlers keep their own colours by user request). Placed by `tools/unreal/place_enemies.py`. Death = explosion + debris chunks + ragdoll.
+- FX/SFX: `UIronFX` (muzzle flash from the rifle barrel, sparks, explosions, debris) with additive `M_IronGlow`; sounds synthesised by `tools/make_sfx.py` and imported by `tools/unreal/import_fx.py`. Enemy hit flash is a warm ember, never white (user preference).
+- Auto-aim (8-way snap) is an option for a future settings menu; autopilot `-IronFight [-IronGod] -IronSeconds=N` uses it for test captures.
+- Next: hero readability in shadow, Leela idle pose, mech paint hue, damage/difficulty tuning with real damage, touch controls, jetpack.
