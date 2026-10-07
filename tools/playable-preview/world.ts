@@ -23,6 +23,7 @@ import {RenderQuality} from './render-quality';
 import {enhanceVillain,VILLAIN_LOOKS,villainClock,villainStun} from './villain-look';
 import {BattlefieldDestruction} from './battlefield-destruction';
 import {LightningStrikes} from './lightning-strikes';
+import {BeamStorm} from './beam-storm';
 import {HostileMechCast} from './hostile-mech-cast';
 import {HeroSquad} from './hero-mechs';
 const mat=(color:number)=>new T.MeshStandardMaterial({color,roughness:.82,metalness:.06});
@@ -37,7 +38,7 @@ class Badge{
 export function enemyArmorLabel(t:Pick<Target,'role'|'variant'>&{guidedArmor?:boolean}){return t.guidedArmor?'GUIDED RESIST':t.role==='battery'?'BATTERY':t.variant===2?'GUNNER':t.role==='carrier'?'SALVAGE':'REAVER';}
  type View={group:T.Group;badge:Badge;bar:T.Mesh;kind:string;rotor?:T.Object3D};
 export class Battlefield{
- renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;thunder!:LightningStrikes;mechCast!:HostileMechCast;heroSquad=new HeroSquad();supplyCrate?:T.Object3D;supplyHolo?:T.BufferGeometry;lastBolt=0;empFlash=0;beamTrail=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
+ renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;thunder!:LightningStrikes;beamStorm!:BeamStorm;mechCast!:HostileMechCast;heroSquad=new HeroSquad();supplyCrate?:T.Object3D;supplyHolo?:T.BufferGeometry;lastBolt=0;empFlash=0;beamTrail=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
  environment:BattleEnvironment;routeEnvironment:ContinuousRouteEnvironment;powerVisuals:CommanderPowerVisuals;fx:CombatVisuals;missiles:CombatMissiles;robots:RobotFormation;abilities:RelicEffects;
  specialEnemies:EnemyArchetypes;dressing:FoundryDressing;revival:RevivalScene;clashVisuals:LaserClashVisuals;strafe=0;
  formationPositions:{index:number,x:number,z:number}[]=[];commanderExploded=false;hitNumbers=new Map<number,{at:number,value:number}>();heroArms:T.Object3D[]=[];bossMuzzles:T.Mesh[]=[];bossExploded=false;recoil=0;lastMuzzle=0;previousX=0;bossPreviousX=0;
@@ -60,7 +61,7 @@ export class Battlefield{
   this.specialEnemies=new EnemyArchetypes(this.scene);enhanceVillain(this.specialEnemies.root,VILLAIN_LOOKS.elite);this.dressing=new FoundryDressing(this.scene);this.revival=new RevivalScene(this.scene);this.clashVisuals=new LaserClashVisuals(this.scene);this.absorption=new CoreAbsorption(this.scene);this.supportLinks=new EnemySupportLinks(this.scene);
   this.heroRing=new T.Mesh(new T.RingGeometry(.75,.83,48),new T.MeshBasicMaterial({color:0x52e8ff,transparent:true,opacity:.8,side:T.DoubleSide}));this.heroRing.rotation.x=-Math.PI/2;this.heroRing.position.y=.035;this.hero.add(this.heroRing);
   this.shadowInstances=new T.InstancedMesh(new T.CircleGeometry(.36,12).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x21332d,transparent:true,opacity:.22,depthWrite:false}),220);this.shadowInstances.frustumCulled=false;this.scene.add(this.shadowInstances);
-  this.scene.add(this.boss);this.quality=new RenderQuality(this.renderer,this.scene,this.camera);this.destruction=new BattlefieldDestruction(this.scene);this.thunder=new LightningStrikes(this.scene);this.mechCast=new HostileMechCast(this.scene);this.destruction.onExplode=(x,y,z,k)=>{this.fx.impact(x,y,z,k);this.fx.enemyDeath(x,z,1,k);this.shake=Math.max(this.shake,.16);};
+  this.scene.add(this.boss);this.quality=new RenderQuality(this.renderer,this.scene,this.camera);this.destruction=new BattlefieldDestruction(this.scene);this.thunder=new LightningStrikes(this.scene);this.beamStorm=new BeamStorm(this.scene);this.mechCast=new HostileMechCast(this.scene);this.destruction.onExplode=(x,y,z,k)=>{this.fx.impact(x,y,z,k);this.fx.enemyDeath(x,z,1,k);this.shake=Math.max(this.shake,.16);};
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas);this.resize();
  }
  skyLevel=-1;cameraLookZ=-9.3;formationFraming=new FormationFraming();
@@ -216,8 +217,8 @@ export class Battlefield{
   if(this.clashBlend>.01&&clash){const cx=clash.x,cy=clash.y,cz=-clash.z,b=this.clashBlend*this.clashBlend*(3-2*this.clashBlend);
    this.camera.position.lerp(new T.Vector3(cx*.6,cy+5.5,cz+9),b*.55);this.camera.lookAt(new T.Vector3(cx,cy,cz).lerp(new T.Vector3(pan,.1,lookZ),1-b));
    if(clash.active&&active){this.clashFx-=renderDt;this.shake=Math.max(this.shake,.16);if(this.clashFx<=0){this.clashFx=.11;const hero=Math.random()<.5,t=Math.random(),fx=hero?T.MathUtils.lerp(clash.heroX,cx,t):T.MathUtils.lerp(clash.enemyX,cx,t),fz=hero?T.MathUtils.lerp(-clash.heroZ,cz,t):T.MathUtils.lerp(-clash.enemyZ,cz,t);
-    this.destruction?.crack(fx,fz,1.2+Math.random()*1.4,hero?0x63e6ff:0xff5a1e,Math.random()<.4);if(Math.random()<.3)this.thunder?.strike(cx+(Math.random()-.5)*3,cz+(Math.random()-.5)*2,0,.8);this.destruction?.blast({x:cx,z:cz,radius:3.5,force:9});}}}
-  if(clash&&!clash.active&&this.clashWasActive){const winX=clash.result==='won'?clash.enemyX:clash.heroX,winZ=clash.result==='won'?-clash.enemyZ:-clash.heroZ;for(let i=0;i<5;i++)this.destruction?.crack(winX+(Math.random()-.5)*3,winZ+(Math.random()-.5)*2,3.5,0xff7a2a);this.thunder?.strike(winX,winZ,0,1.6);this.punch(.3);this.shake=.45;}
+    this.destruction?.crack(fx,fz,1.2+Math.random()*1.4,hero?0x63e6ff:0xff5a1e,Math.random()<.4);this.destruction?.blast({x:cx,z:cz,radius:3.5,force:9});}}}
+  if(clash&&!clash.active&&this.clashWasActive){const winX=clash.result==='won'?clash.enemyX:clash.heroX,winZ=clash.result==='won'?-clash.enemyZ:-clash.heroZ;for(let i=0;i<5;i++)this.destruction?.crack(winX+(Math.random()-.5)*3,winZ+(Math.random()-.5)*2,3.5,0xff7a2a);this.punch(.3);this.shake=.45;}
   this.clashWasActive=!!clash?.active;
   // Trauma shake: squared falloff with smooth noise reads as weight, not jitter.
   if(this.shake>0&&active&&!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false)){const t=Math.min(1,this.shake*2.6),k=t*t,a=this.age*31;this.camera.position.x+=(Math.sin(a)+Math.sin(a*1.7+1.3))*.5*k*.55;this.camera.position.y+=(Math.sin(a*1.3+.4)+Math.sin(a*2.1))*.5*k*.45;this.camera.rotateZ((Math.sin(a*.9+2)*.5)*k*.035);this.shake=Math.max(0,this.shake-renderDt*.65);}
@@ -313,14 +314,20 @@ export class Battlefield{
   this.shadowInstances.count=shadowCount;this.shadowInstances.instanceMatrix.needsUpdate=true;
   this.missiles.update(s.shots,s.enemyShots,{depthScale:1,bossPhase,bossZ:s.bossZ,bossX:s.bossX,bossY:s.bossY,bossImpactHeight:4.31,bossSurfaceOffset:.85,bossLaunchHeight:s.bossPattern==='laser'?4.31:s.bossPattern==='heavy'?4.5:3.4,targets:s.targets,formation:s.formation,dt:renderDt,simulationTime:s.time,emitters:this.emitterPositions,bossCharging:s.phase==='boss'&&s.bossPattern==='laser'&&s.bossAction==='windup',bossCharge:s.bossAttack,hostileRate,lasers:s.lasers,overdrive:false,weapon:s.weapon,visible:!intro&&!reviving&&s.phase!=='won'&&s.phase!=='lost'});
   // Pause freezes the combat picture; it must not erase the pressure front or hero beam.
-  this.clashVisuals.update(s.clash,renderDt,combatPicture);this.revival.update(s.reviveCinematicTime??0,s.x,combatPicture);this.absorption.update(renderDt);this.supportLinks.update(renderDt);
+  this.clashVisuals.update(s.clash,renderDt,combatPicture);this.clashVisuals.rings.visible=false;(this.clashVisuals as any).flare.visible=false; // junction now reads through the coiled lightning and plasmathis.revival.update(s.reviveCinematicTime??0,s.x,combatPicture);this.absorption.update(renderDt);this.supportLinks.update(renderDt);
   this.powerVisuals?.update(s.friendlyBeams??[],renderDt,combatPicture&&s.phase!=='destroying'&&!this.commanderExploded);
   this.abilities.update(s,{depthScale:1,armyRadius:Math.max(1.5,outer+.8),armyCenterZ:1.5,armyCenterX:centerX,visible:!intro&&s.phase!=='won'&&s.phase!=='lost'},renderDt);
   if(active&&!combatHeld&&(s.phase==='run'||s.phase==='boss')&&this.age-this.lastMuzzle>.14&&s.shots.some(p=>p.z<2.8)){
    for(const p of this.formationPositions.filter(p=>s.shots.some(shot=>shot.owner==='troop'&&Math.abs(shot.x-p.x)<.15&&shot.z+p.z>=0&&shot.z+p.z<1.2)).slice(0,8))this.fx.muzzle(p.x,.9,p.z-.3,false);
    this.lastMuzzle=this.age;if(s.shots.some(p=>p.owner!=='troop'&&p.z<2.8)){this.recoil=1;this.fx.muzzle(s.x,s.weaponPower==='guided'?2.08:s.weaponPower==='railburst'?1.8:s.weaponPower==='cannons'?1.42:1.35,-.85,false);}
   }
-  this.thunder?.update(renderDt);this.updateTopples(renderDt);const impact=this.abilities.sceneImpact;this.renderer.toneMappingExposure=1.06+impact.exposureLift+(this.thunder?.flash??0)*.45;const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;this.armyZoom+=(T.MathUtils.clamp((s.army-8)/40,0,1)-this.armyZoom)*(1-Math.exp(-renderDt*1.2));const powerFov=(30+this.armyZoom*5)*(1-impact.zoom-(reduced?0:this.revival.cameraStrength));if(Math.abs(this.camera.fov-powerFov)>.0001){this.camera.fov=powerFov;this.camera.updateProjectionMatrix();}
+  this.thunder?.update(renderDt);
+  // Lightning coiling around every live beam: hero beams, hostile core lasers and both halves of a clash.
+  if(this.beamStorm){const bs=this.beamStorm;bs.begin(renderDt);const v=(x:number,y:number,z:number)=>new T.Vector3(x,y,-z);
+   if(s.clash?.active){const c=s.clash;bs.add(v(c.heroX,c.heroY,c.heroZ),v(c.x,c.y,c.z),.55,false,'clash-h');bs.add(v(c.enemyX,c.enemyY,c.enemyZ),v(c.x,c.y,c.z),.6,true,'clash-e');}
+   else{for(const b of s.friendlyBeams??[])if(b.time>0)bs.add(v(b.x,b.y,b.z),v(b.endX,b.endY,b.endZ),Math.max(.35,b.width*.6),false,'f'+b.id);
+    for(const l of s.lasers??[])if(l.time>0&&l.width>0)bs.add(v(l.x,l.y??4,l.z),v(l.endX,l.endY??1,l.endZ),Math.max(.4,l.width*.6),true,'l'+l.id);}
+   bs.end();}this.updateTopples(renderDt);const impact=this.abilities.sceneImpact;this.renderer.toneMappingExposure=1.06+impact.exposureLift+(this.thunder?.flash??0)*.45;const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;this.armyZoom+=(T.MathUtils.clamp((s.army-8)/40,0,1)-this.armyZoom)*(1-Math.exp(-renderDt*1.2));const powerFov=(30+this.armyZoom*5)*(1-impact.zoom-(reduced?0:this.revival.cameraStrength));if(Math.abs(this.camera.fov-powerFov)>.0001){this.camera.fov=powerFov;this.camera.updateProjectionMatrix();}
   this.fx.update(renderDt);
   for(let i=this.floating.length-1;i>=0;i--){const f=this.floating[i];f.life-=renderDt;f.y+=renderDt*1.6;f.badge.sprite.position.set(f.x,f.y,f.z);if(f.base===undefined)f.base=f.badge.sprite.scale.x;const pop=1+Math.max(0,f.life-.8)*3.2;f.badge.sprite.scale.set(f.base*pop,f.base*pop*160/384,1);f.badge.sprite.material.opacity=Math.min(1,f.life*3);if(f.life<=0){this.scene.remove(f.badge.sprite);f.badge.dispose();this.floating.splice(i,1);}}
   if(draw)this.quality.render();
