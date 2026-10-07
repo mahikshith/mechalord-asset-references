@@ -37,7 +37,8 @@ public class SideAssault : ModuleRules
 			"SideAssault/Variant_SideScrolling/AI",
 			"SideAssault/Variant_SideScrolling/Gameplay",
 			"SideAssault/Variant_SideScrolling/Interfaces",
-			"SideAssault/Variant_SideScrolling/UI"
+			"SideAssault/Variant_SideScrolling/UI",
+			"SideAssault/IronLegion"
 		});
 
 		// Uncomment if you are using Slate UI
