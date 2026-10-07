@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-10-07T08:12:48.045Z",
+  "builtAt": "2026-10-07T08:18:43.207Z",
   "coreAsset": "assault.472ba715bfa244b8.wasm",
   "coreSha256": "472ba715bfa244b8e4c3f89701e17b3906989ef75e0f7d21fe38fec08f1bdcc6",
   "files": {
@@ -8,20 +8,20 @@
       "sha256": "472ba715bfa244b8e4c3f89701e17b3906989ef75e0f7d21fe38fec08f1bdcc6"
     },
     "game.js": {
-      "bytes": 938502,
-      "sha256": "e0e603fb7a0d3f38d46b994d8ec5c59337eda58cebc46793c049cd8129f9cbb2"
+      "bytes": 953082,
+      "sha256": "67ab5cf8b65036bd2366f5b8ce7367a1a37dc1dbc1d40a3699100d9c95a9da84"
     },
     "review.js": {
-      "bytes": 916273,
-      "sha256": "3581815aa6525a7d7d0e5c919cb8a423f071bfe4d349e603cfb70186b44edff3"
+      "bytes": 930853,
+      "sha256": "6f9e17afe65780a24ef89f269ce741b7275aca330bf995dc51fa0c9a038bd434"
     },
     "index.html": {
       "bytes": 9474,
-      "sha256": "5e4a77d7951e1558b97d926720b9e8380f81e087f5e98f2d98ce81d53c8b27f7"
+      "sha256": "4711652ae9192be9ef2a4fd10edfdff09a5a147c6fd2df44d0586c4576cb1c39"
     },
     "review.html": {
       "bytes": 5165,
-      "sha256": "51f35a38258526fc523f3c2a36b629f7aa64e7f65935e9bfb09091a60793413b"
+      "sha256": "ef2a0d9a3d9a903385daf4585be826785b673ff0031401fc6c688748c48221ff"
     },
     "style.css": {
       "bytes": 30396,

@@ -24,6 +24,7 @@ import {enhanceVillain,VILLAIN_LOOKS,villainClock,villainStun} from './villain-l
 import {BattlefieldDestruction} from './battlefield-destruction';
 import {LightningStrikes} from './lightning-strikes';
 import {HostileMechCast} from './hostile-mech-cast';
+import {HeroSquad} from './hero-mechs';
 const mat=(color:number)=>new T.MeshStandardMaterial({color,roughness:.82,metalness:.06});
 function box(p:T.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,m:T.Material){const o=new T.Mesh(new RoundedBoxGeometry(w,h,d,1,Math.min(.06,w*.15,h*.15,d*.15)),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;p.add(o);return o;}
 function cyl(p:T.Object3D,r:number,rb:number,h:number,x:number,y:number,z:number,m:T.Material,n=12){const o=new T.Mesh(new T.CylinderGeometry(r,rb,h,n),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;p.add(o);return o;}
@@ -36,7 +37,7 @@ class Badge{
 export function enemyArmorLabel(t:Pick<Target,'role'|'variant'>&{guidedArmor?:boolean}){return t.guidedArmor?'GUIDED RESIST':t.role==='battery'?'BATTERY':t.variant===2?'GUNNER':t.role==='carrier'?'SALVAGE':'REAVER';}
  type View={group:T.Group;badge:Badge;bar:T.Mesh;kind:string;rotor?:T.Object3D};
 export class Battlefield{
- renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;thunder!:LightningStrikes;mechCast!:HostileMechCast;lastBolt=0;empFlash=0;beamTrail=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
+ renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;thunder!:LightningStrikes;mechCast!:HostileMechCast;heroSquad=new HeroSquad();lastBolt=0;empFlash=0;beamTrail=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
  environment:BattleEnvironment;routeEnvironment:ContinuousRouteEnvironment;powerVisuals:CommanderPowerVisuals;fx:CombatVisuals;missiles:CombatMissiles;robots:RobotFormation;abilities:RelicEffects;
  specialEnemies:EnemyArchetypes;dressing:FoundryDressing;revival:RevivalScene;clashVisuals:LaserClashVisuals;strafe=0;
  formationPositions:{index:number,x:number,z:number}[]=[];commanderExploded=false;hitNumbers=new Map<number,{at:number,value:number}>();heroArms:T.Object3D[]=[];bossMuzzles:T.Mesh[]=[];bossExploded=false;recoil=0;lastMuzzle=0;previousX=0;bossPreviousX=0;
@@ -75,7 +76,7 @@ export class Battlefield{
   if(rearY(low)>bottom){for(let i=0;i<18;i++){const mid=(low+high)*.5;if(rearY(mid)>bottom)low=mid;else high=mid;}this.cameraLookZ=high;}else this.cameraLookZ=low;
  }
  async load(){
-  const loader=new GLTFLoader();const [hero,troop,elite,tyrant]=await Promise.all([loader.loadAsync('commander.glb'),loader.loadAsync('troop.glb'),loader.loadAsync('cinder-reaver.glb'),loader.loadAsync('forge-tyrant.glb'),this.dressing.load(),this.routeEnvironment.load(),this.mechCast.load().catch(e=>console.warn('Hostile mech cast unavailable; using built-in enemies',e))]);this.model=hero.scene;this.model.scale.setScalar(.95);this.model.rotation.y=Math.PI;this.hero.add(this.model);this.model.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material.roughness=.76;o.material.metalness=.12;}if(o.isBone&&o.name.startsWith('upperarm'))this.heroArms.push(o);});
+  const loader=new GLTFLoader();const [hero,troop,elite,tyrant]=await Promise.all([loader.loadAsync('commander.glb'),loader.loadAsync('troop.glb'),loader.loadAsync('cinder-reaver.glb'),loader.loadAsync('forge-tyrant.glb'),this.dressing.load(),this.routeEnvironment.load(),this.mechCast.load().catch(e=>console.warn('Hostile mech cast unavailable; using built-in enemies',e)),this.heroSquad.load(this.scene).catch(e=>console.warn('Hero machines unavailable; using built-in troops',e))]);this.model=hero.scene;this.model.scale.setScalar(.95);this.model.rotation.y=Math.PI;this.hero.add(this.model);this.model.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material.roughness=.76;o.material.metalness=.12;}if(o.isBone&&o.name.startsWith('upperarm'))this.heroArms.push(o);});
   const styled=new Set<T.Material>();for(const asset of [elite,tyrant])asset.scene.traverse((o:any)=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])if(!styled.has(m)){styled.add(m);m.color.multiplyScalar(2.2);m.metalness=.20;m.roughness=.64;}});
   this.eliteTemplate=elite.scene;this.eliteTemplate.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});enhanceVillain(this.eliteTemplate,VILLAIN_LOOKS.elite);
   const ventGeometry=new T.TorusGeometry(.28,.045,6,24),ventMaterial=new T.MeshBasicMaterial({color:0xffbd61,transparent:true,opacity:.9,depthWrite:false,toneMapped:false});
@@ -205,7 +206,8 @@ export class Battlefield{
     allyCount++;
     this.set(this.shadowInstances,shadowCount++,x,.035,z,.95);
    }const swarm=this.swarm(formation,s.army,renderDt,combatHeld);for(const p of swarm)if(shadowCount<200)this.set(this.shadowInstances,shadowCount++,p.x,.035,-p.z,.9);
-   this.crowd?.update(formation.concat(swarm),{dt:renderDt,time:this.age,marching,strafe:this.strafe,held:combatHeld,visible:!intro&&!this.commanderExploded});
+   const machines=this.heroSquad.ready;this.crowd?.update(formation.concat(swarm),{dt:renderDt,time:this.age,marching,strafe:this.strafe,held:combatHeld,visible:!machines&&!intro&&!this.commanderExploded});
+   this.heroSquad.update(formation.concat(swarm),{dt:renderDt,time:this.age,marching,strafe:this.strafe,held:combatHeld,visible:!intro&&!this.commanderExploded});
   }
   this.set(this.shadowInstances,shadowCount++,this.hero.position.x,.033,this.hero.position.z,2);
   // Laser cannon: tears a glowing fissure down the deck and wrecks every prop in the lane.

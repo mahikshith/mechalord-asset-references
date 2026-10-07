@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-10-07T07:39:12.819Z",
+  "verifiedAt": "2026-10-07T08:20:18.180Z",
   "status": "passed",
   "groups": 16,
   "scope": "Actual main.ts and audio.ts modules; deterministic DOM/storage/audio doubles and simulated combat boundary. Does not measure rendered graphics, native combat balance or a physical phone.",
