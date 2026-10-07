@@ -22,6 +22,8 @@ export class RenderQuality {
   if(low)return;
   const size=renderer.getDrawingBufferSize(new T.Vector2()),target=new T.WebGLRenderTarget(size.x,size.y,{type:T.HalfFloatType,samples:2});
   this.composer=new EffectComposer(renderer,target);this.composer.addPass(new RenderPass(scene,camera));
+  // Guard: stacked additive effects can overflow half-float to Inf/NaN, which bloom then smears into black blocks.
+  this.composer.addPass(new ShaderPass({uniforms:{tDiffuse:{value:null}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform sampler2D tDiffuse;varying vec2 vUv;void main(){vec4 c=texture2D(tDiffuse,vUv);if(any(isnan(c))||any(isinf(c)))c=vec4(0.,0.,0.,1.);gl_FragColor=vec4(min(c.rgb,vec3(40.)),c.a);}'}));
   this.bloom=new UnrealBloomPass(new T.Vector2(size.x*.35,size.y*.35),.36,.3,1.35);this.composer.addPass(this.bloom);
   this.composer.addPass(new OutputPass());
   this.composer.addPass(new ShaderPass({uniforms:{tDiffuse:{value:null},strength:{value:.32}},

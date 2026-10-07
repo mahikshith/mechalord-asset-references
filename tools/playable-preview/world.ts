@@ -49,7 +49,7 @@ export class Battlefield{
  emitterPositions:EmitterPositions={};enemyMotion=new Map<number,{x:number,z:number,yaw:number,age:number}>();eliteSockets:WeaponSockets[]=[];projectileIDs=new Set<number>();bossPreviousZ=40;bossPreviousVz=0;bossPitch=0;bossBank=0;bossMotionReady=false;
  enemyCues:EnemyWeaponCues;enemyRecoil=new Map<number,number>();
  heroRing:T.Mesh;shadowInstances:T.InstancedMesh;
- floating:{badge:Badge,life:number,x:number,y:number,z:number,base?:number}[]=[];age=0;hostileAge=0;bossVisualAge=0;shake=0;cameraBossBlend=0;armyZoom=0;resizeObserver:ResizeObserver;
+ floating:{badge:Badge,life:number,x:number,y:number,z:number,base?:number}[]=[];age=0;hostileAge=0;bossVisualAge=0;shake=0;cameraBossBlend=0;armyZoom=0;clashBlend=0;clashFx=0;clashWasActive=false;resizeObserver:ResizeObserver;
  constructor(public canvas:HTMLCanvasElement){
   this.renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
   this.renderer.setClearColor(0xadc5c7);this.renderer.outputColorSpace=T.SRGBColorSpace;this.renderer.toneMapping=T.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.06;
@@ -211,6 +211,14 @@ export class Battlefield{
   // Boss reveal: rise and pull back so the Tyrant towers over the army; ease, never snap.
   this.cameraBossBlend+=((bossPhase&&!intro?1:0)-this.cameraBossBlend)*(1-Math.exp(-renderDt*1.6));const reveal=this.cameraBossBlend*this.cameraBossBlend*(3-2*this.cameraBossBlend);
   this.camera.position.set(pan+this.strafe*.45,this.camera.position.y+reveal*1.6,this.camera.position.z+reveal*1.4);this.camera.lookAt(pan+this.strafe*.25,.1+reveal*1.2,lookZ-reveal*2);this.camera.rotateZ(-this.strafe*.025);
+  // Cinematic laser clash: push the camera onto the contact point, rip the deck under both beams, thunder around the junction.
+  const clash=s.clash;this.clashBlend+=((clash?.active?1:0)-this.clashBlend)*(1-Math.exp(-renderDt*3));
+  if(this.clashBlend>.01&&clash){const cx=clash.x,cy=clash.y,cz=-clash.z,b=this.clashBlend*this.clashBlend*(3-2*this.clashBlend);
+   this.camera.position.lerp(new T.Vector3(cx*.6,cy+5.5,cz+9),b*.55);this.camera.lookAt(new T.Vector3(cx,cy,cz).lerp(new T.Vector3(pan,.1,lookZ),1-b));
+   if(clash.active&&active){this.clashFx-=renderDt;this.shake=Math.max(this.shake,.16);if(this.clashFx<=0){this.clashFx=.11;const hero=Math.random()<.5,t=Math.random(),fx=hero?T.MathUtils.lerp(clash.heroX,cx,t):T.MathUtils.lerp(clash.enemyX,cx,t),fz=hero?T.MathUtils.lerp(-clash.heroZ,cz,t):T.MathUtils.lerp(-clash.enemyZ,cz,t);
+    this.destruction?.crack(fx,fz,1.2+Math.random()*1.4,hero?0x63e6ff:0xff5a1e,Math.random()<.4);if(Math.random()<.3)this.thunder?.strike(cx+(Math.random()-.5)*3,cz+(Math.random()-.5)*2,0,.8);this.destruction?.blast({x:cx,z:cz,radius:3.5,force:9});}}}
+  if(clash&&!clash.active&&this.clashWasActive){const winX=clash.result==='won'?clash.enemyX:clash.heroX,winZ=clash.result==='won'?-clash.enemyZ:-clash.heroZ;for(let i=0;i<5;i++)this.destruction?.crack(winX+(Math.random()-.5)*3,winZ+(Math.random()-.5)*2,3.5,0xff7a2a);this.thunder?.strike(winX,winZ,0,1.6);this.punch(.3);this.shake=.45;}
+  this.clashWasActive=!!clash?.active;
   // Trauma shake: squared falloff with smooth noise reads as weight, not jitter.
   if(this.shake>0&&active&&!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false)){const t=Math.min(1,this.shake*2.6),k=t*t,a=this.age*31;this.camera.position.x+=(Math.sin(a)+Math.sin(a*1.7+1.3))*.5*k*.55;this.camera.position.y+=(Math.sin(a*1.3+.4)+Math.sin(a*2.1))*.5*k*.45;this.camera.rotateZ((Math.sin(a*.9+2)*.5)*k*.035);this.shake=Math.max(0,this.shake-renderDt*.65);}
   const horizontalVelocity=renderDt>0?(s.x-this.previousX)/renderDt:0;this.previousX=s.x;
