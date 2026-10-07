@@ -107,7 +107,7 @@ async function exportMech(){
 }
 async function troopers(){
  const clipParam=+(new URLSearchParams(location.search).get('clip')??0);
- camera.position.set(0,3.6,-7.4);camera.lookAt(0,.9,0);
+ camera.position.set(0,2.4,-5.6);camera.lookAt(0,.95,0);
  const {map,emissiveMap}=trooperAtlas();const crowds=[0,1,2].map(k=>{const m=new T.MeshStandardMaterial({map,emissiveMap,emissive:new T.Color(1,1,1),emissiveIntensity:1.8,metalness:.42,roughness:.46,vertexColors:true});return new BakedMechCrowd(scene,bakeTrooper(k as 0|1|2),8,m);});
  TROOPER_CLASSES.forEach((n,i)=>label(n.split(' ')[0].toUpperCase(),-2.4+i*2.4,-1.4));
  tick=t=>{crowds.forEach((c,i)=>{c.begin();c.add(-2.4+i*2.4,0,0,Math.PI+.45,1,clipParam,t*(clipParam===0?1.2:clipParam===1?.3:1.5));c.end();});};
