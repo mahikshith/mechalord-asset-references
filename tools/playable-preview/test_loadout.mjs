@@ -10,4 +10,6 @@ assert.ok(s.relics[2].energy>base.relics[2].energy&&s.relics[1].energy>base.reli
 assert.ok(!core.applyLoadout(1,0,0,0),'loadout applies once');
 core.start(0,5,0);core.applyLoadout(20,0,0,0);assert.equal(core.snapshot().army,17,'squad caps at commander + 16');
 core.start(0,0,0);assert.ok(!core.applyLoadout(1,0,0,0),'practice fronts ignore the armory');
-console.log('PASS armory loadout');
+core.start(0,5,0);const before=core.snapshot().army;assert.ok(core.buyNow(0));assert.equal(core.snapshot().army,before+1);assert.ok(core.buyNow(5));assert.equal(core.snapshot().weaponPower,'railburst');
+core.start(0,5,0);core.applyLoadout(20,0,0,0);assert.ok(!core.buyNow(0),'mid-run drops respect the cap');
+console.log('PASS armory loadout and mid-run drops');

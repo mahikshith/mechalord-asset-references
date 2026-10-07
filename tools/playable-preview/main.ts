@@ -112,6 +112,19 @@ function renderArmory(cards = armoryOpen): void {
   for (const h of HIRES) card(h.icon, h.name, h.copy, h.price, `×${a[h.key]}`, a.credits >= h.price && hired() < MAX_HIRES, () => { a[h.key]++; });
   for (const w of WEAPONS) card(w.icon, w.name, w.copy, w.price, a.weapon === w.id ? '✓' : '', a.credits >= w.price && !a.weapon, () => { a.weapon = w.id; });
 }
+// Mid-run drops: this-run-only reinforcements at half the hire price, bought from the pause menu.
+const DROPS = [
+  {item:0, name:'SENTINEL DROP', price:40, icon:'◆'}, {item:1, name:'HAVOC DROP', price:110, icon:'⬢'}, {item:2, name:'WISP DROP', price:90, icon:'●'},
+  {item:3, name:'HAND CANNONS', price:60, icon:'≡'}, {item:4, name:'GUIDED MISSILES', price:80, icon:'➶'}, {item:5, name:'RAIL BURST', price:110, icon:'ϟ'},
+] as const;
+function renderDropShop(): void {
+  $('drop-credits').textContent = String(progress.armory.credits); const list = $('drop-shop'); if (!list.replaceChildren) return; list.replaceChildren();
+  if (selectedLevel !== campaignIndex) return;
+  for (const d of DROPS) { const b = document.createElement('button'); b.disabled = progress.armory.credits < d.price;
+    b.innerHTML = `<span class="reward-icon">${d.icon}</span><span><strong>${d.name}</strong><small>${d.item < 3 ? 'Joins now · this run' : '30 s · now'}</small></span><b>${d.price}</b>`;
+    b.onclick = () => { if (progress.armory.credits >= d.price && core.buyNow(d.item)) { progress.armory.credits -= d.price; saveProgress(); if (d.item === 1 && world.heroSquad) world.heroSquad.roster.havoc++; if (d.item === 2 && world.heroSquad) world.heroSquad.roster.wisp++; } renderDropShop(); };
+    list.append(b); }
+}
 function saveProgress(): void {
   try { localStorage.setItem('mechalord-iron-front-progress-v1', JSON.stringify({ schema: 4, ...progress })); } catch { /* Session state is retained. */ }
 }
@@ -183,7 +196,7 @@ function begin(): void {
 function pause(value = !paused): void {
   if (!playing || defeating || downed) return;
   paused = value; core.pause(value); clearInput(); $('paused').hidden = !paused;
-  if (paused) { audio.silence(); clearDialogue(); } else void audio.unlock();
+  if (paused) { audio.silence(); clearDialogue(); renderDropShop(); } else void audio.unlock();
 }
 function canAct(): boolean { return playing && !defeating && !downed && !paused && !graphicsLost && !clashing && !rewarding && !reviving; }
 function activate(relic: Relic = selected): void {

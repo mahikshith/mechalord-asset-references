@@ -115,6 +115,8 @@ public:
     bool ApplyLegacyReward(int Choice);
     /** Armory loadout at run start: hired machines and a starting weapon (1 guided, 2 cannons, 3 railburst). */
     bool ApplyLoadout(int Sentinels,int Havocs,int Wisps,int Weapon);
+    /** Mid-run armory drop (campaign run only): 0 Sentinel, 1 Havoc, 2 Wisp, 3 cannons, 4 guided, 5 railburst. */
+    bool BuyNow(int Item);
     int StageLevel() const { return campaign?(actIndex==0?0:actIndex==1?3:4):level; }
     double StageProgress() const;
     bool RelicActive(Relic Type) const { return campaign?relicTime[int(Type)]>0:ability>0 && relic==Type; }

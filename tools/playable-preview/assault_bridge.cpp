@@ -14,6 +14,7 @@ API("fire_laser") int FireLaser() { return Battle.FireLaser(); }
 API("clash_tap") int ClashTap() { return Battle.ClashTap(); }
 API("apply_legacy_reward") int ApplyLegacyReward(int Choice) { return Battle.ApplyLegacyReward(Choice); }
 API("apply_loadout") int ApplyLoadout(int S,int H,int W,int Weapon) { return Battle.ApplyLoadout(S,H,W,Weapon); }
+API("buy_now") int BuyNow(int Item) { return Battle.BuyNow(Item); }
 API("choose_reward") int ChooseReward(int Choice) { return Battle.ChooseReward(Choice); }
 API("heal") int Heal() { return Battle.Heal(); }
 API("revive") int Revive() { return Battle.Revive(); }

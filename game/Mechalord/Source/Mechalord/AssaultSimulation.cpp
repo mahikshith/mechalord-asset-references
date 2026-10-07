@@ -153,6 +153,13 @@ bool Battle::ApplyLoadout(int Sentinels,int Havocs,int Wisps,int Weapon)
     if(Weapon>=1&&Weapon<=3){weaponPower=static_cast<WeaponPower>(Weapon);powerTime=30;}
     return true;
 }
+bool Battle::BuyNow(int Item)
+{
+    if(!campaign||phase!=Phase::Run||Item<0||Item>5)return false;
+    if(Item<=2){if(army>=ArmyCap())return false;Recruit(1);if(Item==1)relicEnergy[int(Relic::StormBattery)]=std::min(100.,relicEnergy[int(Relic::StormBattery)]+15.);if(Item==2)relicEnergy[int(Relic::EMP)]=std::min(100.,relicEnergy[int(Relic::EMP)]+15.);}
+    else{weaponPower=Item==3?WeaponPower::Cannons:Item==4?WeaponPower::Guided:WeaponPower::Railburst;powerTime=30;}
+    return true;
+}
 bool Battle::ChooseReward(int Choice)
 {
     if(paused||phase!=Phase::Reward||!campaign||actIndex!=2||Choice<0||Choice>2)return false;

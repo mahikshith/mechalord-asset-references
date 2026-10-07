@@ -35,6 +35,7 @@ export class AssaultCore implements GameCore {
     this.api._initialize?.();
   }
   start(relic:Relic,level=0,rank=0,legacy?:'laser'|'vitality'|'endurance'):void{this.api.start_run(relic,level,rank);if(legacy)this.api.apply_legacy_reward(['laser','vitality','endurance'].indexOf(legacy));}
+  buyNow(item:number):boolean{return Boolean(this.api.buy_now?.(item));}
   applyLoadout(sentinels:number,havocs:number,wisps:number,weapon:number):boolean{return Boolean(this.api.apply_loadout?.(sentinels,havocs,wisps,weapon));}
   step(dt:number,x:number):void{this.api.step(dt,x);}
   activate():boolean{return Boolean(this.api.use_relic());}
