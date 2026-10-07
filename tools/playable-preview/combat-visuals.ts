@@ -507,7 +507,8 @@ export class CombatMissiles {
       fragmentShader:'varying vec2 vContactUv; void main(){float r=length(vContactUv-.5)*2.0;float a=pow(max(0.0,1.0-r),2.0);vec3 heat=mix(vec3(1.0,.19,.015),vec3(1.0,.87,.51),a);gl_FragColor=vec4(heat,a*.85);}' });
     this.beamGround=pool(scene,new T.PlaneGeometry(2,2).rotateX(-Math.PI/2),contact,4);
     this.beamLightning=pool(scene,new T.CylinderGeometry(.5,.5,1,5).rotateX(Math.PI/2),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.76,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),144);instanceFade(this.beamLightning,144);
-    this.beamLight=new T.PointLight(0xff8b36,0,3.5,2);this.beamLight.visible=false;scene.add(this.beamLight);
+    // Lights never toggle visible: a change in light count recompiles every lit shader (multi-second stall).
+    this.beamLight=new T.PointLight(0xff8b36,0,3.5,2);scene.add(this.beamLight);
 
   }
   update(friendly:Shot[],hostile:EnemyShot[],options:MissileOptions){
@@ -571,7 +572,7 @@ export class CombatMissiles {
       if(kind===0)particle.color.set(0xfff1c8);else if(kind===1)particle.color.set(color);else{const g=.32+Math.random()*.22;particle.color.setRGB(g,g*1.02,g*1.06);}}
   }
   private updateBeams(options:MissileOptions){
-    let count=0,flow=0,emitters=0,sparks=0,corona=0,lightning=0;this.beamLight.visible=false;
+    let count=0,flow=0,emitters=0,sparks=0,corona=0,lightning=0;this.beamLight.intensity=0;
     const coronaAt=(position:T.Vector3,axis:T.Vector3,charge:number)=>{
       for(let i=0;i<2;i++){this.dummy.position.copy(position).addScaledVector(axis,.012+i*.035);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),axis);this.dummy.rotateZ((i?-.7:1)*this.hostileClock*2+i*1.4);this.dummy.scale.setScalar((.20+i*.11)*(1+charge*.32+.025*Math.sin(this.hostileClock*21)));this.dummy.updateMatrix();this.beamCorona.setMatrixAt(corona++,this.dummy.matrix);}
     };
@@ -580,7 +581,7 @@ export class CombatMissiles {
       // remains a compatibility fallback for old 2D snapshots, never an endpoint override.
       const from=Number.isFinite(beam.y)?new T.Vector3(beam.x,beam.y!,-beam.z*options.depthScale):options.emitters?.core?.clone()??new T.Vector3(beam.x,(options.bossY??0)+(options.bossLaunchHeight??3.4),-beam.z*options.depthScale),to=new T.Vector3(beam.endX,beam.endY??.07,-beam.endZ*options.depthScale),direction=to.clone().sub(from),length=direction.length();if(length<.01)continue;
       this.dummy.position.copy(to);this.dummy.position.y=beam.endY!==undefined&&beam.endY>.4?-.5:.026;this.dummy.rotation.set(0,0,0);this.dummy.scale.set(.64,.64,.64);this.dummy.updateMatrix();this.beamGround.setMatrixAt(count,this.dummy.matrix);
-      this.beamLight.visible=true;this.beamLight.position.copy(to).add(new T.Vector3(0,.32,0));this.beamLight.intensity=3.5+.4*Math.sin(this.hostileClock*33);
+      this.beamLight.position.copy(to).add(new T.Vector3(0,.32,0));this.beamLight.intensity=3.5+.4*Math.sin(this.hostileClock*33);
       const axis=direction.clone().normalize(),width=Math.max(.05,beam.width),across=new T.Vector3().crossVectors(axis,Math.abs(axis.y)<.9?new T.Vector3(0,1,0):new T.Vector3(1,0,0)).normalize(),up=new T.Vector3().crossVectors(across,axis).normalize();
       this.dummy.position.copy(from).add(to).multiplyScalar(.5);this.dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),axis);this.dummy.scale.set(width,width,length);this.dummy.updateMatrix();this.beamShells.setMatrixAt(count,this.dummy.matrix);this.beamCores.setMatrixAt(count,this.dummy.matrix);
       // This faint soft-edged light is decorative; the damaging beam remains beam.width.
@@ -600,7 +601,7 @@ export class CombatMissiles {
     if(!count&&options.bossCharging&&options.emitters?.core){const charge=T.MathUtils.clamp(options.bossCharge??0,0,1),axis=new T.Vector3(0,-.15,1).normalize();this.dummy.position.copy(options.emitters.core);this.dummy.rotation.set(0,0,0);this.dummy.scale.setScalar(.13+charge*.21);this.dummy.updateMatrix();this.beamEmitter.setMatrixAt(emitters++,this.dummy.matrix);coronaAt(options.emitters.core,axis,charge);}
     changed(this.beamShells,count);changed(this.beamCores,count);changed(this.beamSheath,count);changed(this.beamFlow,flow);changed(this.beamContact,sparks);changed(this.beamEmitter,emitters);changed(this.beamCorona,corona);changed(this.beamLightning,lightning);changed(this.beamGround,count);
   }
-  reset(){this.beamLight.visible=false;for(const mesh of this.meshes())changed(mesh,0);for(const particle of this.trailParticles)particle.life=0;this.hostileLaunchZ.clear();this.friendlyPaths=[];this.previousTime=undefined;this.clock=0;this.hostileClock=0;this.plasmaTime.value=0;this.trailIndex=0;}
+  reset(){this.beamLight.intensity=0;for(const mesh of this.meshes())changed(mesh,0);for(const particle of this.trailParticles)particle.life=0;this.hostileLaunchZ.clear();this.friendlyPaths=[];this.previousTime=undefined;this.clock=0;this.hostileClock=0;this.plasmaTime.value=0;this.trailIndex=0;}
   private meshes(){return [this.bodies,this.exhaust,this.orbs,this.orbCores,this.bullets,this.tips,this.wakes,this.beamShells,this.beamCores,this.hostileShells,this.hostileTips,this.trails,this.beamFlow,this.beamContact,this.beamEmitter,this.beamSheath,this.beamCorona,this.beamGround,this.hotTrails,this.shellStreaks,this.beamLightning];}
   dispose(){this.reset();this.scene.remove(this.beamLight);this.beamLight.dispose();for(const mesh of this.meshes()){this.scene.remove(mesh);mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();}}
 

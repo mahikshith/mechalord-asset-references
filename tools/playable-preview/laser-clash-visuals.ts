@@ -27,7 +27,7 @@ export class LaserClashVisuals {
     float alpha=front*.96+inner;vec3 blue=vec3(.10,.62,1.);vec3 red=vec3(1.,.16,.025);
     vec3 dominant=mix(red,blue,.5+pressure*.5);vec3 hot=mix(dominant,vec3(1.,.92,.80),front*.65);
     gl_FragColor=vec4(hot*1.3,alpha);}`
-  }));this.flare.name='Clash_ThinPressureFront';this.root.add(this.flare,this.light);this.reset();
+  }));this.flare.name='Clash_ThinPressureFront';this.root.add(this.flare);scene.add(this.light); // light lives outside root so hiding root never changes the light countthis.reset();
  }
  update(clash:ClashView|undefined,dt:number,visible=true){
   if(this.disposed)return;
@@ -58,5 +58,5 @@ export class LaserClashVisuals {
  }
  get stats(){return {visible:this.root.visible,clock:this.clock,arcs:this.arcs.count,sparks:this.sparks.count,rings:this.rings.count,contact:this.center.toArray(),pressure:this.pressure};}
  reset(){this.clock=0;this.pressure=0;this.root.visible=false;this.arcs.count=this.sparks.count=this.rings.count=0;this.light.intensity=0;(this.flare.material as T.ShaderMaterial).uniforms.clock.value=0;(this.flare.material as T.ShaderMaterial).uniforms.pressure.value=0;}
- dispose(){if(this.disposed)return;this.disposed=true;for(const m of [this.arcs,this.sparks,this.rings,this.flare]){m.geometry.dispose();(m.material as T.Material).dispose();if((m as T.InstancedMesh).isInstancedMesh)(m as T.InstancedMesh).dispose();}this.light.dispose();this.root.removeFromParent();}
+ dispose(){if(this.disposed)return;this.disposed=true;this.light.removeFromParent();for(const m of [this.arcs,this.sparks,this.rings,this.flare]){m.geometry.dispose();(m.material as T.Material).dispose();if((m as T.InstancedMesh).isInstancedMesh)(m as T.InstancedMesh).dispose();}this.light.dispose();this.root.removeFromParent();}
 }

@@ -89,7 +89,8 @@ export class BossRigAdapter {
   }
   this.cues.count=count;this.cues.instanceMatrix.needsUpdate=true;if(this.cues.instanceColor)this.cues.instanceColor.needsUpdate=true;
  }
- notifyHit(region:BossRegionID|undefined,damage:number){if(region&&Number.isFinite(damage)&&damage>0)this.flashes.set(region,.24);}
+ // Playtest: the white full-body hit flash read as blinking and hurt the fight; impact sparks and recoil carry hit feedback now.
+ notifyHit(_region:BossRegionID|undefined,_damage:number){}
  impact(effect?:Partial<AuthoritativeBossImpact>,target=new T.Vector3()):T.Vector3|undefined{
   if(!effect?.hitRegion||![effect.x,effect.y,effect.z].every(Number.isFinite))return undefined;
   return target.set(effect.x!,effect.y!,-effect.z!);

@@ -53,7 +53,7 @@ export class BattlefieldDestruction {
  private plan(travel:number){
   const first=Math.floor(travel/SECTION)+1,last=first+9;
   for(let k=Math.max(this.planned+1,first);k<=last;k++){let seed=(k*2654435761)>>>0;const rnd=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
-   const n=1+Math.floor(rnd()*3);for(let i=0;i<n;i++){const side=rnd()<.5?-1:1,kind=Math.floor(rnd()*3) as PropKind;this.props.push({anchor:k*SECTION+rnd()*SECTION,x:side*(3.7+rnd()*.7),kind,yaw:kind===2?side*(.2+rnd()*.3):rnd()*Math.PI,alive:true,jolt:0});}}
+   const n=rnd()<.45?1:0;for(let i=0;i<n;i++){const side=rnd()<.5?-1:1,kind=Math.floor(rnd()*3) as PropKind;this.props.push({anchor:k*SECTION+rnd()*SECTION,x:side*(4.1+rnd()*.5),kind,yaw:kind===2?side*(.2+rnd()*.3):rnd()*Math.PI,alive:true,jolt:0});}}
   this.planned=Math.max(this.planned,last);
   this.props=this.props.filter(p=>travel-p.anchor<12);
  }

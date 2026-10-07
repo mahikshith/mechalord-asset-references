@@ -11,7 +11,7 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
  * visual; it never reads or alters combat state. `?quality=low` keeps the
  * reflections and sky but skips post-processing for weak phones. */
 export class RenderQuality {
- composer?:EffectComposer;private frames=0;private slow=0;private last=0;readonly bloom?:UnrealBloomPass;readonly sky:T.Mesh;
+ composer?:EffectComposer;private reduced=false;private frames=0;private slow=0;private last=0;readonly bloom?:UnrealBloomPass;readonly sky:T.Mesh;
  private readonly skyMaterial:T.ShaderMaterial;private readonly envTarget:T.WebGLRenderTarget;
  constructor(private readonly renderer:T.WebGLRenderer,private readonly scene:T.Scene,private readonly camera:T.PerspectiveCamera,low=new URLSearchParams(globalThis.location?.search??'').get('quality')==='low'){
   const pmrem=new T.PMREMGenerator(renderer),room=new RoomEnvironment();this.envTarget=pmrem.fromScene(room,.04);scene.environment=this.envTarget.texture;scene.environmentIntensity=.35;room.dispose();pmrem.dispose();
@@ -33,9 +33,11 @@ export class RenderQuality {
  /** Sky follows the route palette so zone colour transitions stay continuous. */
  setSky(horizon:number){const h=this.skyMaterial.uniforms.horizon.value as T.Color;h.setHex(horizon);(this.skyMaterial.uniforms.zenith.value as T.Color).copy(h).multiplyScalar(.42).lerp(new T.Color(0x1f4f76),.45);}
  resize(width:number,height:number){this.composer?.setPixelRatio(this.renderer.getPixelRatio());this.composer?.setSize(width,height);}
- /** Adaptive quality: if post-processing keeps frames over ~24 ms during the
-  * first seconds of play, drop to direct rendering for the rest of the session. */
- private adapt(){const now=performance.now(),dt=now-this.last;this.last=now;if(!this.composer||dt>250)return;this.frames++;if(dt>24)this.slow++;if(this.frames>=90){if(this.slow>this.frames*.5){this.composer.dispose();this.composer=undefined;}this.frames=this.slow=0;}}
+ /** Adaptive quality: if frames keep running over ~24 ms, step down once by
+  * dropping bloom and render resolution. The composer itself stays, because
+  * switching to direct rendering changes the output colour space and forces
+  * every shader to recompile (a multi-second freeze mid-fight). */
+ private adapt(){const now=performance.now(),dt=now-this.last;this.last=now;if(!this.composer||this.reduced||dt>250)return;this.frames++;if(dt>24)this.slow++;if(this.frames>=90){if(this.slow>this.frames*.5){this.reduced=true;if(this.bloom)this.bloom.enabled=false;this.renderer.setPixelRatio(Math.min(this.renderer.getPixelRatio(),1));const size=this.renderer.getSize(new T.Vector2());this.resize(size.x,size.y);}this.frames=this.slow=0;}}
  render(){this.adapt();this.sky.position.copy(this.camera.position);this.renderer.info.autoReset=false;this.renderer.info.reset();if(this.composer)this.composer.render();else this.renderer.render(this.scene,this.camera);}
  dispose(){this.composer?.dispose();this.envTarget.dispose();this.sky.geometry.dispose();this.skyMaterial.dispose();this.scene.remove(this.sky);}
 }

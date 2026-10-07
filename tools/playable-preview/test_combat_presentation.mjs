@@ -62,7 +62,7 @@ test('layered plasma keeps real centreline, width and end contact with bounded a
 test('zero-time presentation freezes plasma, exhaust and trail resource state',()=>{
   missiles.reset();const opts={...options,lasers:[{id:1,x:0,z:10,endX:0,endZ:0,width:.3,time:.5}]};missiles.update([],[rocket],opts);const before=[matrix(missiles.exhaust).elements,matrix(missiles.beamFlow).elements,missiles.plasmaTime.value,missiles.hostileLaunchZ.get(1).trailClock];
   for(let i=0;i<10;i++)missiles.update([],[rocket],opts);assert.deepEqual([matrix(missiles.exhaust).elements,matrix(missiles.beamFlow).elements,missiles.plasmaTime.value,missiles.hostileLaunchZ.get(1).trailClock],before);
-  missiles.update([],[],{...opts,lasers:[],bossCharging:false});assert.equal(missiles.beamContact.count,0);assert.equal(missiles.beamEmitter.count,0);assert.equal(missiles.beamGround.count,0);assert.equal(missiles.beamLight.visible,false);
+  missiles.update([],[],{...opts,lasers:[],bossCharging:false});assert.equal(missiles.beamContact.count,0);assert.equal(missiles.beamEmitter.count,0);assert.equal(missiles.beamGround.count,0);assert.equal(missiles.beamLight.intensity,0);
 });
 test('robot gait articulates arms and suspension while torso remains planted',()=>{
   robots.reset();robots.begin();robots.add(0,-5,1,0,false,0);robots.end();const torso=matrix(robots.body),arm=matrix(robots.arms),leg=matrix(robots.legs);

@@ -215,12 +215,13 @@ function activate(relic: Relic = selected): void {
 }
 function fireLaser(): void { if(canAct()) { const fired = core.fireLaser(); if (fired && clashTutorial) endClashTutorial(); } }
 // First boss laser ever: time crawls and the laser button pulses until the player answers with their own beam.
-let clashTutorial = false;
+let clashTutorial = false, clashTutorialAt = 0;
 function endClashTutorial(): void { clashTutorial = false; world.hitStop = 0; progress.clashHint = true; saveProgress(); $('laser-cannon').classList.remove('nudge'); }
 function maybeClashTutorial(s: Snapshot): void {
-  if (clashTutorial) { world.hitStop = Math.max(world.hitStop, .2); return; }
+  // Capped at 1.5 s real time and ends with the windup, so it can never read as a frozen screen.
+  if (clashTutorial) { if (s.bossAction !== 'windup' || performance.now() - clashTutorialAt > 1500) endClashTutorial(); else world.hitStop = Math.max(world.hitStop, .2); return; }
   if (progress.clashHint || !s.campaign || s.phase !== 'boss' || s.bossPattern !== 'laser' || s.bossAction !== 'windup' || s.bossAttack < .55 || !((s.laserCharges ?? 0) > 0)) return;
-  clashTutorial = true; world.hitStop = .2; $('laser-cannon').classList.add('nudge'); $('combat-hint').textContent = 'TAP LASER NOW · CLASH BEAMS WITH THE TYRANT';
+  clashTutorial = true; clashTutorialAt = performance.now(); world.hitStop = .2; $('laser-cannon').classList.add('nudge'); $('combat-hint').textContent = 'TAP LASER NOW · CLASH BEAMS WITH THE TYRANT';
 }
 function clashPulse(): void { if(playing && clashing && !paused && !graphicsLost) core.clashTap(); }
 function chooseReward(choice:'laser'|'vitality'|'endurance'):void {
@@ -455,7 +456,7 @@ function frame(now: number): void {
   if (ready && !graphicsLost) {
     if (playing && !paused && !defeating && !downed) {
       const left = held.has('arrowleft') || held.has('a'), right = held.has('arrowright') || held.has('d');
-      if ((left || right) && !clashing && !rewarding && !reviving) targetX = clamp(targetX + (Number(right) - Number(left)) * dt * 5.4);
+      if ((left || right) && !clashing && !rewarding && !reviving) targetX = clamp(targetX + (Number(right) - Number(left)) * dt * 9);
       if(clashing && clashHeld) { clashHoldTime+=dt; if(clashHoldTime>=1/3) { clashHoldTime-=1/3; clashPulse(); } }
       core.step(world.timeScale?.(dt) ?? dt, targetX);
     }

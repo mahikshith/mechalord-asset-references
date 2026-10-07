@@ -1,6 +1,6 @@
 {
   "scope": "CPU real mesh bounds, posed emitters, shields, material flashes, revival timeline and bounded repeated allocations; rendered appearance checked separately",
-  "passed": 11,
+  "passed": 10,
   "failed": 0,
   "stats": {
     "visible": 96,
@@ -35,15 +35,11 @@
       "passed": true
     },
     {
-      "name": "entire real boss component flashes on confirmed damaging hit and resets its own materials",
+      "name": "boss hits never wash the villain white (playtest: blinking hurt the fight)",
       "passed": true
     },
     {
-      "name": "confirmed-hit wash survives dark painted maps without shader recompilation on every hit",
-      "passed": true
-    },
-    {
-      "name": "confirmed reactor damage washes the entire measured oval face with correct posed depth offset",
+      "name": "reactor hits never show the white reactor wash",
       "passed": true
     },
     {
@@ -59,5 +55,5 @@
       "passed": true
     }
   ],
-  "generatedAt": "2026-10-07T11:52:34.202Z"
+  "generatedAt": "2026-10-07T13:38:25.454Z"
 }
