@@ -5,7 +5,7 @@
 // attack admission and rewards; these tables introduce no separate authority.
 namespace mech::campaign
 {
-enum class Kind { Wave,Gunner,Battery,Carrier,Crate,Gate,Roller,Archetype,Health };
+enum class Kind { Wave,Gunner,Battery,Carrier,Crate,Gate,Roller,Archetype,Health,Collapse };
 struct Event
 {
  double at=0;Kind kind=Kind::Wave;double x=0,hp=0;
@@ -88,7 +88,7 @@ inline constexpr std::array<Event,64> IronMarch{{
  {26,Kind::Wave,0,11,2,1,5}, {28,Kind::Roller,-1.3,0,12,0,0,0,1.6}, {32,Kind::Wave,0,11,3,2,0},
  {36,Kind::Crate,1.8,66,55}, {39,Kind::Archetype,1.8,90,0,2}, {42,Kind::Wave,0,12,2,0,3},
  {44,Kind::Health,-1.8}, {47,Kind::Gate,1.8,0,8,1},
- {50,Kind::Roller,0,0,12,0,0,0,2.15}, {52,Kind::Wave,0,12,2,1,1}, {54,Kind::Carrier,-1.8,114,4,0,1},
+ {50,Kind::Collapse,-1,0,10}, {52,Kind::Wave,0,12,2,1,1}, {54,Kind::Carrier,-1.8,114,4,0,1},
  {58,Kind::Wave,0,12,3,1,4},
  // Storm: staggered crossfire, repair escorts and airborne mortar pressure.
  {62,Kind::Archetype,-2.1,120,0,4}, {64,Kind::Wave,0,13,2,2,2}, {66,Kind::Gunner,2.6,94,0,0,0,2.4},
@@ -104,7 +104,7 @@ inline constexpr std::array<Event,64> IronMarch{{
  {128,Kind::Battery,2.6,156,0,0,0,1.4}, {132,Kind::Archetype,-1.8,198,0,1}, {134,Kind::Wave,0,16,2,0,0},
  {136,Kind::Crate,1.8,120,85}, {139,Kind::Gate,1.8,0,14,1},
  {143,Kind::Wave,0,17,3,1,5}, {147,Kind::Carrier,-1.8,192,7,0,10}, {149,Kind::Wave,0,17,2,2,1},
- {151,Kind::Roller,1.8,0,16,0,0,0,.8}, {155,Kind::Archetype,2.1,192,0,4},
+ {151,Kind::Collapse,1,0,14}, {155,Kind::Archetype,2.1,192,0,4},
  {159,Kind::Archetype,-2.1,174,0,3}, {163,Kind::Gate,1.8,0,16,1},
  {166,Kind::Carrier,-1.8,204,10,0,8}, {169,Kind::Health,1.8}, {171,Kind::Wave,0,18,2,0,3},
  {173,Kind::Crate,0,126,100}, {176,Kind::Wave,0,18,3,1,4},

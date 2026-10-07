@@ -379,7 +379,7 @@ void Battle::DamageRegion(int Id,double Damage,const boss_pose::Vec3& Point,Frie
         const bool Core=Id==6 && guardHp<=0;
         const double Scale=Core?(Kind==FriendlyKind::Missile?.80:Kind==FriendlyKind::Cannon?1.4:Kind==FriendlyKind::Rail?1.7:2.):Kind==FriendlyKind::Cannon?.70:Kind==FriendlyKind::Missile?.60:Kind==FriendlyKind::Rail?1.10:1.20;
         double& Hp=Id<6?regionHp[Id]:guardHp>0?guardHp:bossCoreHp;
-        Actual=std::min(Hp,Damage*Scale);Hp-=Actual;
+        Actual=std::min(Hp,Damage*Scale*(campaign&&ventTime>0?2.:1.));Hp-=Actual; // weak-point window after big attacks
         if(Id<6 && Hp<=1e-8)
         {
             Hp=0;bossPartsMask|=1<<Id;Emit(EffectKind::BossPartBreak,bossX,bossZ,Id+1,0,3,2.7);
@@ -521,6 +521,7 @@ void Battle::SpawnTimeline()
             case campaign::Kind::Crate:Spawn(Kind::Crate,E.x<0?-3.35:3.35,40,E.hp*2.4,E.value,0,.8,7);break;
             case campaign::Kind::Gate:Spawn(Kind::Gate,E.x<0?-1.8:1.8,40,0,E.value+4,0,1.2);Spawn(Kind::Gate,E.x<0?1.8:-1.8,40,0,E.variant==1?-E.value:E.value,0,1.2);break;
             case campaign::Kind::Roller:Spawn(Kind::Hazard,E.x,40,0,E.value,0,.85,0,E.motion);break;
+            case campaign::Kind::Collapse:Spawn(Kind::Hazard,E.x<0?-2.15:2.15,40,0,E.value,0,2.2,8,0);break; // half the deck caves in
             case campaign::Kind::Archetype:SpawnArchetype(E.variant,E.x,E.hp,E.delay);break;
             case campaign::Kind::Health:DropPickup(E.x,40,PickupKind::Health,0);break;
             }
@@ -1525,7 +1526,7 @@ void Battle::BossStep(double Dt)
     { bossAction=BossAction::Strafe; bossAttack=0; firePose=0; sweepIndex=-1; return; }
     firePose=std::max(0.,firePose-BossDt); // Campaign enrage: every broken part makes the Tyrant attack faster.
     const double Enrage=campaign?1.+.09*__builtin_popcount(unsigned(bossPartsMask)):1.;
-    bossClock+=BossDt*Enrage*(RelicActive(Relic::EMP)?.5:1);
+    bossClock+=BossDt*Enrage*(RelicActive(Relic::EMP)?.5:1);ventTime=std::max(0.,ventTime-BossDt);
     if(firePose<=0 && !bossLaneLocked) {
         if(campaign){static constexpr BossPattern Patterns[]={BossPattern::Heavy,BossPattern::Rockets,BossPattern::Laser,BossPattern::Sweep,BossPattern::Rockets,BossPattern::Laser};bossPattern=Patterns[bossVolleys%6];}
         else if(StageLevel()==3){static constexpr BossPattern Patterns[]={BossPattern::Rockets,BossPattern::Sweep,BossPattern::Rockets,BossPattern::Heavy};bossPattern=Patterns[bossVolleys%4];}
@@ -1555,7 +1556,7 @@ void Battle::BossStep(double Dt)
     if(bossClock>=1.8+Windup)
     {
         bossY=(bossPartsMask&48)==48?GroundY():(bossPartsMask&12)==12?GroundY():.85;
-        BossVolley(); firePose=bossPattern==BossPattern::Sweep?1.1:bossPattern==BossPattern::Laser?.5:.4; bossClock=-.3; bossLaneLocked=false; bossAttack=1;
+        BossVolley(); if(campaign&&(bossPattern==BossPattern::Laser||bossPattern==BossPattern::Heavy))ventTime=2.0; firePose=bossPattern==BossPattern::Sweep?1.1:bossPattern==BossPattern::Laser?.5:.4; bossClock=-.3; bossLaneLocked=false; bossAttack=1;
     }
     if(firePose>0) { bossAction=BossAction::Fire; bossAttack=1; bossY=(bossPartsMask&48)==48?GroundY():(bossPartsMask&12)==12?GroundY():.85; }
 }

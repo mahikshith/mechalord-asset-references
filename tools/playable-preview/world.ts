@@ -51,7 +51,7 @@ export class Battlefield{
  emitterPositions:EmitterPositions={};enemyMotion=new Map<number,{x:number,z:number,yaw:number,age:number}>();eliteSockets:WeaponSockets[]=[];projectileIDs=new Set<number>();bossPreviousZ=40;bossPreviousVz=0;bossPitch=0;bossBank=0;bossMotionReady=false;
  enemyCues:EnemyWeaponCues;enemyRecoil=new Map<number,number>();
  heroRing:T.Mesh;shadowInstances:T.InstancedMesh;
- floating:{badge:Badge,life:number,x:number,y:number,z:number,base?:number}[]=[];age=0;hostileAge=0;bossVisualAge=0;shake=0;cameraBossBlend=0;armyZoom=0;clashBlend=0;clashFx=0;clashWasActive=false;resizeObserver:ResizeObserver;
+ floating:{badge:Badge,life:number,x:number,y:number,z:number,base?:number}[]=[];age=0;hostileAge=0;bossVisualAge=0;shake=0;cameraBossBlend=0;armyZoom=0;clashBlend=0;clashFx=0;ventFx=0;clashWasActive=false;resizeObserver:ResizeObserver;
  constructor(public canvas:HTMLCanvasElement){
   this.renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
   this.renderer.setClearColor(0xadc5c7);this.renderer.outputColorSpace=T.SRGBColorSpace;this.renderer.toneMapping=T.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.06;
@@ -117,6 +117,11 @@ export class Battlefield{
    const beam=new T.Mesh(new T.CylinderGeometry(.9,.75,1.2,28,1,true),new T.MeshBasicMaterial({color:new T.Color(.2,.8,1.2),transparent:true,opacity:.16,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide,toneMapped:false}));beam.position.y=-.55;rotor.add(beam);badge.sprite.position.set(0,3.0,0);
   }else if(t.kind==='crate'){
    box(group,1.65,1.3,1.4,0,.68,0,gold);for(const x of [-.55,.55])box(group,.12,1.2,1.25,x,.6,0,dark);for(const z of [-.52,.52])box(group,1.4,.1,.13,0,1.05,z,white);rotor=new T.Group();rotor.position.y=2.05;rotor.scale.setScalar(1.4);group.add(rotor);box(rotor,.70,.25,.35,0,0,0,dark);for(const x of [-.18,.18])cyl(rotor,.08,.08,.90,x,.06,-.44,dark,8).rotation.x=Math.PI/2;box(rotor,.18,.28,.22,.05,-.22,0,white);badge.sprite.position.set(0,3.0,0);
+  }else if(t.kind==='hazard'&&t.variant===8){
+   // Collapse zone: half the deck has caved in; a glowing chasm with torn plate edges.
+   const pit=new T.Mesh(new T.PlaneGeometry(4.6,3.4).rotateX(-Math.PI/2),new T.MeshBasicMaterial({map:this.chasmTexture(),transparent:true,depthWrite:false,toneMapped:false}));pit.position.y=.035;group.add(pit);const glow=pit;
+   const plate=mat(0x3a4550);for(let i=0;i<9;i++){const p=box(group,.5+Math.random()*.6,.12,.35+Math.random()*.4,(Math.random()-.5)*4.2,.08,(Math.random()<.5?-1:1)*(1.4+Math.random()*.3),plate);p.rotation.set((Math.random()-.5)*.6,Math.random()*3,(Math.random()-.5)*.6);}
+   badge.sprite.position.y=1.3;group.userData.chasm=glow;
   }else if(t.kind==='hazard'){
    rotor=new T.Group();rotor.position.y=.70;group.add(rotor);const log=cyl(rotor,.56,.56,2.3,0,0,0,red,16);log.rotation.z=Math.PI/2;for(const x of [-1.12,1.12]){const cap=cyl(rotor,.63,.63,.17,x,0,0,white,16);cap.rotation.z=Math.PI/2;}for(let j=0;j<4;j++)for(let i=0;i<7;i++){const a=i/7*Math.PI*2,o=new T.Mesh(new T.ConeGeometry(.16,.37,4),white);o.position.set(-.86+j*.57,Math.cos(a)*.61,Math.sin(a)*.61);o.rotation.x=a;rotor.add(o);}badge.sprite.position.y=1.9;
   }else badge.sprite.position.y=1.65;
@@ -181,6 +186,13 @@ export class Battlefield{
  hitStop=0;slowFactor=1;
  punch(seconds:number){if(!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false))this.hitStop=Math.max(this.hitStop,seconds);}
  timeScale(dt:number){if(this.hitStop<=0){this.slowFactor=1;return dt;}this.hitStop-=dt;this.slowFactor=.12;return dt*.12;}
+ /** Jagged hole in the deck: torn rim, molten glow deep inside, darkness in between. */
+ private chasmTex?:T.CanvasTexture;
+ chasmTexture(){if(this.chasmTex)return this.chasmTex;const c=document.createElement('canvas');c.width=256;c.height=192;const g=c.getContext('2d')!;
+  const pts:number[][]=[];for(let i=0;i<28;i++){const a=i/28*Math.PI*2,r=.86+Math.random()*.12;pts.push([128+Math.cos(a)*120*r,96+Math.sin(a)*88*r]);}
+  g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();const r=g.createRadialGradient(128,110,6,128,96,120);r.addColorStop(0,'rgba(255,120,30,1)');r.addColorStop(.35,'rgba(120,30,8,1)');r.addColorStop(.75,'rgba(8,4,3,1)');r.addColorStop(1,'rgba(0,0,0,1)');g.fillStyle=r;g.fill();
+  g.strokeStyle='rgba(255,150,60,.95)';g.lineWidth=4;g.stroke();for(let i=0;i<14;i++){const [x,y]=pts[Math.floor(Math.random()*pts.length)];g.beginPath();g.moveTo(x,y);g.lineTo(x+(Math.random()-.5)*60,y+(Math.random()-.5)*40);g.lineWidth=2;g.stroke();}
+  this.chasmTex=new T.CanvasTexture(c);this.chasmTex.colorSpace=T.SRGBColorSpace;return this.chasmTex;}
  /** Pillar falls across the lane, then rips the deck along its length. */
  topples:{obj:T.Group,t:number,x:number,z:number,dir:number,landed:boolean}[]=[];
  topple(x:number,z:number){const dir=-Math.sign(x)||1,pivot=new T.Group();pivot.position.set(x,0,z);const shaft=new T.Mesh(new T.CylinderGeometry(.62,.78,6.6,20),new T.MeshStandardMaterial({color:0x3b4148,metalness:.6,roughness:.45}));shaft.position.y=3.3;shaft.castShadow=true;pivot.add(shaft);this.scene.add(pivot);this.topples.push({obj:pivot,t:0,x,z,dir,landed:false});this.shake=Math.max(this.shake,.15);}
@@ -198,6 +210,8 @@ export class Battlefield{
   const stage=s.stageLevel??s.level;
   if(s.campaign){const p=continuousRoutePalette(intro?0:s.travelDistance);this.renderer.setClearColor(p.sky);(this.scene.fog as T.Fog).color.setHex(p.sky);this.quality.setSky(p.sky);this.scene.traverse(o=>{if(o instanceof T.HemisphereLight){o.color.setHex(p.fill);o.groundColor.setHex(p.ground);}if(o instanceof T.DirectionalLight)o.color.setHex(p.key);});}else this.applyStagePalette(stage);
   this.cruelFace?.setRage(s.phase==='boss'&&(s.bossAction==='windup'||s.bossAction==='fire')?1:0,this.age);
+  // Weak-point window: the Tyrant's vents blaze and spit sparks while hits deal triple damage.
+  if((s.ventTime??0)>0&&this.boss.visible&&active){this.ventFx-=renderDt;if(this.ventFx<=0){this.ventFx=.12;const core=s.bossRegions?.find(r=>r.id==='core');this.fx.energyImpact(core?core.x:s.bossX,core?core.y:s.bossY+4.3,core?-core.z:-s.bossZ+.8,0xff8a2a);}}
   villainClock.value=this.age;this.empFlash=Math.max(0,this.empFlash-renderDt*1.4);villainStun.value=Math.max(this.empFlash,s.empStunTime>0?.55+.15*Math.sin(this.age*30):0);this.routeEnvironment.setPower(this.empFlash>0?(this.empFlash>.75?2.5:Math.max(0,1-this.empFlash*1.6)+(Math.random()<.15?.6:0)):1);this.presentation=s;this.bossHitKick=Math.max(0,this.bossHitKick-renderDt);this.bossFireKick=Math.max(0,this.bossFireKick-renderDt);this.commanderHitKick=Math.max(0,this.commanderHitKick-renderDt);
   const combatHeld=reviving||downed||s.rewardPending||!!s.clash?.active;
   this.age+=renderDt;const hostileRate=combatHeld?0:s.timePower==='freeze'?0:s.timePower==='slow'?.5:s.timePower==='haste'?1.35:1;this.hostileAge+=renderDt*hostileRate;if(!(s.empStunTime>0))this.bossVisualAge+=renderDt*hostileRate;const bossAge=this.bossVisualAge;const bossPhase=s.phase==='boss'||s.phase==='destroying'||s.phase==='reward'||(this.bossExploded&&s.phase==='won')||((s.phase==='lost'||downed||reviving)&&s.bossHp>0&&s.travelDistance>=s.travelGoal);
@@ -271,6 +285,8 @@ export class Battlefield{
     const k=1-t.hp/t.maxHp;v.badge.set(String(Math.ceil(t.hp)),'#ff8a3a','SHOOT TO TOPPLE');v.bar.scale.x=Math.max(.02,t.hp/t.maxHp);v.bar.position.y=5.6;const pc=v.group.userData.pillar;if(pc){(pc.userData.crack as T.MeshBasicMaterial).color.setRGB(2.4+k*3,.7+k,.15);pc.rotation.z=(t.hit>0?.03:0)*Math.sign(-t.x);}
    }else if(t.kind==='crate'){
     v.badge.set(String(Math.ceil(t.hp)),'#ffc851','UPGRADE');v.bar.scale.x=Math.max(.02,t.hp/t.maxHp);if(v.rotor){v.rotor.rotation.y=this.age*.85;v.rotor.position.y=2.05+Math.sin(this.age*3)*.12;}
+   }else if(t.kind==='hazard'&&t.variant===8){
+    v.badge.set('COLLAPSE','#ff7a3a');v.bar.visible=false;const g=v.group.userData.chasm as T.Mesh|undefined;if(g)(g.material as T.MeshBasicMaterial).color.setScalar(1.1+.35*Math.sin(this.age*6));
    }else if(t.kind==='hazard'){
     v.badge.set('-'+Math.abs(t.value),'#ff795b');v.bar.visible=false;if(v.rotor){v.rotor.rotation.x=-s.travelDistance*1.6-this.age*.8;v.rotor.scale.x=t.size*2/2.3;}
    }else{
