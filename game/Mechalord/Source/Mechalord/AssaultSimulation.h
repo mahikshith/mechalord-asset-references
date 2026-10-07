@@ -99,7 +99,7 @@ public:
     std::array<Effect,MaxEffects> effects{};
     std::array<Pickup,MaxPickups> pickups{};
     std::array<Laser,2> lasers{};
-    std::array<bool,24> formationAlive{};double machinePlating=0;bool loadoutApplied=false;
+    std::array<bool,24> formationAlive{};double machinePlating=0,laserMeter=0;bool loadoutApplied=false;
     int formationSpan=7;
     bool UsesSpatialBoss() const { return level==0 || level>=3; }
     void Start(Relic Equipped,int Level=0,int Rank=0);

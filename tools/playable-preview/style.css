@@ -64,3 +64,6 @@ body.boss-warning .route i{background:#ef7954}body.boss-warning #phase-label{col
 .armory-panel .reward-options button[disabled]{opacity:.45}
 .armory-panel small em{color:#7fe9ff;font-style:normal}
 .drop-shop{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}.drop-shop button{padding:6px}.drop-shop small{font-size:10px}
+
+.laser-cannon{background-image:linear-gradient(to top,#4fd8ff55 var(--fill,0%),transparent var(--fill,0%))}.laser-cannon:disabled{opacity:.75}
+@keyframes laserNudge{0%,100%{transform:scale(1);box-shadow:0 0 0 0 #4fd8ffcc}50%{transform:scale(1.25);box-shadow:0 0 0 18px #4fd8ff00}}.laser-cannon.nudge{animation:laserNudge .5s infinite;z-index:30;outline:3px solid #ffffff}

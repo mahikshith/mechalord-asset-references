@@ -172,7 +172,7 @@ bool Battle::ChooseReward(int Choice)
 bool Battle::FireLaser()
 {
     if(paused||clash.active||laserCharges<=0||combatPowerTime>0||(phase!=Phase::Run&&phase!=Phase::Boss))return false;
-    --laserCharges;BeginCombatPower(PickupKind::Tempest);return true;
+    --laserCharges;if(campaign)laserMeter=0;BeginCombatPower(PickupKind::Tempest);return true;
 }
 bool Battle::BeginClash()
 {
@@ -1031,6 +1031,7 @@ void Battle::HitTarget(Target& T,double Damage,FriendlyKind WeaponKind,bool Igno
     if(T.kind==Kind::Enemy && T.variant>0 && commanderHp<commanderMaxHp-15 && healthDropClock<=0){DropPickup(T.x,std::max(2.,T.z),PickupKind::Health,T.id);healthDropClock=12;}
     if(T.kind==Kind::Crate) AwardWeaponXP(timePower==TimePower::Haste?int(T.value*1.25):T.value);
     if(campaign&&T.kind==Kind::Enemy) AwardWeaponXP(T.variant>0?5:1); // weapon XP now comes from kills
+    if(campaign&&T.kind==Kind::Enemy){laserMeter=std::min(100.,laserMeter+(T.variant>0?6.:1.5));if(laserMeter>=100&&laserCharges<=0)laserCharges=1;} // kills refill the laser cannon
     if(campaign&&T.kind==Kind::Crate&&T.variant==7)
     {   // The pillar falls across the lane: everything in its band is crushed.
         Emit(EffectKind::HazardBreak,T.x,T.z,0,T.id,-7,T.size);

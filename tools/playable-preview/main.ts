@@ -58,7 +58,7 @@ const challenges = chapters.map(chapter=>chapter.challenge);
 const levelTags = chapters.map(chapter=>chapter.tag);
 type LegacyImprint='laser'|'vitality'|'endurance';
 interface Armory { credits:number; sentinel:number; havoc:number; wisp:number; weapon:number; }
-interface Progress { legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; lastLevel: number; commanderXP: number; armory: Armory; }
+interface Progress { legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; clashHint?: boolean; lastLevel: number; commanderXP: number; armory: Armory; }
 const progress: Progress = { cleared: chapters.map(()=>false), best: chapters.map(()=>0), gateHint: false, lastLevel: 0, commanderXP: 0, armory: { credits: 0, sentinel: 0, havoc: 0, wisp: 0, weapon: 0 } };
 let migratedProgress = false;
 const rankThresholds = [0, 100, 250, 450];
@@ -86,7 +86,7 @@ try {
       progress.cleared[i] = saved.cleared?.[i] === true;
       const score = saved.best?.[i]; progress.best[i] = Number.isFinite(score) ? Math.max(0, Math.min(1000000, Math.round(score))) : 0;
     }
-    progress.gateHint = saved.gateHint === true;
+    progress.gateHint = saved.gateHint === true; progress.clashHint = saved.clashHint === true;
     const a = saved.armory ?? {}, n = (v:unknown,max:number)=>Number.isSafeInteger(v)?Math.max(0,Math.min(max,v as number)):0;
     progress.armory = { credits:n(a.credits,10000000), sentinel:n(a.sentinel,MAX_HIRES), havoc:n(a.havoc,MAX_HIRES), wisp:n(a.wisp,MAX_HIRES), weapon:n(a.weapon,3) };
     progress.lastLevel = Number.isInteger(saved.lastLevel) ? Math.max(0, Math.min(chapters.length-1, saved.lastLevel)) : 0;
@@ -202,7 +202,15 @@ function canAct(): boolean { return playing && !defeating && !downed && !paused 
 function activate(relic: Relic = selected): void {
   if (canAct() && core.activateRelic(relic)) { selected = relic; toast(`${names[relic]} ACTIVATED`, 900); }
 }
-function fireLaser(): void { if(canAct()) core.fireLaser(); }
+function fireLaser(): void { if(canAct()) { const fired = core.fireLaser(); if (fired && clashTutorial) endClashTutorial(); } }
+// First boss laser ever: time crawls and the laser button pulses until the player answers with their own beam.
+let clashTutorial = false;
+function endClashTutorial(): void { clashTutorial = false; world.hitStop = 0; progress.clashHint = true; saveProgress(); $('laser-cannon').classList.remove('nudge'); }
+function maybeClashTutorial(s: Snapshot): void {
+  if (clashTutorial) { world.hitStop = Math.max(world.hitStop, .2); return; }
+  if (progress.clashHint || !s.campaign || s.phase !== 'boss' || s.bossPattern !== 'laser' || s.bossAction !== 'windup' || s.bossAttack < .55 || !((s.laserCharges ?? 0) > 0)) return;
+  clashTutorial = true; world.hitStop = .2; $('laser-cannon').classList.add('nudge'); $('combat-hint').textContent = 'TAP LASER NOW · CLASH BEAMS WITH THE TYRANT';
+}
 function clashPulse(): void { if(playing && clashing && !paused && !graphicsLost) core.clashTap(); }
 function chooseReward(choice:'laser'|'vitality'|'endurance'):void {
   if(!playing || !rewarding || rewardChoosing || paused || graphicsLost || latestSnapshot?.phase!=='reward') return;
@@ -357,10 +365,13 @@ function hud(s: Snapshot): void {
     button.setAttribute('aria-label',equipped?`${names[i]}: ${descriptions[i]} ${active?'Active for ':''}${label}. Keyboard ${i+1}.`:`${names[i]}: not equipped in this practice run. Choose it in the practice menu.`);
     button.setAttribute('aria-pressed',String(active));
   }
-  const laserButton=$<HTMLButtonElement>('laser-cannon'); laserButton.hidden=!(s.laserCharges&&s.laserCharges>0) || clashing || destroying || rewarding || reviving;
-  laserButton.disabled=!canAct() || !!combatActive; $('laser-charges').textContent=String(s.laserCharges??0);
+  // Campaign: the laser cannon is always on the HUD; kills fill it, firing empties it.
+  maybeClashTutorial(s);
+  const charged=(s.laserCharges??0)>0,meter=s.campaign?Math.round(s.laserMeter??0):0;
+  const laserButton=$<HTMLButtonElement>('laser-cannon'); laserButton.hidden=!(charged||s.campaign) || clashing || destroying || rewarding || reviving;
+  laserButton.disabled=!charged || !canAct() || !!combatActive; $('laser-charges').textContent=charged?'READY':`${meter}%`;laserButton.style.setProperty?.('--fill',`${charged?100:meter}%`);
   laserButton.setAttribute('aria-label',`Fire lightning cannon. ${s.laserCharges??0} charges. Keyboard L. Cross the boss beam to start a clash.`);
-  $('combat-hint').textContent = exposed ? 'CORE OPEN · MAKE EACH SHOT COUNT' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : boss && s.bossPattern === 'laser' ? windup ? 'LASER CHARGING · PREPARE TO DODGE' : 'DODGE THE BEAM · FIRE BACK' : boss && s.bossPattern === 'rockets' ? 'BAIT THE MISSILES · THEN CHANGE LANE' : reactorShield?'BREAK THE REACTOR SHIELD · CORE WOUNDS REMAIN':guarded ? 'CORE GUARDED · DODGE THE NEXT VOLLEY' : runnerGunner ? runnerGunner.fireState === 'locked' ? 'AIM LOCKED · CHANGE LANE' : 'CANNON TRACKING · PREPARE TO MOVE' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'BREAK PARTS · WATCH ITS NEXT ATTACK' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'KILLS EARN WEAPON XP · TOPPLE PILLARS';
+  if (!clashTutorial) $('combat-hint').textContent = exposed ? 'CORE OPEN · MAKE EACH SHOT COUNT' : rebuilding ? 'ARMOR REBUILDING · KEEP MOVING' : boss && s.bossPattern === 'laser' ? windup ? 'LASER CHARGING · PREPARE TO DODGE' : 'DODGE THE BEAM · FIRE BACK' : boss && s.bossPattern === 'rockets' ? 'BAIT THE MISSILES · THEN CHANGE LANE' : reactorShield?'BREAK THE REACTOR SHIELD · CORE WOUNDS REMAIN':guarded ? 'CORE GUARDED · DODGE THE NEXT VOLLEY' : runnerGunner ? runnerGunner.fireState === 'locked' ? 'AIM LOCKED · CHANGE LANE' : 'CANNON TRACKING · PREPARE TO MOVE' : s.timePower === 'freeze' ? 'THREATS FROZEN · KEEP FIRING' : s.timePower === 'haste' ? 'HASTE RISK · THREATS MOVE FASTER' : s.ability > 0 ? abilityEffects[selected] : boss ? 'BREAK PARTS · WATCH ITS NEXT ATTACK' : s.engagement ? 'CLOSE CONTACT · DODGE & FIRE' : 'KILLS EARN WEAPON XP · TOPPLE PILLARS';
   if(boss && !rebuilding && !guarded && !reactorShield) {
     const vulnerable=s.bossRegions?.filter(r=>r.active&&r.vulnerable&&r.hp>0)??[];
     focusPart=vulnerable[0]?.id;

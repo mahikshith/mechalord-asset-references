@@ -44,7 +44,7 @@ API("state") float* GetState()
     for(int I=0;I<3;++I){State[88+I*2]=Battle.campaign?Battle.relicEnergy[I]:(I==int(Battle.relic)?Battle.energy:0);State[89+I*2]=Battle.campaign?Battle.relicTime[I]:(I==int(Battle.relic)?Battle.ability:0);}
     State[94]=Battle.laserCharges;State[95]=Battle.reviveCinematicTime;State[96]=Battle.phase==mech::assault::Phase::Reward;
     State[97]=Battle.rewardLaser;State[98]=Battle.rewardVitality;State[99]=Battle.rewardEndurance;
-    const auto& C=Battle.clash;State[100]=C.active;State[101]=C.progress;State[102]=C.time;State[103]=C.x;State[104]=C.y;State[105]=C.z;State[106]=C.heroX;State[107]=C.heroY;State[108]=C.heroZ;State[109]=C.enemyX;State[110]=C.enemyY;State[111]=C.enemyZ;State[112]=C.result;
+    const auto& C=Battle.clash;State[100]=C.active;State[101]=C.progress;State[102]=C.time;State[103]=C.x;State[104]=C.y;State[105]=C.z;State[106]=C.heroX;State[107]=C.heroY;State[108]=C.heroZ;State[109]=C.enemyX;State[110]=C.enemyY;State[111]=C.enemyZ;State[112]=C.result;State[113]=Battle.laserMeter;
     return State;
 }
 API("target_count") int TargetCount() { return Battle.TargetCount(); }
