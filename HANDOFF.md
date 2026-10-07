@@ -1,4 +1,4 @@
-> **Current work (8 October 2026):** a Contra-style side-scroller in Unreal 5.8 on branch `claude/project-thread-kfgczz`. Read `docs/sidescroller-unreal.md` first. The rest of this file describes the top-down browser build, which is unchanged.
+> **Current work (8 October 2026):** a Contra-style side-scroller in Unreal 5.8 on branch `claude/project-thread-kfgczz` (user's personal laptop, folder `C:\Users\mahik\Desktop\mechalord`). Read `docs/sidescroller-unreal.md` (how everything is built) and then `docs/sidescroller-todo.md` (the user's latest review, work through it in order). Latest delivered clip: `delivery/sidescroller-lookdev/unreal-fight-all-seven-v1-small.gif`. To regenerate the Epic template content folders run `python tools/unreal/instantiate_template.py` only on a fresh clone (it overwrites Source; our code is in Source/SideAssault/IronLegion and the template's Variant_SideScrolling blueprints are committed with our game mode and camera manager settings). The rest of this file describes the top-down browser build, which is unchanged.
 
 # Mechalord / Iron Front — detailed handoff
 
