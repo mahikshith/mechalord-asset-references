@@ -29,9 +29,10 @@ export async function buildTyrantV2(base='mechs/'){
  const {map,emissiveMap}=tyrantLivery(img);
  const hull=new T.MeshStandardMaterial({map,emissiveMap,emissive:new T.Color(1,1,1),emissiveIntensity:1.1,metalness:.6,roughness:.42});
  model.traverse((o:any)=>{if(o.isMesh){o.material=hull;o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;}});
- const box=new T.Box3().setFromObject(model),k=6/(box.max.y-box.min.y);model.scale.setScalar(k);model.position.y=-box.min.y*k;model.updateMatrixWorld(true);
+ const box=new T.Box3().setFromObject(model),k=7.6/(box.max.y-box.min.y);model.scale.setScalar(k);model.position.y=-box.min.y*k;model.updateMatrixWorld(true);
  const steel=new T.MeshStandardMaterial({color:0x2a2f37,metalness:.85,roughness:.32}),dark=new T.MeshStandardMaterial({color:0x14171c,metalness:.7,roughness:.5});
  const molten=new T.MeshStandardMaterial({color:0x2a0e04,emissive:new T.Color(1,.38,.08),emissiveIntensity:2.2,metalness:.3,roughness:.4});
+ const chrome=new T.MeshStandardMaterial({color:0xb8bec6,metalness:1,roughness:.22});
  const podShell=new T.MeshStandardMaterial({color:0x5b636d,metalness:.75,roughness:.35});
  const flameMat=new T.MeshBasicMaterial({color:new T.Color(2.6,1.1,.35),transparent:true,opacity:.85,blending:T.AdditiveBlending,depthWrite:false,toneMapped:false});
  const eyeMat=new T.MeshBasicMaterial({color:new T.Color(3.2,.25,.15),toneMapped:false});
@@ -50,7 +51,7 @@ export async function buildTyrantV2(base='mechs/'){
   const flame=new T.Mesh(new T.ConeGeometry(.42,1.8,24,1,true).rotateX(Math.PI).translate(0,-1.2,0),flameMat);parts.flames.push(flame);g.add(flame);
   g.rotation.set(-.45,0,s*.18);attach(bone('Chest'),g,[s*.9,.6,-1.0],1);}
  // Shoulder missile pods: rounded housings, six warheads each, hinge lids.
- for(const s of [-1,1]){const pod=new T.Group();pod.name=s<0?'Pod_L':'Pod_R';
+ for(const s of [1]){const pod=new T.Group();pod.name=s<0?'Pod_L':'Pod_R';
   const body=new T.Mesh(new T.CapsuleGeometry(.3,.6,8,24).rotateX(Math.PI/2),podShell);body.castShadow=true;pod.add(body);
   for(let r=0;r<2;r++)for(let c=0;c<3;c++){const tip=new T.Mesh(lathe([[0,.18],[.07,.1],[.09,0],[.09,-.1]],16).rotateX(Math.PI/2),molten);tip.position.set(-.2+c*.2,-.1+r*.2,.6);pod.add(tip);}
   pod.add(new T.Mesh(new T.TorusGeometry(.43,.04,10,32),dark).translateZ(.42));parts.pods.push(pod);attach(bone('Chest'),pod,[s*1.05,1.35,-.35],1);}
@@ -63,9 +64,21 @@ export async function buildTyrantV2(base='mechs/'){
  const core=new T.Mesh(new T.SphereGeometry(.3,32,20),new T.MeshStandardMaterial({color:0x2a0e04,emissive:new T.Color(1,.42,.1),emissiveIntensity:1.3,roughness:.3}));parts.core=core;attach(bone('Chest'),core,[0,.4,.75],1);
  attach(bone('Chest'),new T.Mesh(new T.TorusGeometry(.42,.07,12,40),steel),[0,.4,.72],1);
  const head=bone('Head');
- for(const s of [-1,1]){const eye=new T.Mesh(new T.CapsuleGeometry(.05,.28,6,12).rotateZ(Math.PI/2+s*.42),eyeMat);parts.eyes.push(eye);attach(head,eye,[s*.18,.32,.55],1);
-  attach(head,new T.Mesh(new T.CapsuleGeometry(.06,.36,6,12).rotateZ(Math.PI/2+s*.5),dark),[s*.2,.46,.56],1);}
- attach(head,new T.Mesh(lathe([[0,.25],[.08,.2],[.1,0]],12),molten),[0,.75,.1],1).rotation.x=-.4;
+ for(const s of [-1,1]){const eye=new T.Mesh(new T.CapsuleGeometry(.05,.28,6,12).rotateZ(Math.PI/2+s*.42),eyeMat);parts.eyes.push(eye);attach(head,eye,[s*.3,.3,.72],1.3);
+  attach(head,new T.Mesh(new T.CapsuleGeometry(.06,.36,6,12).rotateZ(Math.PI/2+s*.5),dark),[s*.32,.47,.72],1.3);}
+ // Metal mohawk: a ridge of swept steel blades front to back, molten roots. Kept as one group so it can fly off on death.
+ const mohawk=new T.Group();mohawk.name='Mohawk';
+ for(let i=0;i<7;i++){const h=.55+Math.sin(i/6*Math.PI)*.5,sh=new T.Shape();sh.moveTo(-.16,0);sh.lineTo(.16,0);sh.lineTo(.04,h);sh.lineTo(-.1,h*.82);sh.closePath();
+  const blade=new T.Mesh(new T.ExtrudeGeometry(sh,{depth:.06,bevelEnabled:true,bevelSize:.015,bevelThickness:.015,bevelSegments:2}).translate(0,0,-.03).rotateY(Math.PI/2),chrome);blade.position.set(0,0,.42-i*.15);blade.rotation.x=-.35;blade.castShadow=true;mohawk.add(blade);
+  const root=new T.Mesh(new T.CylinderGeometry(.07,.09,.08,12),molten);root.position.set(0,.02,.42-i*.15);mohawk.add(root);}
+ attach(head,mohawk,[0,.62,0],1.9);
+ // Left shoulder siege cannon: long armoured barrel with muzzle brake, aimed forward.
+ const siege=new T.Group();siege.name='Siege_L';
+ siege.add(new T.Mesh(new T.CylinderGeometry(.42,.48,.9,32).rotateX(Math.PI/2),steel));
+ const barrel=new T.Mesh(lathe([[.2,0],[.2,2.2],[.3,2.25],[.3,2.6],[.22,2.65],[.22,2.7]],32).rotateX(Math.PI/2),steel);barrel.position.z=.3;siege.add(barrel);
+ for(const z of [.9,1.6])siege.add(new T.Mesh(new T.TorusGeometry(.24,.05,10,32),dark).translateZ(z));
+ const muzzle=new T.Mesh(new T.CircleGeometry(.18,24),molten);muzzle.position.z=3;siege.add(muzzle);
+ attach(bone('Chest'),siege,[-1.15,1.45,.1],1);
   // Strong legs: thick turned greaves and knee guards wrapped around the donor's blade legs, oriented bone to bone.
  const greave=(from:string,to:string,r:number)=>{const a=bone(from),b=bone(to);a.updateWorldMatrix(true,false);b.updateWorldMatrix(true,false);const pa=a.getWorldPosition(new T.Vector3()),pb=b.getWorldPosition(new T.Vector3()),len=pa.distanceTo(pb);
   const g=new T.Group();const shell=new T.Mesh(lathe([[r*.7,len*.5],[r,len*.35],[r*1.05,-len*.2],[r*.85,-len*.5]],32),steel);shell.castShadow=true;g.add(shell);
@@ -85,13 +98,20 @@ export async function buildTyrantV2(base='mechs/'){
  const mixer=new T.AnimationMixer(model),clips=new Map(gltf.animations.map(a=>[a.name,a]));let current:T.AnimationAction|undefined;
  const play=(name:string,fade=.25)=>{const c=clips.get(name);if(!c)return;const a=mixer.clipAction(c);if(a===current)return;a.reset().fadeIn(fade).play();current?.fadeOut(fade);current=a;};
  play('Idle',0);
- return {root,model,clips:[...clips.keys()],play,
+ // Death: the mohawk tears off and spins skyward before crashing down; the core drops out dark and cracked. Both become trophies.
+ let dying=-1;const flyM=new T.Vector3(),flyC=new T.Vector3(),spin=new T.Vector3();
+ const detach=(o:T.Object3D)=>{o.updateWorldMatrix(true,false);root.updateWorldMatrix(true,false);const m=new T.Matrix4().copy(root.matrixWorld).invert().multiply(o.matrixWorld);o.removeFromParent();root.add(o);m.decompose(o.position,o.quaternion,o.scale);};
+ const die=()=>{if(dying>=0)return;dying=0;play('Death',.15);if(current){current.setLoop(T.LoopOnce,1);current.clampWhenFinished=true;}detach(mohawk);detach(core);flyM.set((Math.random()-.5)*2,11,(Math.random()-.5)*2);flyC.set(.6,4,1.4);spin.set(6+Math.random()*4,2,9);};
+ return {root,model,mohawk,core,clips:[...clips.keys()],play,die,get dying(){return dying;},
   update(dt:number,t:number,mood:TyrantMood='calm',thrust=1){mixer.update(dt);
    for(const [i,f] of parts.flames.entries()){const k=thrust*(.85+Math.sin(t*37+i)*.1+Math.random()*.08);f.scale.set(1,k,1);}
    parts.light.intensity=24*thrust+Math.random()*6;
    for(const b of parts.barrels)b.rotation.z+=dt*(mood==='calm'?1.5:18);
    const eye=mood==='calm'?new T.Color(2.4,.15,.1):new T.Color(4,.35,.2);eyeMat.color.copy(eye).multiplyScalar(.85+.15*Math.sin(t*(mood==='calm'?2:12)));
    molten.emissiveIntensity=(mood==='rage'?3.2:2.2)+Math.sin(t*3)*.3;hull.emissiveIntensity=mood==='rage'?1.8:1.1;
+   if(dying>=0){dying+=dt;const g=-18;for(const [o,v,ground] of [[mohawk,flyM,.3],[core,flyC,.35]] as [T.Object3D,T.Vector3,number][]){v.y+=g*dt;o.position.addScaledVector(v,dt);if(o.position.y<ground){o.position.y=ground;v.y=Math.abs(v.y)*.35;v.x*=.6;v.z*=.6;}}
+    if(mohawk.position.y>.31)mohawk.rotation.set(mohawk.rotation.x+spin.x*dt,mohawk.rotation.y+spin.y*dt,mohawk.rotation.z+spin.z*dt);
+    const cm=core.material as T.MeshStandardMaterial;cm.emissiveIntensity=Math.max(.15,3-dying*1.5);parts.flames.forEach(f=>f.visible=dying<.6);eyeMat.color.setRGB(Math.max(.05,3-dying*3),.05,.05);return;}
    if(parts.core){parts.core.scale.setScalar(1+Math.sin(t*(mood==='charging'?14:3))*.06);const cm=parts.core.material as T.MeshStandardMaterial;cm.emissive.setRGB(1,mood==='calm'?.42:.05,mood==='calm'?.1:.03);cm.emissiveIntensity=mood==='calm'?1.3:mood==='charging'?3+Math.sin(t*20):5;}
    villainClock.value=t;
    for(const f of parts.flames){f.getWorldPosition(nozzle);if(Math.random()<.7){const p=smoke[smokeI++%smoke.length];p.s.position.copy(nozzle).add(new T.Vector3(0,-.6,-.3));p.v.set((Math.random()-.5)*.6,-.4+Math.random()*.3,-1.5-Math.random());p.life=1;p.s.visible=true;}}

@@ -58,7 +58,7 @@ const challenges = chapters.map(chapter=>chapter.challenge);
 const levelTags = chapters.map(chapter=>chapter.tag);
 type LegacyImprint='laser'|'vitality'|'endurance';
 interface Armory { credits:number; sentinel:number; havoc:number; wisp:number; weapon:number; }
-interface Progress { legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; clashHint?: boolean; lastLevel: number; commanderXP: number; armory: Armory; }
+interface Progress { trophies?: { mohawk: boolean; core: boolean }; legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; clashHint?: boolean; lastLevel: number; commanderXP: number; armory: Armory; }
 const progress: Progress = { cleared: chapters.map(()=>false), best: chapters.map(()=>0), gateHint: false, lastLevel: 0, commanderXP: 0, armory: { credits: 0, sentinel: 0, havoc: 0, wisp: 0, weapon: 0 } };
 let migratedProgress = false;
 const rankThresholds = [0, 100, 250, 450];
@@ -86,7 +86,7 @@ try {
       progress.cleared[i] = saved.cleared?.[i] === true;
       const score = saved.best?.[i]; progress.best[i] = Number.isFinite(score) ? Math.max(0, Math.min(1000000, Math.round(score))) : 0;
     }
-    progress.gateHint = saved.gateHint === true; progress.clashHint = saved.clashHint === true;
+    progress.gateHint = saved.gateHint === true; progress.clashHint = saved.clashHint === true; progress.trophies = { mohawk: saved.trophies?.mohawk === true, core: saved.trophies?.core === true };
     const a = saved.armory ?? {}, n = (v:unknown,max:number)=>Number.isSafeInteger(v)?Math.max(0,Math.min(max,v as number)):0;
     progress.armory = { credits:n(a.credits,10000000), sentinel:n(a.sentinel,MAX_HIRES), havoc:n(a.havoc,MAX_HIRES), wisp:n(a.wisp,MAX_HIRES), weapon:n(a.weapon,3) };
     progress.lastLevel = Number.isInteger(saved.lastLevel) ? Math.max(0, Math.min(chapters.length-1, saved.lastLevel)) : 0;
@@ -102,8 +102,19 @@ try {
 if (migratedProgress) saveProgress();
 let selectedLevel = campaignSave ? progress.lastLevel : campaignIndex;
 const seenEffects = new Set<number>(), effectOrder: number[] = [];
+// War trophies: story keepsakes torn from the Tyrant when it falls (future story hooks).
+const TROPHIES = [
+  {key:'mohawk', icon:'⩚', name:"TYRANT'S MOHAWK", copy:'Steel crest ripped off as the Tyrant fell. Its forge-mark points somewhere.'},
+  {key:'core', icon:'◉', name:'BURNT-OUT CORE', copy:'The cold reactor heart. Something inside is still ticking.'},
+] as const;
+function renderTrophies(full = false): void {
+  const t = progress.trophies ?? { mohawk: false, core: false }; $('trophy-count').textContent = String(Number(t.mohawk) + Number(t.core));
+  if (!full) return; const list = $('trophy-items'); list.innerHTML = '';
+  for (const tr of TROPHIES) { const b = document.createElement('button'); b.disabled = !t[tr.key]; b.innerHTML = `<span class="reward-icon">${t[tr.key] ? tr.icon : '?'}</span><span><strong>${t[tr.key] ? tr.name : 'LOCKED'}</strong><small>${t[tr.key] ? tr.copy : 'Destroy the Forge Tyrant to claim it.'}</small></span><b></b>`; list.append(b); }
+}
 let armoryOpen = false;
 function renderArmory(cards = armoryOpen): void {
+  renderTrophies();
   const a = progress.armory; $('armory-credits').textContent = $('armory-balance').textContent = String(a.credits);
   $('armory-squad').textContent = `Squad ${7 + hired()}/16 · hires ${hired()}/${MAX_HIRES}${a.weapon ? ' · weapon ready' : ''}`;
   if (!cards) return; // the item list only exists while the armory is open
@@ -252,6 +263,7 @@ function finish(s: Snapshot): void {
   const level = Math.max(0, Math.min(chapters.length-1, s.level));
   const previousRank = commanderRank(), rewardXP = won ? progress.cleared[level] ? 35 : 100 : 0;
   if (won) { progress.commanderXP = Math.min(1000000, progress.commanderXP + rewardXP); progress.cleared[level] = true; progress.best[level] = Math.max(progress.best[level], Math.round(s.score)); saveProgress(); refreshLevels(); }
+  if (won && s.campaign) { progress.trophies = { mohawk: true, core: true }; saveProgress(); }
   const earned = s.campaign ? Math.round(s.kills * 2 + (won ? 150 : 25)) : 0; progress.armory.credits += earned; if (earned) saveProgress();
   const rank = commanderRank(), promoted = rank > previousRank;
   $('result-development').hidden = !won;
@@ -394,6 +406,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => b
 $('practice-relic').addEventListener('change',()=>{selected=Number($<HTMLSelectElement>('practice-relic').value) as Relic;previewLevel();});
 refreshLevels();
 $('gate-flash').addEventListener('animationend',()=>{ $('gate-flash').textContent=''; $('gate-flash').hidden=true; });
+$('trophies-open').addEventListener('click', () => { $('trophies').hidden = false; renderTrophies(true); }); $('trophies-close').addEventListener('click', () => { $('trophies').hidden = true; });
 $('armory-open').addEventListener('click', () => { armoryOpen = true; $('armory').hidden = false; renderArmory(); }); $('armory-close').addEventListener('click', () => { armoryOpen = false; $('armory').hidden = true; renderArmory(); });
 $('start').addEventListener('click', begin); $('retry').addEventListener('click', begin); $('pause-retry').addEventListener('click', begin); $('back').addEventListener('click', showIntro);
 $('next-level').addEventListener('click', () => { selectedLevel = Math.min(chapters.length-1, selectedLevel + 1); refreshLevels(); begin(); });

@@ -153,9 +153,9 @@ async function mk2(){
 }
 async function tyrant2(){
  const q=new URLSearchParams(location.search),clip=q.get('clip')??'Idle',yaw=+(q.get('yaw')??'0'),mood=(q.get('mood')??'calm') as TyrantMood;
- camera.position.set(0,4.6,13);camera.lookAt(0,3,0);
+ camera.position.set(0,5.8,20);camera.lookAt(0,4.1,0);
  const t2=await buildTyrantV2();t2.root.rotation.y=yaw;scene.add(t2.root);t2.play(clip,0);
- let last=0;tick=t=>{const dt=t-last;last=t;t2.update(dt,t,mood,clip==='Run'?1.4:1);};(globalThis as any).probe=()=>t2.clips;
+ const dieAt=+(q.get('die')??'-1');if(dieAt>=0){camera.position.set(4,7,22);camera.lookAt(0,4.5,2);}let last=0;tick=t=>{const dt=t-last;last=t;if(dieAt>=0&&t>1&&t2.dying<0)t2.die();t2.update(dt,t,mood,clip==='Run'?1.4:1);};(globalThis as any).probe=()=>t2.clips;
 }
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
