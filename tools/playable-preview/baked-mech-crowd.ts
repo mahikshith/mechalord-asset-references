@@ -1,36 +1,45 @@
 import * as T from 'three';
 
-/** Instanced, vertex-animated crowd for one skinned mech. Each clip is baked once
- * into float textures (positions + normals per frame); every instance picks a
- * clip, phase and flash, so dozens of animated mechs cost one draw call (plus
- * one for shadows). Presentation only: placement comes from the simulation. */
+/** Instanced, vertex-animated crowd. Each clip is baked once into float textures
+ * (positions + normals per frame); every instance picks a clip, phase and flash,
+ * so dozens of animated mechs cost one draw call (plus one for shadows).
+ * Presentation only: placement comes from the simulation. */
 export interface BakeClip {clip:T.AnimationClip;frames:number;}
+/** Rest geometry (index/uv/color reused by every frame) plus per-frame positions and normals. */
+export interface BakedFrames {base:T.BufferGeometry;frames:{pos:Float32Array;nor:Float32Array}[];clipFrames:number[];}
 const WIDTH=1024;
+
+/** Sample a skinned model's clips into frames (model at the origin with its normalising scale). */
+export function bakeSkinned(model:T.Object3D,bake:BakeClip[]):BakedFrames{
+ let skinned:T.SkinnedMesh|undefined;model.traverse(o=>{if(!skinned&&(o as T.SkinnedMesh).isSkinnedMesh)skinned=o as T.SkinnedMesh;});if(!skinned)throw new Error('bakeSkinned needs a skinned mesh');
+ const source=skinned.geometry,count=source.getAttribute('position').count,mixer=new T.AnimationMixer(model),v=new T.Vector3();
+ const frameGeo=new T.BufferGeometry();if(source.index)frameGeo.setIndex(source.index);const framePos=new Float32Array(count*3);frameGeo.setAttribute('position',new T.BufferAttribute(framePos,3));
+ const frames:BakedFrames['frames']=[];
+ for(const b of bake){mixer.stopAllAction();const action=mixer.clipAction(b.clip).reset().play();
+  for(let f=0;f<b.frames;f++){mixer.setTime(b.clip.duration*f/b.frames);model.updateMatrixWorld(true);
+   for(let i=0;i<count;i++){skinned.getVertexPosition(i,v);v.applyMatrix4(skinned.matrixWorld);framePos[i*3]=v.x;framePos[i*3+1]=v.y;framePos[i*3+2]=v.z;}
+   frameGeo.getAttribute('position').needsUpdate=true;frameGeo.computeVertexNormals();frames.push({pos:framePos.slice(),nor:(frameGeo.getAttribute('normal').array as Float32Array).slice()});}
+  action.stop();}
+ mixer.uncacheRoot(model);frameGeo.dispose();
+ const base=new T.BufferGeometry();if(source.index)base.setIndex(source.index.clone());base.setAttribute('position',source.getAttribute('position').clone());base.setAttribute('uv',source.getAttribute('uv').clone());
+ return {base,frames,clipFrames:bake.map(b=>b.frames)};
+}
 
 export class BakedMechCrowd {
  readonly mesh:T.InstancedMesh;readonly capacity:number;readonly height:number;
  private positions:T.DataTexture;private normals:T.DataTexture;private anim:T.InstancedBufferAttribute;private tint:T.InstancedBufferAttribute;
  private rows:number;private clipStart:number[]=[];private clipFrames:number[]=[];private count=0;private stamp=new T.Object3D();
- constructor(scene:T.Scene,model:T.Object3D,bake:BakeClip[],capacity:number,material:T.MeshStandardMaterial){
+ constructor(scene:T.Scene,source:T.Object3D|BakedFrames,bakeOrCapacity:BakeClip[]|number,capacityOrMaterial:number|T.MeshStandardMaterial,maybeMaterial?:T.MeshStandardMaterial){
+  const data=(source as BakedFrames).frames?source as BakedFrames:bakeSkinned(source as T.Object3D,bakeOrCapacity as BakeClip[]);
+  const capacity=typeof bakeOrCapacity==='number'?bakeOrCapacity:capacityOrMaterial as number,material=(maybeMaterial??capacityOrMaterial) as T.MeshStandardMaterial;
   this.capacity=capacity;
-  let skinned:T.SkinnedMesh|undefined;model.traverse(o=>{if(!skinned&&(o as T.SkinnedMesh).isSkinnedMesh)skinned=o as T.SkinnedMesh;});if(!skinned)throw new Error('BakedMechCrowd needs a skinned mesh');
-  const source=skinned.geometry,vertexCount=source.getAttribute('position').count;this.rows=Math.ceil(vertexCount/WIDTH);
-  const total=bake.reduce((n,b)=>n+b.frames,0),texHeight=this.rows*total;
-  const pos=new Float32Array(WIDTH*texHeight*4),nor=new Float32Array(WIDTH*texHeight*4);
-  const mixer=new T.AnimationMixer(model),v=new T.Vector3(),toRoot=new T.Matrix4(),box=new T.Box3();
-  const frameGeo=new T.BufferGeometry();if(source.index)frameGeo.setIndex(source.index);const framePos=new Float32Array(vertexCount*3);frameGeo.setAttribute('position',new T.BufferAttribute(framePos,3));
-  let frame=0;
-  for(const b of bake){this.clipStart.push(frame);this.clipFrames.push(b.frames);mixer.stopAllAction();const action=mixer.clipAction(b.clip).reset().play();
-   for(let f=0;f<b.frames;f++,frame++){mixer.setTime(b.clip.duration*f/b.frames);model.updateMatrixWorld(true);toRoot.copy(skinned.matrixWorld); // model sits at the origin with its normalising scale
-    for(let i=0;i<vertexCount;i++){skinned.getVertexPosition(i,v);v.applyMatrix4(toRoot);framePos[i*3]=v.x;framePos[i*3+1]=v.y;framePos[i*3+2]=v.z;}
-    frameGeo.getAttribute('position').needsUpdate=true;frameGeo.computeVertexNormals();const n=frameGeo.getAttribute('normal');
-    for(let i=0;i<vertexCount;i++){const at=((frame*this.rows+Math.floor(i/WIDTH))*WIDTH+i%WIDTH)*4;pos[at]=framePos[i*3];pos[at+1]=framePos[i*3+1];pos[at+2]=framePos[i*3+2];pos[at+3]=1;nor[at]=n.getX(i);nor[at+1]=n.getY(i);nor[at+2]=n.getZ(i);}
-    if(f===0&&frame===0){box.setFromBufferAttribute(frameGeo.getAttribute('position') as T.BufferAttribute);}
-   }action.stop();}
-  this.height=box.max.y-box.min.y;frameGeo.dispose();mixer.uncacheRoot(model);
-  const tex=(data:Float32Array)=>{const t=new T.DataTexture(data,WIDTH,texHeight,T.RGBAFormat,T.FloatType);t.needsUpdate=true;return t;};this.positions=tex(pos);this.normals=tex(nor);
-  const geo=new T.BufferGeometry();if(source.index)geo.setIndex(source.index.clone());geo.setAttribute('position',source.getAttribute('position').clone());geo.setAttribute('uv',source.getAttribute('uv').clone());
-  const ids=new Float32Array(vertexCount);for(let i=0;i<vertexCount;i++)ids[i]=i;geo.setAttribute('mechVertex',new T.BufferAttribute(ids,1));
+  const vertexCount=data.base.getAttribute('position').count;this.rows=Math.ceil(vertexCount/WIDTH);
+  const total=data.frames.length,texHeight=this.rows*total,pos=new Float32Array(WIDTH*texHeight*4),nor=new Float32Array(WIDTH*texHeight*4),box=new T.Box3(),v=new T.Vector3();
+  data.frames.forEach((fr,frame)=>{for(let i=0;i<vertexCount;i++){const at=((frame*this.rows+Math.floor(i/WIDTH))*WIDTH+i%WIDTH)*4;pos[at]=fr.pos[i*3];pos[at+1]=fr.pos[i*3+1];pos[at+2]=fr.pos[i*3+2];pos[at+3]=1;nor[at]=fr.nor[i*3];nor[at+1]=fr.nor[i*3+1];nor[at+2]=fr.nor[i*3+2];if(frame===0)box.expandByPoint(v.set(fr.pos[i*3],fr.pos[i*3+1],fr.pos[i*3+2]));}});
+  let start=0;for(const n of data.clipFrames){this.clipStart.push(start);this.clipFrames.push(n);start+=n;}
+  this.height=box.max.y-box.min.y;
+  const tex=(d:Float32Array)=>{const t=new T.DataTexture(d,WIDTH,texHeight,T.RGBAFormat,T.FloatType);t.needsUpdate=true;return t;};this.positions=tex(pos);this.normals=tex(nor);
+  const geo=data.base;const ids=new Float32Array(vertexCount);for(let i=0;i<vertexCount;i++)ids[i]=i;geo.setAttribute('mechVertex',new T.BufferAttribute(ids,1));
   this.anim=new T.InstancedBufferAttribute(new Float32Array(capacity*4),4).setUsage(T.DynamicDrawUsage);geo.setAttribute('mechAnim',this.anim);
   this.tint=new T.InstancedBufferAttribute(new Float32Array(capacity),1).setUsage(T.DynamicDrawUsage);geo.setAttribute('mechFlash',this.tint);
   geo.boundingSphere=new T.Sphere(new T.Vector3(),1e4);

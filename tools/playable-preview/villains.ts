@@ -9,6 +9,7 @@ import {createSkyreaver,type SkyreaverMode} from './skyreaver';
 import {HOSTILE_MECHS,loadHostileMech} from './hostile-mechs';
 import {ArsenalVisuals} from './arsenal-visuals';
 import {BakedMechCrowd} from './baked-mech-crowd';
+import {bakeTrooper,trooperAtlas,TROOPER_CLASSES} from './hero-trooper';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 import {TGALoader} from 'three/addons/loaders/TGALoader.js';
 import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
@@ -104,8 +105,16 @@ async function exportMech(){
  const glb=await new GLTFExporter().parseAsync(fbx,{binary:true,animations:keep,onlyVisible:false}) as ArrayBuffer;
  const bytes=new Uint8Array(glb);let bin='';for(let i=0;i<bytes.length;i+=32768)bin+=String.fromCharCode(...bytes.subarray(i,i+32768));(globalThis as any).probe=()=>btoa(bin);
 }
+async function troopers(){
+ const clipParam=+(new URLSearchParams(location.search).get('clip')??0);
+ camera.position.set(0,3.6,-7.4);camera.lookAt(0,.9,0);
+ const {map,emissiveMap}=trooperAtlas();const crowds=[0,1,2].map(k=>{const m=new T.MeshStandardMaterial({map,emissiveMap,emissive:new T.Color(1,1,1),emissiveIntensity:1.8,metalness:.42,roughness:.46,vertexColors:true});return new BakedMechCrowd(scene,bakeTrooper(k as 0|1|2),8,m);});
+ TROOPER_CLASSES.forEach((n,i)=>label(n.split(' ')[0].toUpperCase(),-2.4+i*2.4,-1.4));
+ tick=t=>{crowds.forEach((c,i)=>{c.begin();c.add(-2.4+i*2.4,0,0,Math.PI+.45,1,clipParam,t*(clipParam===0?1.2:clipParam===1?.3:1.5));c.end();});};
+ (globalThis as any).probe=()=>crowds.map(c=>c.mesh.geometry.getAttribute('position').count);
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;
