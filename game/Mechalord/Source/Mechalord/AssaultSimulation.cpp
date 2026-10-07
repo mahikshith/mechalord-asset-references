@@ -472,16 +472,19 @@ void Battle::GatePair(int Index,double Forward)
         Spawn(Kind::Gate,MultiplyX,Forward,36+Index*3,2,1,1.2);
     }
 }
-void Battle::Wave(int Rows,double Hp,int Threat,int Formation,double Forward)
+void Battle::Wave(int Rows,double Hp,int Threat,int Formation,double Forward,int Shape)
 {
+    // Shape 0 grid, 1 wedge, 2 pincer, 3 staggered checker, 4 diagonal sweep, 5 hollow box.
     const double EliteX=Formation==1?-1.8:Formation==2?1.8:0,GunnerX=EliteX<=0?2.5:-2.5;
     for(int Row=0;Row<Rows;++Row)
     {
         for(int Col=0;Col<8;++Col)
         {
-            const double Lane=-3.325+Col*.95;
+            const bool Keep=Shape==1?std::abs(Col-3.5)<=Row+.5:Shape==2?(Col<=2||Col>=5):Shape==3?((Col+Row)%2==0):Shape==4?(Col>=Row%8-1&&Col<=Row%8+2):Shape==5?(Row==0||Row==Rows-1||Col==0||Col==7):true;
+            if(!Keep) continue;
+            const double Lane=-3.325+Col*.95+(Shape==3&&Row%2?.475:0);
             if(Row==0 && (std::abs(Lane-EliteX)<1.69 || (level==2 && std::abs(Lane-GunnerX)<1.69))) continue;
-            Spawn(Kind::Enemy,Lane,Forward+Row*2.05,Hp,Threat,0,.44);
+            Spawn(Kind::Enemy,std::clamp(Lane,-3.7,3.7),Forward+Row*(Shape==3?1.6:2.05),Hp,Threat,0,.44);
         }
         if(Row==0) { Spawn(Kind::Enemy,EliteX,Forward,Hp*5,Threat+2,0,1.1,1); if(level==2) Spawn(Kind::Enemy,GunnerX,Forward,Hp*3,Threat+1,0,1.,2); }
     }
@@ -492,7 +495,7 @@ void Battle::SpawnTimeline()
         const double P=travelDistance/3.7;
         for(int I=0;I<int(campaign::IronMarch.size());++I){const auto& E=campaign::IronMarch[I];const uint64_t B=uint64_t(1)<<I;if(P+1e-9<E.at||(spawned&B))continue;spawned|=B;
             switch(E.kind){
-            case campaign::Kind::Wave:Wave(E.value,E.hp,actIndex+1,E.variant);break;
+            case campaign::Kind::Wave:Wave(E.value+(E.dropPower==1||E.dropPower==4?2:E.dropPower==5?1:0),E.hp,actIndex+1,E.variant,42,E.dropPower);break;
             case campaign::Kind::Gunner:SpawnRanged(E.x,E.hp,false,E.delay);break;
             case campaign::Kind::Battery:SpawnRanged(E.x,E.hp,true,E.delay);break;
             case campaign::Kind::Carrier:SpawnCarrier(E.x,E.hp,E.dropPower);for(auto& T:targets)if(T.active&&T.id==nextTargetId-1)T.dropAlternate=E.value;break;
@@ -1135,7 +1138,7 @@ void Battle::DropPickup(double X,double Z,PickupKind Power,int Source,int Choice
 
 void Battle::BeginCombatPower(PickupKind Power)
 {
-    combatPower=static_cast<CombatPower>(int(Power)-7); combatPowerTime=(Power==PickupKind::Tempest?1.:Power==PickupKind::ArcStorm?1.2:1.8)*(1+rewardEndurance*.15);
+    combatPower=static_cast<CombatPower>(int(Power)-7); combatPowerTime=(Power==PickupKind::Tempest?TempestSeconds():Power==PickupKind::ArcStorm?1.2:1.8)*(1+rewardEndurance*.15);
     combatClock=0;combatPulses=0;combatEpoch=bossEpoch;friendlyBeam={};beamSlope=0;
     if(combatPower==CombatPower::Tempest) {
         if(UsesSpatialBoss()&&phase==Phase::Boss){const int Id=AimRegion(x,false,0);const auto P=bossFrame.regions[Id].aimCenter;beamSlope=(P.y-1.42)/std::max(1.,-P.z-1.32);}
@@ -1185,11 +1188,18 @@ void Battle::CombatStep(double Dt)
             BeamContact=InstantRay(Start,End,.5,bossFrame);
             if(BeamContact.status==boss_pose::SweepStatus::Hit){friendlyBeam.endX=x;friendlyBeam.endY=1.42+beamSlope*38.68*BeamContact.fraction;friendlyBeam.endZ=1.32+38.68*BeamContact.fraction;}
         }
-        while(combatClock+1e-9>=(combatPulses+1)*.1&&combatPulses<int(std::ceil(10*(1+rewardEndurance*.15)))){++combatPulses;
-            if(phase==Phase::Run){for(auto& T:targets)if(T.active&&T.hp>0&&T.z>=1.32&&T.z<=40&&std::abs(T.x-x)<=T.size+.5){if(T.kind==Kind::Enemy)HitTarget(T,T.variant==0?T.hp:12*(1+rewardLaser*.25),FriendlyKind::Arc);else if(T.kind==Kind::Crate||T.kind==Kind::Orb)HitTarget(T,8,FriendlyKind::Arc);}}
-            else if(phase==Phase::Boss&&UsesSpatialBoss()){
+        while(combatClock+1e-9>=(combatPulses+1)*.1&&combatPulses<int(std::ceil(TempestSeconds()*10*(1+rewardEndurance*.15)))){++combatPulses;
+            // Campaign laser cannon: everything in its path except the Tyrant is
+            // erased - shields, elites and rollers included. Older fronts keep chip damage.
+            const bool Erase=campaign;
+            if(phase==Phase::Run||(Erase&&phase==Phase::Boss)){for(auto& T:targets){if(!T.active||T.z<1.32||T.z>40||std::abs(T.x-x)>T.size+.5)continue;
+                if(Erase&&T.kind==Kind::Hazard){T.active=false;Emit(EffectKind::HazardBreak,T.x,T.z,0,T.id,-6,T.size);continue;}
+                if(T.hp<=0)continue;
+                if(T.kind==Kind::Enemy)HitTarget(T,Erase||T.variant==0?T.hp:12*(1+rewardLaser*.25),FriendlyKind::Arc,Erase);else if(T.kind==Kind::Crate||T.kind==Kind::Orb)HitTarget(T,Erase?T.hp:8,FriendlyKind::Arc);}}
+
+            if(phase==Phase::Boss&&UsesSpatialBoss()){
                 const auto H=BeamContact;
-                if(H.status==boss_pose::SweepStatus::Hit){DamageRegion(int(H.region),15*(1+rewardLaser*.25),H.point,FriendlyKind::Arc,combatEpoch);friendlyBeam.endX=x;friendlyBeam.endY=1.42+beamSlope*38.68*H.fraction;friendlyBeam.endZ=1.32+38.68*H.fraction;}
+                if(H.status==boss_pose::SweepStatus::Hit){DamageRegion(int(H.region),(campaign?6:15)*(1+rewardLaser*.25),H.point,FriendlyKind::Arc,combatEpoch);friendlyBeam.endX=x;friendlyBeam.endY=1.42+beamSlope*38.68*H.fraction;friendlyBeam.endZ=1.32+38.68*H.fraction;}
                 else if(H.status==boss_pose::SweepStatus::Unresolved)++sweepUnresolved;
             }else if(phase==Phase::Boss&&std::abs(x-bossX)<2.4)DamageBoss(15*(1+rewardLaser*.25),x,FriendlyKind::Arc);
         }

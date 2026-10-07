@@ -107,6 +107,7 @@ public:
     bool Activate();
     bool ActivateRelic(Relic Equipped);
     bool FireLaser();
+    double TempestSeconds() const { return campaign?3.5:1.; }
     bool ClashTap();
     bool ChooseReward(int Choice);
     bool ApplyLegacyReward(int Choice);
@@ -175,7 +176,7 @@ private:
     void SpawnRanged(double X,double Hp,bool Battery=false,double Delay=0);
     void SpawnCarrier(double X,double Hp,int Power);
     void Spawn(Kind Type,double X,double Z,double Hp,int Value,int Op=0,double Size=.3,int Variant=0,double Motion=0);
-    void Wave(int RowCount,double Hp,int Threat,int Formation,double Forward=42);
+    void Wave(int RowCount,double Hp,int Threat,int Formation,double Forward=42,int Shape=0);
     void Emit(EffectKind Type,double X,double Z,int Value=0,int EntityId=0,int Variant=0,double Size=.3);
     void DamageArmy(int Loss,double AtX,double AtZ,int Attacker=0,int Slot=-1);
     void DamageCommander(int Damage);
