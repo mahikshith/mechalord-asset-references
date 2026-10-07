@@ -1,3 +1,5 @@
+> **Current work (8 October 2026):** a Contra-style side-scroller in Unreal 5.8 on branch `claude/project-thread-kfgczz`. Read `docs/sidescroller-unreal.md` first. The rest of this file describes the top-down browser build, which is unchanged.
+
 # Mechalord / Iron Front — detailed handoff
 
 Prepared 7 October 2026 (Asia/Kolkata). Working branch: `codex/iron-front-single-siege`. This supersedes the earlier three-boss campaign design. Older reports and proof folders describe their own checkpoints, not necessarily this build.
