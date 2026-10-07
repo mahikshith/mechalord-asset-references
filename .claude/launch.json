@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "playable", "runtimeExecutable": "python", "runtimeArgs": ["-m", "http.server", "8077", "--bind", "127.0.0.1", "--directory", "delivery"], "port": 8077 }
+  ]
+}

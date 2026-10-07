@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {createDeckTexture} from './render-quality';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -70,14 +71,14 @@ export class ContinuousRouteEnvironment {
  private readonly body=new T.MeshStandardMaterial({vertexColors:true,roughness:.73,metalness:.24});
  private readonly glow=new T.MeshStandardMaterial({vertexColors:true,roughness:.6,metalness:.12,emissive:0xffffff,emissiveIntensity:.23});
  private readonly deckMaterial=new T.MeshStandardMaterial({color:0x344655,roughness:.86,metalness:.14});
- private readonly floorTexture:T.DataTexture;
+ private readonly floorTexture:T.DataTexture;private readonly deckMap=createDeckTexture();
  private readonly stamp=new T.Object3D();private readonly color=new T.Color();
  private readonly armRoot=new T.Object3D();private readonly shoulder=new T.Object3D();private readonly forearm=new T.Object3D();private readonly claw=new T.Object3D();
  private plans:ContinuousSection[]=[];private markers:RouteMarkers={...CONTINUOUS_ROUTE};private anchor=NaN;private age=0;private ready=false;private disposed=false;private loadPromise?:Promise<void>;
  constructor(private readonly scene:T.Scene){
   this.root.name='IronFront_ContinuousNativeRoute';
   const pixels=new Uint8Array(128*128*4);let seed=1771;for(let i=0;i<pixels.length;i+=4){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const v=215+(seed%22);pixels[i]=pixels[i+1]=pixels[i+2]=v;pixels[i+3]=255;}
-  this.floorTexture=new T.DataTexture(pixels,128,128,T.RGBAFormat);this.floorTexture.wrapS=this.floorTexture.wrapT=T.RepeatWrapping;this.floorTexture.repeat.set(2,20);this.floorTexture.needsUpdate=true;this.deckMaterial.roughnessMap=this.floorTexture;
+  this.floorTexture=new T.DataTexture(pixels,128,128,T.RGBAFormat);this.floorTexture.wrapS=this.floorTexture.wrapT=T.RepeatWrapping;this.floorTexture.repeat.set(2,20);this.floorTexture.needsUpdate=true;this.deckMaterial.roughnessMap=this.floorTexture;this.deckMap.repeat.set(1,(CONTINUOUS_ROUTE.far+CONTINUOUS_ROUTE.rear)/CONTINUOUS_ROUTE.sectionLength);this.deckMaterial.map=this.deckMap;
   const deck=new T.BoxGeometry(this.surfaceWidth,.16,CONTINUOUS_ROUTE.far+CONTINUOUS_ROUTE.rear);this.geometries.add(deck);this.floor=new T.Mesh(deck,this.deckMaterial);this.floor.name='OneCollisionAlignedDeck_y0';this.floor.position.set(0,-.08,(CONTINUOUS_ROUTE.rear-CONTINUOUS_ROUTE.far)*.5);this.floor.receiveShadow=true;this.root.add(this.floor);
   this.armRoot.add(this.shoulder);this.shoulder.position.set(0,2.25,0);this.shoulder.add(this.forearm);this.forearm.position.set(0,0,2.52);this.forearm.add(this.claw);this.claw.position.set(0,1.28,1.3);
   scene.add(this.root);
@@ -117,7 +118,7 @@ export class ContinuousRouteEnvironment {
   const distance=T.MathUtils.clamp(finite(travelDistance),0,this.markers.arenaStart),delta=T.MathUtils.clamp(finite(dt),0,.1);this.age+=delta;
   const anchor=Math.floor(distance/CONTINUOUS_ROUTE.sectionLength)-1;if(anchor!==this.anchor){this.anchor=anchor;this.plans=Array.from({length:CONTINUOUS_ROUTE.sections},(_,i)=>planContinuousSection(anchor+i,this.markers));}
   for(const entries of this.batches.values())for(const b of entries)b.used=0;
-  this.deckMaterial.color.setHex(continuousRoutePalette(distance,this.markers).deck);this.floorTexture.offset.y=distance/6.7;
+  this.deckMaterial.color.setHex(continuousRoutePalette(distance,this.markers).deck);this.floorTexture.offset.y=distance/6.7;this.deckMap.offset.y=distance/CONTINUOUS_ROUTE.sectionLength;
   for(const plan of this.plans){
    const z=distance-plan.distance,zone=plan.zone,phase=plan.section*.73,tint=zone===1?0xd0c8e8:zone===2?0xffddbc:0xe2ffff;
    if(plan.distance<this.markers.arenaStart-18){
@@ -156,5 +157,5 @@ export class ContinuousRouteEnvironment {
   for(const entries of this.batches.values())for(const b of entries){b.mesh.count=b.used;b.mesh.visible=b.used>0;b.mesh.instanceMatrix.needsUpdate=true;if(b.mesh.instanceColor)b.mesh.instanceColor.needsUpdate=true;}
  }
  get diagnostics(){let batches=0,instances=0,triangles=0;for(const es of this.batches.values())for(const b of es)if(b.used){batches++;instances+=b.used;triangles+=b.mesh.geometry.getAttribute('position').count/3*b.used;}return {ready:this.ready,sections:this.plans.map(p=>({...p})),batches,instances,triangles,geometries:this.geometries.size,maximumCapacity:64};}
- dispose():void {if(this.disposed)return;this.disposed=true;this.root.removeFromParent();for(const es of this.batches.values())for(const b of es)b.mesh.dispose();this.geometries.forEach(g=>g.dispose());this.body.dispose();this.glow.dispose();this.deckMaterial.dispose();this.floorTexture.dispose();this.batches.clear();this.bounds.clear();this.geometries.clear();this.root.clear();this.ready=false;}
+ dispose():void {if(this.disposed)return;this.disposed=true;this.root.removeFromParent();for(const es of this.batches.values())for(const b of es)b.mesh.dispose();this.geometries.forEach(g=>g.dispose());this.body.dispose();this.glow.dispose();this.deckMaterial.dispose();this.floorTexture.dispose();this.deckMap.dispose();this.batches.clear();this.bounds.clear();this.geometries.clear();this.root.clear();this.ready=false;}
 }
