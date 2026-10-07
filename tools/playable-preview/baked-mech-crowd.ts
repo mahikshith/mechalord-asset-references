@@ -28,8 +28,8 @@ export function bakeSkinned(model:T.Object3D,bake:BakeClip[]):BakedFrames{
 /** Bake every mesh in a model (skinned or bone-attached), keeping smooth normals:
  * each normal is skinned by transforming a point offset along it. Meshes must share
  * one material/texture set. Used for multi-part rigs such as the Sci-Fi Essentials robots. */
-export function bakeModel(model:T.Object3D,bake:BakeClip[]):BakedFrames{
- const meshes:T.Mesh[]=[];model.traverse(o=>{if((o as T.Mesh).isMesh)meshes.push(o as T.Mesh);});
+export function bakeModel(model:T.Object3D,bake:BakeClip[],filter:(m:T.Mesh)=>boolean=()=>true):BakedFrames{
+ const meshes:T.Mesh[]=[];model.traverse(o=>{if((o as T.Mesh).isMesh&&o.visible&&filter(o as T.Mesh))meshes.push(o as T.Mesh);});
  const sources=meshes.map(m=>{const g=m.geometry.index?m.geometry.toNonIndexed():m.geometry.clone();if(!g.getAttribute('normal'))g.computeVertexNormals();return g;});
  const count=sources.reduce((n,g)=>n+g.getAttribute('position').count,0),mixer=new T.AnimationMixer(model),p=new T.Vector3(),q=new T.Vector3(),nm=new T.Matrix3();
  const frames:BakedFrames['frames']=[];

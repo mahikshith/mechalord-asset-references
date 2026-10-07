@@ -11,6 +11,7 @@ import {ArsenalVisuals} from './arsenal-visuals';
 import {BakedMechCrowd} from './baked-mech-crowd';
 import {bakeTrooper,trooperAtlas,TROOPER_CLASSES} from './hero-trooper';
 import {heroBotCrowd} from './hero-bots';
+import {HeroMechCrowd} from './hero-mechs';
 import {HostileMechCast} from './hostile-mech-cast';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 import {TGALoader} from 'three/addons/loaders/TGALoader.js';
@@ -136,8 +137,21 @@ async function squad(){
    foes.begin();for(let r=0;r<3;r++)for(let c=0;c<7;c++)foes.grunt(100+r*7+c,-2.9+c*.95,-8-r*2.05,0,1.2,1/60,false);foes.end();}
   for(const c of [van,hav,volt])c.end();};
 }
+async function mk2(){
+ const view=new URLSearchParams(location.search).get('view')??'close';
+ if(view==='close'){camera.position.set(0,3.4,-9.2);camera.lookAt(0,1.5,0);}else{camera.position.set(0,11,15.5);camera.lookAt(0,0,-2.5);}
+ const [hav,sen,wisp]=await Promise.all([HeroMechCrowd.create(scene,'havoc',8),HeroMechCrowd.create(scene,'sentinel',40),HeroMechCrowd.create(scene,'wisp',8)]);
+ const foes=new HostileMechCast(scene);if(view==='game')await foes.load();
+ if(view==='close'){label('SENTINEL',2.9,-1.6);label('HAVOC',0,-1.6);label('WISP',-2.9,-1.6);}
+ tick=t=>{for(const c of [hav,sen,wisp])c.begin();
+  if(view==='close'){const clip=+(new URLSearchParams(location.search).get('clip')??0);sen.add(2.9,0,0,Math.PI+.5,1,clip,t*1.2);hav.add(0,0,0,Math.PI+.5,1,clip,t*1.1);wisp.add(-2.9,1.1+Math.sin(t*2)*.1,0,Math.PI+.5,1.3,0,t*.5);}
+  else{for(let r=0;r<4;r++)for(let c=0;c<6;c++){const i=r*6+c;sen.add(-2.4+c*.95+(r%2)*.3,0,1.6+r*.9,Math.PI,1,0,t*1.3+i*.37%1);}
+   hav.add(-3.2,0,2.4,Math.PI,1,0,t*1.1);hav.add(3.2,0,2.4,Math.PI,1,0,t*1.1+.5);for(let i=0;i<4;i++)wisp.add(-2.7+i*1.8,2.4+Math.sin(t*2+i)*.15,3.4,Math.PI,1,0,t*.6+i*.25);
+   foes.begin();for(let r=0;r<3;r++)for(let c=0;c<7;c++)foes.grunt(100+r*7+c,-2.9+c*.95,-8-r*2.05,0,1.2,1/60,false);foes.end();}
+  for(const c of [hav,sen,wisp])c.end();};
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():set==='herobots'?herobots():set==='squad'?squad():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():set==='herobots'?herobots():set==='squad'?squad():set==='mk2'?mk2():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;
