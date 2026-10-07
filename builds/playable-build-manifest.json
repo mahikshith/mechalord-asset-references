@@ -1,27 +1,27 @@
 {
-  "builtAt": "2026-10-07T07:10:22.925Z",
-  "coreAsset": "assault.281386d8b075f499.wasm",
-  "coreSha256": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46",
+  "builtAt": "2026-10-07T07:17:05.327Z",
+  "coreAsset": "assault.3fed0888edced4cf.wasm",
+  "coreSha256": "3fed0888edced4cf38bdafe1478b61f1532a132b3369438ced8d3cb347a9bd7a",
   "files": {
-    "assault.281386d8b075f499.wasm": {
-      "bytes": 1906393,
-      "sha256": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46"
+    "assault.3fed0888edced4cf.wasm": {
+      "bytes": 1907556,
+      "sha256": "3fed0888edced4cf38bdafe1478b61f1532a132b3369438ced8d3cb347a9bd7a"
     },
     "game.js": {
       "bytes": 918681,
-      "sha256": "c93213251ee7221a1ed9c74696af31c755ac9c2cf9bdce033a5a569c52c7f8fd"
+      "sha256": "057bf75663e78f41d110529b95b3a1c28283980801dfb010f6b39b4b91292c70"
     },
     "review.js": {
       "bytes": 896454,
-      "sha256": "d9a713ab49981af7fd5baf0a0343c841d6cc702873d17217d5a11369976b111c"
+      "sha256": "fd4e2ac7f6cb05c2c4cf6fe5c260dc7f532ccd1aeb635a28ddd78d0f01bc110c"
     },
     "index.html": {
       "bytes": 9474,
-      "sha256": "96cbffadb33a6baa39a5ab99460685aaaf0607e7f8ef36e91c859022807e979b"
+      "sha256": "ed0124b73e7adffe67fa9fba567c4431610cde9a0e0e2bffa40b6b6955af78e7"
     },
     "review.html": {
       "bytes": 5165,
-      "sha256": "69f938ae4f1dea52b624c982fd5cf1d6064adf7e3b5af9289af777fa4a5a2e66"
+      "sha256": "2a03dd0761e0c2f85dd44ed455ef9e2fb052c1aaf1c797814137b98d31ae35b1"
     },
     "style.css": {
       "bytes": 30396,

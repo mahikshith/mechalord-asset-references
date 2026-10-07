@@ -497,7 +497,7 @@ void Battle::SpawnTimeline()
             case campaign::Kind::Battery:SpawnRanged(E.x,E.hp,true,E.delay);break;
             case campaign::Kind::Carrier:SpawnCarrier(E.x,E.hp,E.dropPower);for(auto& T:targets)if(T.active&&T.id==nextTargetId-1)T.dropAlternate=E.value;break;
             case campaign::Kind::Crate:Spawn(Kind::Crate,E.x,40,E.hp,E.value,0,.55,-1);break;
-            case campaign::Kind::Gate:Spawn(Kind::Gate,E.x<0?-1.8:1.8,40,0,E.value+4,0,1.2);Spawn(Kind::Gate,E.x<0?1.8:-1.8,40,0,E.value,0,1.2);break;
+            case campaign::Kind::Gate:Spawn(Kind::Gate,E.x<0?-1.8:1.8,40,0,E.value+4,0,1.2);Spawn(Kind::Gate,E.x<0?1.8:-1.8,40,0,E.variant==1?-E.value:E.value,0,1.2);break;
             case campaign::Kind::Roller:Spawn(Kind::Hazard,E.x,40,0,E.value,0,.85,0,E.motion);break;
             case campaign::Kind::Archetype:SpawnArchetype(E.variant,E.x,E.hp,E.delay);break;
             case campaign::Kind::Health:DropPickup(E.x,40,PickupKind::Health,0);break;
@@ -1480,7 +1480,9 @@ void Battle::BossStep(double Dt)
     bossAction=std::abs(DesiredZ-bossZ)>.1?(DesiredZ<bossZ?BossAction::Advance:BossAction::Retreat):BossAction::Strafe;
     if(UsesSpatialBoss() && bossState==BossState::Exposed)
     { bossAction=BossAction::Strafe; bossAttack=0; firePose=0; sweepIndex=-1; return; }
-    firePose=std::max(0.,firePose-BossDt); bossClock+=BossDt*(RelicActive(Relic::EMP)?.5:1);
+    firePose=std::max(0.,firePose-BossDt); // Campaign enrage: every broken part makes the Tyrant attack faster.
+    const double Enrage=campaign?1.+.09*__builtin_popcount(unsigned(bossPartsMask)):1.;
+    bossClock+=BossDt*Enrage*(RelicActive(Relic::EMP)?.5:1);
     if(firePose<=0 && !bossLaneLocked) {
         if(campaign){static constexpr BossPattern Patterns[]={BossPattern::Heavy,BossPattern::Rockets,BossPattern::Laser,BossPattern::Sweep,BossPattern::Rockets,BossPattern::Laser};bossPattern=Patterns[bossVolleys%6];}
         else if(StageLevel()==3){static constexpr BossPattern Patterns[]={BossPattern::Rockets,BossPattern::Sweep,BossPattern::Rockets,BossPattern::Heavy};bossPattern=Patterns[bossVolleys%4];}

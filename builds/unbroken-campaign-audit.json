@@ -1,5 +1,5 @@
 {
-  "sha256": "281386d8b075f499a10aee8c3e3f2282c9e9fd39c024ed50126b5e3a330ccf46",
+  "sha256": "3fed0888edced4cf38bdafe1478b61f1532a132b3369438ced8d3cb347a9bd7a",
   "abi": 5,
   "checks": [
     {
@@ -20,17 +20,17 @@
       "rank": 0,
       "strategy": "Barrage when ready; pickup recovery",
       "phase": "won",
-      "seconds": 285.6499938964844,
+      "seconds": 248.46665954589844,
       "act": 2,
       "hp": 100,
-      "army": 14,
+      "army": 48,
       "acts": [
         {
           "act": 2,
-          "time": 285.6499938964844,
-          "bossSeconds": 87.64999389648438,
+          "time": 248.46665954589844,
+          "bossSeconds": 50.46665954589844,
           "hp": 100,
-          "army": 14
+          "army": 48
         }
       ],
       "zones": [
@@ -38,17 +38,17 @@
           "zone": 1,
           "time": 62,
           "travel": 229.39999389648438,
-          "army": 12,
-          "hp": 100,
-          "projectiles": 3,
+          "army": 24,
+          "hp": 88,
+          "projectiles": 8,
           "pickups": 0
         },
         {
           "zone": 2,
           "time": 128,
           "travel": 473.6000061035156,
-          "army": 23,
-          "hp": 100,
+          "army": 15,
+          "hp": 82,
           "projectiles": 6,
           "pickups": 0
         }
@@ -57,13 +57,12 @@
       "bossPatterns": [
         0,
         3,
-        1,
-        2
+        1
       ],
       "clashes": 1,
       "wins": 1,
-      "heals": 8,
-      "shieldBreaks": 12,
+      "heals": 9,
+      "shieldBreaks": 25,
       "revives": 0,
       "archetypes": [
         1,
@@ -71,109 +70,8 @@
         3,
         4
       ],
-      "maxTargets": 17,
-      "frames": 17140,
-      "roles": {
-        "1": {
-          "births": 5,
-          "minZ": 2.8949999809265137,
-          "tells": 0,
-          "skillFrames": 0,
-          "fires": 0,
-          "contacts": 0,
-          "supports": 0,
-          "shieldBreaks": 5
-        },
-        "2": {
-          "births": 2,
-          "minZ": 1.2400000095367432,
-          "tells": 96,
-          "skillFrames": 120,
-          "fires": 0,
-          "contacts": 2,
-          "supports": 0,
-          "shieldBreaks": 0
-        },
-        "3": {
-          "births": 3,
-          "minZ": 2.0885417461395264,
-          "tells": 342,
-          "skillFrames": 132,
-          "fires": 18,
-          "contacts": 0,
-          "supports": 0,
-          "shieldBreaks": 0
-        },
-        "4": {
-          "births": 3,
-          "minZ": 10.850957870483398,
-          "tells": 273,
-          "skillFrames": 5,
-          "fires": 18,
-          "contacts": 0,
-          "supports": 0,
-          "shieldBreaks": 0
-        }
-      },
-      "unresolved": 0
-    },
-    {
-      "rank": 0,
-      "strategy": "reserve Barrage for elites; late sacrifice",
-      "phase": "won",
-      "seconds": 283.4666748046875,
-      "act": 2,
-      "hp": 100,
-      "army": 11,
-      "acts": [
-        {
-          "act": 2,
-          "time": 283.4666748046875,
-          "bossSeconds": 85.4666748046875,
-          "hp": 100,
-          "army": 11
-        }
-      ],
-      "zones": [
-        {
-          "zone": 1,
-          "time": 62,
-          "travel": 229.39999389648438,
-          "army": 12,
-          "hp": 100,
-          "projectiles": 5,
-          "pickups": 0
-        },
-        {
-          "zone": 2,
-          "time": 128,
-          "travel": 473.6000061035156,
-          "army": 18,
-          "hp": 82,
-          "projectiles": 9,
-          "pickups": 0
-        }
-      ],
-      "bossArrivals": 1,
-      "bossPatterns": [
-        0,
-        3,
-        1,
-        2
-      ],
-      "clashes": 1,
-      "wins": 1,
-      "heals": 10,
-      "shieldBreaks": 12,
-      "revives": 0,
-      "archetypes": [
-        1,
-        2,
-        3,
-        4
-      ],
-      "maxTargets": 16,
-      "frames": 17009,
+      "maxTargets": 36,
+      "frames": 14909,
       "roles": {
         "1": {
           "births": 5,
@@ -191,48 +89,48 @@
           "tells": 96,
           "skillFrames": 120,
           "fires": 0,
-          "contacts": 1,
+          "contacts": 2,
           "supports": 0,
           "shieldBreaks": 0
         },
         "3": {
           "births": 3,
-          "minZ": 2.269583225250244,
-          "tells": 342,
-          "skillFrames": 132,
-          "fires": 18,
-          "contacts": 0,
+          "minZ": 1.0384999513626099,
+          "tells": 171,
+          "skillFrames": 66,
+          "fires": 9,
+          "contacts": 1,
           "supports": 0,
           "shieldBreaks": 0
         },
         "4": {
           "births": 3,
-          "minZ": 11.068208694458008,
-          "tells": 319,
-          "skillFrames": 5,
-          "fires": 24,
+          "minZ": 11.394083023071289,
+          "tells": 324,
+          "skillFrames": 6,
+          "fires": 12,
           "contacts": 0,
-          "supports": 0,
+          "supports": 3,
           "shieldBreaks": 0
         }
       },
       "unresolved": 0
     },
     {
-      "rank": 3,
-      "strategy": "Barrage when ready; pickup recovery",
+      "rank": 0,
+      "strategy": "reserve Barrage for elites; late sacrifice",
       "phase": "won",
-      "seconds": 227.4166717529297,
+      "seconds": 308.29998779296875,
       "act": 2,
-      "hp": 115,
-      "army": 64,
+      "hp": 70,
+      "army": 1,
       "acts": [
         {
           "act": 2,
-          "time": 227.4166717529297,
-          "bossSeconds": 29.416671752929688,
-          "hp": 115,
-          "army": 64
+          "time": 308.29998779296875,
+          "bossSeconds": 110.29998779296875,
+          "hp": 70,
+          "army": 1
         }
       ],
       "zones": [
@@ -240,29 +138,32 @@
           "zone": 1,
           "time": 62,
           "travel": 229.39999389648438,
-          "army": 36,
-          "hp": 115,
-          "projectiles": 14,
-          "pickups": 2
+          "army": 24,
+          "hp": 88,
+          "projectiles": 9,
+          "pickups": 0
         },
         {
           "zone": 2,
           "time": 128,
           "travel": 473.6000061035156,
-          "army": 54,
-          "hp": 97,
-          "projectiles": 20,
-          "pickups": 3
+          "army": 42,
+          "hp": 100,
+          "projectiles": 10,
+          "pickups": 0
         }
       ],
       "bossArrivals": 1,
       "bossPatterns": [
-        0
+        0,
+        3,
+        1,
+        2
       ],
-      "clashes": 0,
-      "wins": 0,
-      "heals": 8,
-      "shieldBreaks": 12,
+      "clashes": 1,
+      "wins": 1,
+      "heals": 11,
+      "shieldBreaks": 25,
       "revives": 0,
       "archetypes": [
         1,
@@ -270,16 +171,16 @@
         3,
         4
       ],
-      "maxTargets": 15,
-      "frames": 13646,
+      "maxTargets": 47,
+      "frames": 18499,
       "roles": {
         "1": {
           "births": 5,
-          "minZ": 9.21500015258789,
+          "minZ": 0.9200000166893005,
           "tells": 0,
           "skillFrames": 0,
           "fires": 0,
-          "contacts": 0,
+          "contacts": 1,
           "supports": 0,
           "shieldBreaks": 5
         },
@@ -295,20 +196,119 @@
         },
         "3": {
           "births": 3,
-          "minZ": 5.419708251953125,
-          "tells": 342,
-          "skillFrames": 132,
-          "fires": 18,
+          "minZ": 1.0384999513626099,
+          "tells": 171,
+          "skillFrames": 66,
+          "fires": 9,
+          "contacts": 1,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "4": {
+          "births": 3,
+          "minZ": 0.9660833477973938,
+          "tells": 498,
+          "skillFrames": 7,
+          "fires": 15,
+          "contacts": 1,
+          "supports": 4,
+          "shieldBreaks": 0
+        }
+      },
+      "unresolved": 0
+    },
+    {
+      "rank": 3,
+      "strategy": "Barrage when ready; pickup recovery",
+      "phase": "won",
+      "seconds": 229.93333435058594,
+      "act": 2,
+      "hp": 115,
+      "army": 59,
+      "acts": [
+        {
+          "act": 2,
+          "time": 229.93333435058594,
+          "bossSeconds": 31.933334350585938,
+          "hp": 115,
+          "army": 59
+        }
+      ],
+      "zones": [
+        {
+          "zone": 1,
+          "time": 62,
+          "travel": 229.39999389648438,
+          "army": 22,
+          "hp": 115,
+          "projectiles": 12,
+          "pickups": 0
+        },
+        {
+          "zone": 2,
+          "time": 128,
+          "travel": 473.6000061035156,
+          "army": 45,
+          "hp": 115,
+          "projectiles": 18,
+          "pickups": 2
+        }
+      ],
+      "bossArrivals": 1,
+      "bossPatterns": [
+        0,
+        3
+      ],
+      "clashes": 1,
+      "wins": 1,
+      "heals": 7,
+      "shieldBreaks": 25,
+      "revives": 0,
+      "archetypes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "maxTargets": 36,
+      "frames": 13797,
+      "roles": {
+        "1": {
+          "births": 5,
+          "minZ": 7.898333549499512,
+          "tells": 0,
+          "skillFrames": 0,
+          "fires": 0,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 5
+        },
+        "2": {
+          "births": 2,
+          "minZ": 1.569166660308838,
+          "tells": 96,
+          "skillFrames": 118,
+          "fires": 0,
+          "contacts": 0,
+          "supports": 0,
+          "shieldBreaks": 0
+        },
+        "3": {
+          "births": 3,
+          "minZ": 6.723208427429199,
+          "tells": 273,
+          "skillFrames": 88,
+          "fires": 12,
           "contacts": 0,
           "supports": 0,
           "shieldBreaks": 0
         },
         "4": {
           "births": 3,
-          "minZ": 13.964875221252441,
-          "tells": 216,
-          "skillFrames": 4,
-          "fires": 12,
+          "minZ": 12.806208610534668,
+          "tells": 270,
+          "skillFrames": 5,
+          "fires": 18,
           "contacts": 0,
           "supports": 0,
           "shieldBreaks": 0
@@ -320,17 +320,17 @@
       "rank": 3,
       "strategy": "reserve Barrage for elites; late sacrifice",
       "phase": "won",
-      "seconds": 233.3000030517578,
+      "seconds": 236.64999389648438,
       "act": 2,
-      "hp": 115,
-      "army": 110,
+      "hp": 67,
+      "army": 41,
       "acts": [
         {
           "act": 2,
-          "time": 233.3000030517578,
-          "bossSeconds": 35.30000305175781,
-          "hp": 115,
-          "army": 110
+          "time": 236.64999389648438,
+          "bossSeconds": 38.649993896484375,
+          "hp": 67,
+          "army": 41
         }
       ],
       "zones": [
@@ -338,30 +338,31 @@
           "zone": 1,
           "time": 62,
           "travel": 229.39999389648438,
-          "army": 36,
+          "army": 18,
           "hp": 115,
-          "projectiles": 14,
-          "pickups": 2
+          "projectiles": 8,
+          "pickups": 0
         },
         {
           "zone": 2,
           "time": 128,
           "travel": 473.6000061035156,
-          "army": 64,
-          "hp": 97,
-          "projectiles": 20,
-          "pickups": 3
+          "army": 39,
+          "hp": 115,
+          "projectiles": 14,
+          "pickups": 0
         }
       ],
       "bossArrivals": 1,
       "bossPatterns": [
         0,
-        3
+        3,
+        1
       ],
       "clashes": 1,
       "wins": 1,
-      "heals": 8,
-      "shieldBreaks": 12,
+      "heals": 9,
+      "shieldBreaks": 25,
       "revives": 0,
       "archetypes": [
         1,
@@ -369,24 +370,24 @@
         3,
         4
       ],
-      "maxTargets": 15,
-      "frames": 13999,
+      "maxTargets": 36,
+      "frames": 14200,
       "roles": {
         "1": {
           "births": 5,
-          "minZ": 9.21500015258789,
+          "minZ": 0.9200000166893005,
           "tells": 0,
           "skillFrames": 0,
           "fires": 0,
-          "contacts": 0,
+          "contacts": 1,
           "supports": 0,
           "shieldBreaks": 5
         },
         "2": {
           "births": 2,
           "minZ": 1.2400000095367432,
-          "tells": 48,
-          "skillFrames": 60,
+          "tells": 96,
+          "skillFrames": 115,
           "fires": 0,
           "contacts": 1,
           "supports": 0,
@@ -394,7 +395,7 @@
         },
         "3": {
           "births": 3,
-          "minZ": 12.87862491607666,
+          "minZ": 7.773250102996826,
           "tells": 228,
           "skillFrames": 88,
           "fires": 12,
@@ -404,12 +405,12 @@
         },
         "4": {
           "births": 3,
-          "minZ": 14.580416679382324,
-          "tells": 216,
-          "skillFrames": 4,
-          "fires": 12,
+          "minZ": 9.692291259765625,
+          "tells": 270,
+          "skillFrames": 5,
+          "fires": 18,
           "contacts": 0,
-          "supports": 0,
+          "supports": 2,
           "shieldBreaks": 0
         }
       },
