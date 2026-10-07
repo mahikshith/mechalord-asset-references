@@ -530,6 +530,8 @@ cam.location = (2.5, -30.0, 5.2)
 cam.rotation_euler = Euler((math.radians(85), 0, 0))
 
 K.setup_render(OUT, *(1170, 540) if PREVIEW else (2340, 1080), samples=48 if PREVIEW else 256, exposure=0.35)
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(REPO, 'assets', 'source', 'sidescroller', 'slice1-foundry-docks.blend'))
-bpy.ops.render.render(write_still=True)
-print('RENDERED', OUT)
+if 'norender' not in args:
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(REPO, 'assets', 'source', 'sidescroller', 'slice1-foundry-docks.blend'))
+if 'norender' not in args:
+    bpy.ops.render.render(write_still=True)
+    print('RENDERED', OUT)

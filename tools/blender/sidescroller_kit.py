@@ -1,4 +1,4 @@
-﻿"""Side-scroller look-dev kit for Blender 5.2: procedural PBR materials and
+"""Side-scroller look-dev kit for Blender 5.2: procedural PBR materials and
 bevelled hard-surface primitives. Imported by the scene scripts in this folder.
 
 Materials are Cycles node graphs (edge wear from the Bevel node, crevice grime
@@ -12,6 +12,7 @@ from mathutils import Vector
 
 def reset():
     _MATS.clear()
+    MAT_SPECS.clear()
     bpy.ops.wm.read_factory_settings(use_empty=True)
     for c in list(bpy.data.collections):
         bpy.data.collections.remove(c)
@@ -51,6 +52,7 @@ def _n(nodes, kind, loc=(0, 0), **inputs):
 
 
 _MATS = {}
+MAT_SPECS = {}  # material name -> parameters, read by the Unreal exporter
 
 
 def _cache(key, build):
@@ -144,6 +146,7 @@ def _streaks(nodes, links, tc, scale=3.0):
 
 
 def painted_metal(name, color, wear=1.0, grime=0.6, rough=0.42, bare=(0.55, 0.53, 0.5), streak=0.0, micro=40.0):
+    MAT_SPECS.setdefault(name, dict(kind='flat', color=color, rough=rough, metal=0.3))
     def build():
         m = bpy.data.materials.new(name)
         nt, nodes, links = _nodes(m)
@@ -221,6 +224,7 @@ def painted_metal(name, color, wear=1.0, grime=0.6, rough=0.42, bare=(0.55, 0.53
 
 
 def concrete(name='Concrete', color=(0.36, 0.35, 0.33), grime=0.8):
+    MAT_SPECS.setdefault(name, dict(kind='scan', tex='concrete_wall_008', scale=0.35, tint=color, tint_amt=0.6, value=1.0))
     def build():
         m = bpy.data.materials.new(name)
         nt, nodes, links = _nodes(m)
@@ -286,6 +290,7 @@ def concrete(name='Concrete', color=(0.36, 0.35, 0.33), grime=0.8):
 
 
 def hazard(name='Hazard', a=(0.75, 0.52, 0.05), b=(0.03, 0.03, 0.03), scale=3.0):
+    MAT_SPECS.setdefault(name, dict(kind='hazard', a=a, b=b, scale=scale))
     def build():
         m = bpy.data.materials.new(name)
         nt, nodes, links = _nodes(m)
@@ -327,6 +332,7 @@ def hazard(name='Hazard', a=(0.75, 0.52, 0.05), b=(0.03, 0.03, 0.03), scale=3.0)
 
 
 def emissive(name, color, strength=8.0):
+    MAT_SPECS.setdefault(name, dict(kind='emissive', color=color, strength=strength))
     def build():
         m = bpy.data.materials.new(name)
         nt, nodes, links = _nodes(m)
@@ -355,6 +361,7 @@ def glass(name='Glass', color=(0.5, 0.7, 0.75)):
 
 
 def water(name='Water'):
+    MAT_SPECS.setdefault(name, dict(kind='water'))
     def build():
         m = bpy.data.materials.new(name)
         nt, nodes, links = _nodes(m)
@@ -386,6 +393,7 @@ def water(name='Water'):
 
 
 def smoke(name='Smoke', density=1.2, color=(0.18, 0.17, 0.16), scale=1.2):
+    MAT_SPECS.setdefault(name, dict(kind='volume', color=color, density=density))
     def build():
         m = bpy.data.materials.new(name)
         nt, nodes, links = _nodes(m)
@@ -426,6 +434,7 @@ def smoke(name='Smoke', density=1.2, color=(0.18, 0.17, 0.16), scale=1.2):
 
 
 def flat(name, color, rough=0.9, metal=0.0):
+    MAT_SPECS.setdefault(name, dict(kind='flat', color=color, rough=rough, metal=metal))
     def build():
         m = bpy.data.materials.new(name)
         nt, nodes, links = _nodes(m)
@@ -584,6 +593,7 @@ def _img(nodes, path, noncolor, loc):
 
 def pbr(name, tex, scale=1.0, tint=(1, 1, 1), tint_amt=0.0, value=1.0, wear=0.0, bump=0.35, rough_add=0.0, metal=None, grime=0.4):
     """Box-projected Poly Haven material with optional tint, edge wear and crevice grime."""
+    MAT_SPECS.setdefault(name, dict(kind='scan', tex=tex, scale=scale, tint=tint, tint_amt=tint_amt, value=value, metal=metal, rough_add=rough_add))
     def build():
         mv = metal
         m = bpy.data.materials.new(name)

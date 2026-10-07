@@ -94,6 +94,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Iron|State")
 	bool bSubmerged = false;
 
+	/** Inside an IronWaterZone (floating or diving) */
+	UPROPERTY(BlueprintReadOnly, Category="Iron|State")
+	bool bInWater = false;
+
 	UPROPERTY(BlueprintReadOnly, Category="Iron|State")
 	bool bDead = false;
 
@@ -127,6 +131,7 @@ public:
 	void DoMelee();
 
 	virtual void DoMove(float Forward) override;
+	virtual void DoJumpStart() override;
 
 protected:
 

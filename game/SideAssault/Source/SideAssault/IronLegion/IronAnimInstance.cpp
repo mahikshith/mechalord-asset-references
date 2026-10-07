@@ -58,7 +58,7 @@ void FIronAnimProxy::PreUpdate(UAnimInstance* InAnimInstance, float DeltaSeconds
 	In.Speed = FVector(T->GetVelocity().X, T->GetVelocity().Y, 0.0f).Size();
 	In.VelZ = T->GetVelocity().Z;
 	In.bGrounded = Move->IsMovingOnGround();
-	In.bSwimming = Move->IsSwimming();
+	In.bSwimming = T->bInWater;
 	In.bCrouched = T->bIsCrouched;
 	In.bDead = T->bDead;
 	In.AimPitch = T->AimPitch;

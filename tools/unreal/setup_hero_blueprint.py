@@ -49,6 +49,12 @@ def main():
     gm_cdo.set_editor_property('default_pawn_class', bel.generated_class(bp))
     bel.compile_blueprint(gm)
     eal.save_loaded_asset(gm)
+    pc = eal.load_asset('/Game/Variant_SideScrolling/Blueprints/BP_SideScrollingPlayerController')
+    pc_cdo = unreal.get_default_object(bel.generated_class(pc))
+    pc_cdo.set_editor_property('player_camera_manager_class', unreal.load_class(None, '/Script/SideAssault.IronCameraManager'))
+    bel.compile_blueprint(pc)
+    eal.save_loaded_asset(pc)
+    log('camera manager', pc_cdo.get_editor_property('player_camera_manager_class'))
     log('DONE pawn', gm_cdo.get_editor_property('default_pawn_class'))
 
 

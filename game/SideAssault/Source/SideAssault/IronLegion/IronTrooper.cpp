@@ -1,5 +1,8 @@
 #include "IronTrooper.h"
 #include "IronProjectile.h"
+#include "IronWaterZone.h"
+#include "IronLevelInfo.h"
+#include "EngineUtils.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -35,10 +38,13 @@ AIronTrooper::AIronTrooper()
 	GetCharacterMovement()->MaxSwimSpeed = 380.0f;
 	GetCharacterMovement()->Buoyancy = 1.05f;
 	Tags.Add(TEXT("Player"));
+	// the hero also takes the level's camera-side key light
+	GetMesh()->LightingChannels.bChannel1 = true;
 
 	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon"));
 	Weapon->SetupAttachment(GetMesh(), WeaponBone);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Weapon->LightingChannels.bChannel1 = true;
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rifle(TEXT("/Game/IronLegion/Props/Rifle/Gun_Rifle/StaticMeshes/Gun_Rifle.Gun_Rifle"));
 	if (Rifle.Succeeded())
 	{
@@ -149,11 +155,26 @@ void AIronTrooper::PawnClientRestart()
 		if (APlayerCameraManager* Cam = PC->PlayerCameraManager)
 		{
 			float Zoom = CameraDistance;
-			FParse::Value(FCommandLine::Get(), TEXT("IronZoom="), Zoom);
-			if (FFloatProperty* Prop = FindFProperty<FFloatProperty>(Cam->GetClass(), TEXT("CurrentZoom")))
+			float MinX = -100000.0f, MaxX = 100000.0f, Height = 100.0f;
+			for (TActorIterator<AIronLevelInfo> It(GetWorld()); It; ++It)
 			{
-				Prop->SetPropertyValue_InContainer(Cam, Zoom);
+				Zoom = It->CameraDistance;
+				MinX = It->CameraMinX;
+				MaxX = It->CameraMaxX;
+				Height = It->CameraHeight;
 			}
+			FParse::Value(FCommandLine::Get(), TEXT("IronZoom="), Zoom);
+			auto SetFloat = [Cam](const TCHAR* Name, float Value)
+			{
+				if (FFloatProperty* Prop = FindFProperty<FFloatProperty>(Cam->GetClass(), Name))
+				{
+					Prop->SetPropertyValue_InContainer(Cam, Value);
+				}
+			};
+			SetFloat(TEXT("CurrentZoom"), Zoom);
+			SetFloat(TEXT("CameraXMinBounds"), MinX);
+			SetFloat(TEXT("CameraXMaxBounds"), MaxX);
+			SetFloat(TEXT("CameraZOffset"), Height);
 		}
 	}
 
@@ -302,7 +323,7 @@ void AIronTrooper::UpdateAim()
 	{
 		Target = bMoving ? 45.0f : 90.0f;
 	}
-	else if (bDownHeld && !bIsCrouched && !GetCharacterMovement()->IsSwimming())
+	else if (bDownHeld && !bIsCrouched && !bInWater)
 	{
 		// on the ground down+move angles low; in the air down fires straight down
 		Target = bGrounded ? (bMoving ? -45.0f : 0.0f) : (bMoving ? -45.0f : -90.0f);
@@ -313,28 +334,72 @@ void AIronTrooper::UpdateAim()
 void AIronTrooper::UpdateSwim(float DeltaSeconds)
 {
 	UCharacterMovementComponent* Move = GetCharacterMovement();
-	if (!Move->IsSwimming())
+	TArray<AActor*> Zones;
+	GetOverlappingActors(Zones, AIronWaterZone::StaticClass());
+	const AIronWaterZone* Water = nullptr;
+	for (AActor* Z : Zones)
 	{
+		if (static_cast<AIronWaterZone*>(Z)->Contains(GetActorLocation()))
+		{
+			Water = static_cast<AIronWaterZone*>(Z);
+			break;
+		}
+	}
+
+	if (!Water)
+	{
+		if (bInWater && Move->MovementMode == MOVE_Flying)
+		{
+			Move->SetMovementMode(MOVE_Falling);
+		}
+		bInWater = false;
 		bSubmerged = false;
-		DiveHeldTime = 0.0f;
 		return;
 	}
-	if (bDownHeld)
+
+	if (!bInWater)
 	{
-		// dive: push under and stay down, out of the line of fire
-		AddMovementInput(FVector(0.0f, 0.0f, -1.0f), 1.0f);
-		DiveHeldTime += DeltaSeconds;
+		// splash down: kill most of the fall speed and start floating
+		bInWater = true;
+		Move->SetMovementMode(MOVE_Flying);
+		Move->Velocity.Z *= 0.25f;
 	}
-	else
+	Move->MaxFlySpeed = 330.0f;
+	Move->BrakingDecelerationFlying = 1400.0f;
+
+	// float with the head above the surface; hold down to dive under and out of the line of fire
+	const float Surface = Water->GetSurfaceZ();
+	const float TargetZ = bDownHeld ? Surface - 190.0f : Surface - 55.0f;
+	const float WantVz = FMath::Clamp((TargetZ - GetActorLocation().Z) * 4.0f, -260.0f, 260.0f);
+	Move->Velocity.Z = FMath::FInterpTo(Move->Velocity.Z, WantVz, DeltaSeconds, 6.0f);
+	bSubmerged = GetActorLocation().Z < Surface - 125.0f;
+}
+
+void AIronTrooper::DoJumpStart()
+{
+	if (bInWater)
 	{
-		DiveHeldTime = 0.0f;
+		// leap out when near the surface
+		TArray<AActor*> Zones;
+		GetOverlappingActors(Zones, AIronWaterZone::StaticClass());
+		for (AActor* Z : Zones)
+		{
+			if (GetActorLocation().Z > static_cast<AIronWaterZone*>(Z)->GetSurfaceZ() - 90.0f)
+			{
+				GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+				LaunchCharacter(FVector(0.0f, 0.0f, 760.0f), false, true);
+				bInWater = false;
+				return;
+			}
+		}
+		return;
 	}
-	bSubmerged = DiveHeldTime > 0.2f;
+	Super::DoJumpStart();
 }
 
 FVector AIronTrooper::MuzzleLocation(const FVector& AimDir) const
 {
-	const float Height = bIsCrouched ? 18.0f : (GetCharacterMovement()->IsSwimming() ? 40.0f : 52.0f);
+	const float Height = bIsCrouched ? 18.0f : (bInWater ? 40.0f : 52.0f);
 	return GetActorLocation() + FVector(GetFacing() * 28.0f, 0.0f, Height) + AimDir * 62.0f;
 }
 
