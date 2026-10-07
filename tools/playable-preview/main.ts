@@ -387,7 +387,7 @@ function frame(now: number): void {
       const left = held.has('arrowleft') || held.has('a'), right = held.has('arrowright') || held.has('d');
       if ((left || right) && !clashing && !rewarding && !reviving) targetX = clamp(targetX + (Number(right) - Number(left)) * dt * 5.4);
       if(clashing && clashHeld) { clashHoldTime+=dt; if(clashHoldTime>=1/3) { clashHoldTime-=1/3; clashPulse(); } }
-      core.step(world.timeScale(dt), targetX);
+      core.step(world.timeScale?.(dt) ?? dt, targetX);
     }
     if(playing && pendingReward && !paused && !graphicsLost && world.absorptionRemaining<=0) completeAbsorption();
     // Exactly one snapshot per frame: effects are consumed only here.
@@ -432,7 +432,7 @@ function frame(now: number): void {
         if (defeatRemaining <= 0) finish(snapshot);
       } else { hud(snapshot); if (snapshot.phase === 'won') finish(snapshot); }
     }
-    world.update(snapshot, downed ? 0 : dt*world.slowFactor, intro ? 'intro' : paused ? 'paused' : playing ? 'play' : 'result');
+    world.update(snapshot, downed ? 0 : dt*(world.slowFactor ?? 1), intro ? 'intro' : paused ? 'paused' : playing ? 'play' : 'result');
   }
   requestAnimationFrame(frame);
 }

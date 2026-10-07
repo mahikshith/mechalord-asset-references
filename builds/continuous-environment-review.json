@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T20:17:38.288Z",
+  "checkedAt": "2026-10-07T07:07:17.592Z",
   "scope": "CPU geometry/transform tests using all 14 real native environment GLBs. No rendered appearance or mobile performance claim.",
   "checks": [
     "native source/environment-only whitelist",
@@ -13,7 +13,7 @@
     "native crane articulation and pause",
     "3000 bounded updates and disposal"
   ],
-  "sourceSha256": "0fbe6f18c174dad21df2eac0c89a3bbb3c363760fc8f4db6c6a22664fb7f1d86",
+  "sourceSha256": "3d4401c880f58d1c86416b3955fd2c90d75e19a881bdffaa8ae33b646d16744e",
   "route": {
     "stormStart": 229.4,
     "forgeStart": 473.6,

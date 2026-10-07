@@ -2,5 +2,5 @@
   "scope": "Production boss renderer adapter; actual retained GLB hierarchy, CPU tests only. Gameplay aim and damage are verified separately against the simulation.",
   "passed": 9,
   "failed": 0,
-  "generatedAt": "2026-10-06T20:39:31.425Z"
+  "generatedAt": "2026-10-07T06:59:06.783Z"
 }

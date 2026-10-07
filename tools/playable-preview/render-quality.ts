@@ -41,6 +41,7 @@ export class RenderQuality {
 /** Painted steel deck plates: panel seams, bolts, wear, hazard edges and lane
  * chevrons. White-ish base so the route palette tint still drives colour. */
 export function createDeckTexture(){
+ if(typeof document==='undefined'){const t=new T.DataTexture(new Uint8Array([217,221,224,255]),1,1);t.wrapS=t.wrapT=T.RepeatWrapping;t.needsUpdate=true;return t;} // headless tests
  const c=document.createElement('canvas');c.width=512;c.height=1024;const g=c.getContext('2d')!;let seed=91;const rnd=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
  g.fillStyle='#d9dde0';g.fillRect(0,0,512,1024);
  for(let i=0;i<2600;i++){const v=200+rnd()*50|0;g.fillStyle=`rgba(${v},${v},${v+4},.35)`;g.fillRect(rnd()*512,rnd()*1024,1+rnd()*3,1+rnd()*3);}
