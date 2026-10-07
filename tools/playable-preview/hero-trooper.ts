@@ -22,8 +22,9 @@ export function trooperAtlas(){
  const fill=(name:Region,base:string,detail:(x:number,y:number,w:number,h:number)=>void)=>{const [x,y,w,h]=rect(R[name]);g.fillStyle=base;g.fillRect(x,y,w,h);g.save();g.beginPath();g.rect(x,y,w,h);g.clip();detail(x,y,w,h);g.restore();};
  const grain=(x:number,y:number,w:number,h:number,a:number)=>{for(let i=0;i<w*h/60;i++){const v=rnd();g.fillStyle=`rgba(${v>.5?255:0},${v>.5?255:0},${v>.5?255:0},${a*rnd()})`;g.fillRect(x+rnd()*w,y+rnd()*h,1+rnd()*2,1+rnd()*2);}};
  fill('armor','#e9e2d2',(x,y,w,h)=>{grain(x,y,w,h,.06);const grad=g.createLinearGradient(x,y,x,y+h);grad.addColorStop(0,'rgba(255,255,255,.18)');grad.addColorStop(1,'rgba(90,80,60,.18)');g.fillStyle=grad;g.fillRect(x,y,w,h);
-  g.strokeStyle='rgba(60,55,48,.55)';g.lineWidth=3;for(let i=1;i<4;i++){g.beginPath();g.moveTo(x+i*w/4,y);g.lineTo(x+i*w/4,y+h);g.stroke();g.beginPath();g.moveTo(x,y+i*h/4);g.lineTo(x+w,y+i*h/4);g.stroke();}
-  g.fillStyle='rgba(50,45,40,.6)';for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(const [dx,dy] of [[10,10],[w/4-10,10],[10,h/4-10],[w/4-10,h/4-10]]){g.beginPath();g.arc(x+i*w/4+dx,y+j*h/4+dy,3,0,7);g.fill();}
+  // Sparse seams only (a full grid reads as sugar cubes on small parts).
+  g.strokeStyle='rgba(60,55,48,.35)';g.lineWidth=2;g.beginPath();g.moveTo(x+w*.5,y+h*.08);g.lineTo(x+w*.5,y+h*.38);g.stroke();g.beginPath();g.moveTo(x+w*.12,y+h*.72);g.lineTo(x+w*.42,y+h*.72);g.stroke();
+  const vg=g.createRadialGradient(x+w/2,y+h/2,w*.2,x+w/2,y+h/2,w*.62);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(70,62,50,.28)');g.fillStyle=vg;g.fillRect(x,y,w,h);
   for(let i=0;i<26;i++){const sx=x+rnd()*w,sy=y+rnd()*h,len=20+rnd()*60;const gr=g.createLinearGradient(sx,sy,sx,sy+len);gr.addColorStop(0,'rgba(70,62,50,.28)');gr.addColorStop(1,'rgba(70,62,50,0)');g.fillStyle=gr;g.fillRect(sx,sy,2+rnd()*4,len);}
   g.fillStyle='rgba(40,40,40,.55)';g.font=`700 ${h*.035}px Consolas, monospace`;for(let i=0;i<6;i++)g.fillText(['IL-07','AUX','▲ LIFT','SEC-4','HV','07'][i],x+rnd()*w*.8,y+rnd()*h);
   for(let i=0;i<40;i++){g.strokeStyle=`rgba(120,110,95,${.15+rnd()*.25})`;g.lineWidth=1+rnd()*2;g.beginPath();const sx=x+rnd()*w,sy=y+rnd()*h;g.moveTo(sx,sy);g.lineTo(sx+(rnd()-.5)*40,sy+(rnd()-.5)*12);g.stroke();}});
