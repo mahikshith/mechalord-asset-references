@@ -1,5 +1,10 @@
 #include "IronTrooper.h"
 #include "IronProjectile.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "UObject/ConstructorHelpers.h"
+#include "UObject/UnrealType.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -13,6 +18,12 @@
 #include "Engine/OverlapResult.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "UnrealClient.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "Animation/AnimationAsset.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AIronTrooper::AIronTrooper()
 {
@@ -24,6 +35,16 @@ AIronTrooper::AIronTrooper()
 	GetCharacterMovement()->MaxSwimSpeed = 380.0f;
 	GetCharacterMovement()->Buoyancy = 1.05f;
 	Tags.Add(TEXT("Player"));
+
+	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon"));
+	Weapon->SetupAttachment(GetMesh(), WeaponBone);
+	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rifle(TEXT("/Game/IronLegion/Props/Rifle/Gun_Rifle/StaticMeshes/Gun_Rifle.Gun_Rifle"));
+	if (Rifle.Succeeded())
+	{
+		Weapon->SetStaticMesh(Rifle.Object);
+	}
+	WeaponGrip = FTransform(FRotator(0.0f, 90.0f, 0.0f), FVector(0.0f, 8.0f, 2.0f), FVector(0.7f));
 }
 
 void AIronTrooper::BeginPlay()
@@ -31,6 +52,45 @@ void AIronTrooper::BeginPlay()
 	Super::BeginPlay();
 	Health = MaxHealth;
 	Checkpoint = GetActorLocation();
+	// side-scroller: always start facing right along the level
+	SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
+
+	// grip: allow quick iteration from the command line, e.g. -IronGrip=P,Y,R,X,Y,Z
+	FString Grip;
+	if (FParse::Value(FCommandLine::Get(), TEXT("IronGrip="), Grip))
+	{
+		TArray<FString> V;
+		Grip.ParseIntoArray(V, TEXT(","));
+		if (V.Num() == 6)
+		{
+			WeaponGrip = FTransform(FRotator(FCString::Atof(*V[0]), FCString::Atof(*V[1]), FCString::Atof(*V[2])), FVector(FCString::Atof(*V[3]), FCString::Atof(*V[4]), FCString::Atof(*V[5])), FVector(0.7f));
+		}
+	}
+	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponBone);
+	Weapon->SetRelativeTransform(WeaponGrip);
+	// hand bones carry a tiny import scale; keep the rifle at true size
+	Weapon->SetUsingAbsoluteScale(true);
+	Weapon->SetWorldScale3D(WeaponGrip.GetScale3D());
+
+	if (FParse::Param(FCommandLine::Get(), TEXT("IronBones")))
+	{
+		for (int32 B = 0; B < GetMesh()->GetNumBones(); ++B)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("IronBone %d %s"), B, *GetMesh()->GetBoneName(B).ToString());
+		}
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("IronNoAnim")))
+	{
+		GetMesh()->SetAnimInstanceClass(nullptr);
+	}
+	FString TestAnim;
+	if (FParse::Value(FCommandLine::Get(), TEXT("IronAnimTest="), TestAnim))
+	{
+		if (UAnimationAsset* Anim = LoadObject<UAnimationAsset>(nullptr, *TestAnim))
+		{
+			GetMesh()->PlayAnimation(Anim, true);
+		}
+	}
 }
 
 static UInputAction* MakeAction(UObject* Outer, const TCHAR* Name, EInputActionValueType Type)
@@ -84,6 +144,19 @@ void AIronTrooper::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AIronTrooper::PawnClientRestart()
 {
 	Super::PawnClientRestart();
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (APlayerCameraManager* Cam = PC->PlayerCameraManager)
+		{
+			float Zoom = CameraDistance;
+			FParse::Value(FCommandLine::Get(), TEXT("IronZoom="), Zoom);
+			if (FFloatProperty* Prop = FindFProperty<FFloatProperty>(Cam->GetClass(), TEXT("CurrentZoom")))
+			{
+				Prop->SetPropertyValue_InContainer(Cam, Zoom);
+			}
+		}
+	}
+
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Sub = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
@@ -182,6 +255,7 @@ bool AIronTrooper::IsInvulnerable() const
 void AIronTrooper::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	RunAutopilot(DeltaSeconds);
 	if (bDead)
 	{
 		return;
@@ -203,6 +277,13 @@ void AIronTrooper::Tick(float DeltaSeconds)
 
 	UpdateSwim(DeltaSeconds);
 	UpdateAim();
+
+	// profile stance when planted, square-on stride when running or airborne
+	float LabYaw = StanceYaw;
+	FParse::Value(FCommandLine::Get(), TEXT("IronStanceYaw="), LabYaw);
+	const float StanceTarget = (bGrounded && bStill) ? LabYaw : 0.0f;
+	StanceYawCurrent = FMath::FInterpTo(StanceYawCurrent, StanceTarget, DeltaSeconds, 10.0f);
+	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f + StanceYawCurrent, 0.0f));
 
 	const float Now = GetWorld()->GetTimeSeconds();
 	if (bFiring && !bSubmerged && Now - LastShotTime >= FireInterval)
@@ -330,4 +411,91 @@ void AIronTrooper::Respawn()
 	LastHurtTime = GetWorld()->GetTimeSeconds();
 	SetActorLocation(Checkpoint, false, nullptr, ETeleportType::ResetPhysics);
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+// ------------------------------------------------------------------------------- autopilot
+
+void AIronTrooper::RunAutopilot(float DeltaSeconds)
+{
+	static const bool bAuto = FParse::Param(FCommandLine::Get(), TEXT("IronAutopilot"));
+	if (!bAuto || !IsPlayerControlled())
+	{
+		return;
+	}
+	const float T0 = AutopilotTime;
+	AutopilotTime += DeltaSeconds;
+	const float T = AutopilotTime;
+	auto Crossed = [T0, T](float At) { return T0 < At && T >= At; };
+
+	if (FParse::Param(FCommandLine::Get(), TEXT("IronPoseLab")))
+	{
+		// stand still and aim, then capture a few close frames for grip and pose checks
+		ActionValueY = 0.0f;
+		DoFire(T > 0.4f);
+		if (Crossed(1.0f))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("IronDebug weapon mesh=%s bounds=%s scale=%s attach=%s loc=%s hand=%s visible=%d"), *GetNameSafe(Weapon->GetStaticMesh()), *Weapon->Bounds.BoxExtent.ToString(), *Weapon->GetComponentScale().ToString(), *Weapon->GetAttachSocketName().ToString(), *Weapon->GetComponentLocation().ToString(), *GetMesh()->GetBoneLocation(WeaponBone).ToString(), Weapon->IsVisible());
+		}
+		FString LabDir;
+		if (FParse::Value(FCommandLine::Get(), TEXT("IronCapture="), LabDir) && (Crossed(1.2f) || Crossed(1.5f)))
+		{
+			FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("%s/lab_%d.png"), *LabDir, CaptureFrame++), false, false);
+		}
+		if (T > 1.9f)
+		{
+			UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
+		}
+		return;
+	}
+
+	// a short scripted run: sprint and fire, jump, aim up, crouch-fire, air dive-fire, turn and melee
+	float Move = 0.0f;
+	if (T < 3.0f || (T >= 5.0f && T < 6.6f)) Move = 1.0f;
+	if (T >= 7.0f && T < 7.4f) Move = -1.0f;
+	if (Move != 0.0f) DoMove(Move); else ActionValueY = 0.0f;
+	DoFire((T > 0.6f && T < 6.6f) || (T > 8.2f && T < 9.0f));
+	DoAimUp(T >= 3.0f && T < 4.0f);
+	if (Crossed(4.0f)) DoDown(true);
+	if (Crossed(4.9f)) DoDown(false);
+	if (Crossed(1.3f) || Crossed(5.4f)) DoJumpStart();
+	if (Crossed(1.7f) || Crossed(5.9f)) DoJumpEnd();
+	if (Crossed(5.7f)) DoDown(true);
+	if (Crossed(6.4f)) DoDown(false);
+	if (Crossed(7.6f) || Crossed(7.95f)) DoMelee();
+	if (Crossed(2.0f))
+	{
+		const APlayerController* PC = Cast<APlayerController>(GetController());
+		UE_LOG(LogTemp, Warning, TEXT("IronDebug actor=%s mesh=%s ext=%s visible=%d cam=%s camrot=%s"), *GetActorLocation().ToString(), *GetMesh()->GetComponentLocation().ToString(), *GetMesh()->Bounds.BoxExtent.ToString(), GetMesh()->IsVisible(), PC && PC->PlayerCameraManager ? *PC->PlayerCameraManager->GetCameraLocation().ToString() : TEXT("none"), PC && PC->PlayerCameraManager ? *PC->PlayerCameraManager->GetCameraRotation().ToString() : TEXT("none"));
+		if (PC && PC->PlayerCameraManager)
+		{
+			FHitResult Hit;
+			FCollisionQueryParams Q;
+			Q.AddIgnoredActor(this);
+			if (GetWorld()->LineTraceSingleByChannel(Hit, PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation(), ECC_Visibility, Q))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("IronDebug occluder=%s at %s"), *GetNameSafe(Hit.GetActor()), *Hit.ImpactPoint.ToString());
+			}
+			for (const TCHAR* Bone : { TEXT("root"), TEXT("hips"), TEXT("spine"), TEXT("head"), TEXT("hand.L"), TEXT("foot.R") })
+			{
+				UE_LOG(LogTemp, Warning, TEXT("IronDebug bone %s pos=%s scale=%s"), Bone, *GetMesh()->GetBoneLocation(Bone).ToString(), *GetMesh()->GetBoneTransform(Bone).GetScale3D().ToString());
+			}
+			UE_LOG(LogTemp, Warning, TEXT("IronDebug bounds=%s"), *GetMesh()->Bounds.BoxExtent.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("IronDebug meshasset=%s anim=%s hidden=%d owner_no_see=%d"), *GetNameSafe(GetMesh()->GetSkeletalMeshAsset()), *GetNameSafe(GetMesh()->GetAnimInstance()), GetMesh()->bHiddenInGame, GetMesh()->bOwnerNoSee);
+		}
+	}
+
+	FString Dir;
+	if (FParse::Value(FCommandLine::Get(), TEXT("IronCapture="), Dir))
+	{
+		CaptureAccum += DeltaSeconds;
+		if (CaptureAccum >= 1.0f / 15.0f)
+		{
+			CaptureAccum = 0.0f;
+			FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("%s/frame_%04d.png"), *Dir, CaptureFrame++), false, false);
+		}
+		if (T > 9.5f)
+		{
+			UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
+		}
+	}
 }

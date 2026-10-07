@@ -5,6 +5,7 @@
 #include "IronTrooper.generated.h"
 
 class UInputAction;
+class UStaticMeshComponent;
 class UInputMappingContext;
 class AIronProjectile;
 
@@ -47,6 +48,27 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Iron|Weapon")
 	TSubclassOf<AIronProjectile> ProjectileClass;
+
+	/** Rifle prop held in the right hand */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Iron|Weapon")
+	UStaticMeshComponent* Weapon;
+
+	/** Bone the rifle attaches to and its grip offset relative to that bone */
+	UPROPERTY(EditAnywhere, Category="Iron|Weapon")
+	FName WeaponBone = TEXT("hand_R");
+
+	UPROPERTY(EditAnywhere, Category="Iron|Weapon")
+	FTransform WeaponGrip;
+
+	/** Extra mesh yaw while standing so the rifle stance reads in profile (deg); fades out when running */
+	UPROPERTY(EditAnywhere, Category="Iron|Animation")
+	float StanceYaw = -40.0f;
+
+	float StanceYawCurrent = 0.0f;
+
+	/** Side-scroll camera distance (cm); closer reads better on a phone */
+	UPROPERTY(EditAnywhere, Category="Iron|Camera")
+	float CameraDistance = 850.0f;
 
 	UPROPERTY(EditAnywhere, Category="Iron|Melee")
 	float MeleeRange = 110.0f;
@@ -136,6 +158,12 @@ protected:
 
 	UPROPERTY(Transient)
 	UInputAction* MeleeAction;
+
+	/** Scripted input for automated gameplay captures (-IronAutopilot, -IronCapture=<dir>) */
+	void RunAutopilot(float DeltaSeconds);
+	float AutopilotTime = 0.0f;
+	int32 CaptureFrame = 0;
+	float CaptureAccum = 0.0f;
 
 	bool bAimUpHeld = false;
 	bool bDownHeld = false;
