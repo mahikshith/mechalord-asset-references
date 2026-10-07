@@ -776,11 +776,14 @@ void Battle::RangedStep(Target& T,double Dt)
 }
 void Battle::TroopPosition(int Slot,double& X,double& Z) const
 {
+    // Campaign squads are fewer, larger machines with their own powers: wider
+    // spacing and a deeper gap behind the commander (old fronts keep the tight block).
+    const bool Squad=campaign;const double Gap=Squad?1.05:.73,RowGap=Squad?.92:.48,Lead=Squad?1.4:.75;
     const int Count=formationSpan,Columns=std::min(4,Count),Row=Slot/std::max(1,Columns);
     const int Width=std::min(Columns,Count-Row*Columns);
-    const double Limit=std::max(.3,3.9-(Columns-1)*.365);
-    X=std::clamp(x,-Limit,Limit)+(Slot%std::max(1,Columns)-(Width-1)*.5)*.73;
-    Z=-(.75+Row*.48);
+    const double Limit=std::max(.3,3.9-(Columns-1)*Gap*.5);
+    X=std::clamp(x,-Limit,Limit)+(Slot%std::max(1,Columns)-(Width-1)*.5)*Gap;
+    Z=-(Lead+Row*RowGap);
 }
 bool Battle::FormationHit(double X0,double Z0,double X1,double Z1,double Radius,bool Leader,int& Slot,double& HitX,double& HitZ,double Depth) const
 {
@@ -846,6 +849,8 @@ void Battle::DamageArmy(int Loss,double AtX,double AtZ,int Attacker,int Slot)
 {
     if(reviveProtection>0 || (RelicActive(Relic::Shield))) { Emit(EffectKind::Block,AtX,AtZ,Loss,Attacker,-2,.45); if(reviveProtection<=0) Emit(EffectKind::ShieldHit,AtX,AtZ,Loss,Attacker,-2,.45); return; }
     if(weaponPower==WeaponPower::Escort && escortShield>0) { const int Block=std::min(Loss,escortShield); escortShield-=Block; Loss-=Block; Emit(EffectKind::EscortBlock,AtX,AtZ,Block,Attacker,-2,.45); if(Loss<=0)return; }
+    // Hired machines are armoured: in the campaign four hits destroy one machine.
+    if(campaign&&army>1){machinePlating+=Loss/4.;Loss=int(machinePlating);machinePlating-=Loss;if(Loss<=0){Emit(EffectKind::Block,AtX,AtZ,0,Attacker,-2,.45);return;}}
     if(army<=1) { DamageCommander(Loss); return; }
     if(Slot<0)
     {
@@ -876,7 +881,7 @@ void Battle::ResizeFormation(double Strength,double AtX,double AtZ,EffectKind Re
 }
 void Battle::Recruit(int Gain)
 {
-    const int Before=army; army=std::min(160,army+std::max(0,Gain));
+    const int Before=army; army=std::min(ArmyCap(),army+std::max(0,Gain));
     ResizeFormation(visualStrength+(army-Before)*24./std::max(24,army-1),x,0);
 }
 double Battle::HostileSpeed() const
@@ -936,7 +941,9 @@ void Battle::AwardWeaponXP(int Amount)
 }
 void Battle::Fire()
 {
-    const int Count=UsesSpatialBoss()?std::clamp(4+army/10+(weaponPower==WeaponPower::Cannons?2:0),4,weaponPower==WeaponPower::Cannons?12:10):std::clamp(5+army/16+(weaponPower==WeaponPower::Cannons?4:0),5,weaponPower==WeaponPower::Cannons?16:12);
+    // A capped campaign squad fires like a mob three times its size: each machine carries heavier guns.
+    const int Firepower=campaign?army*10/3:army;
+    const int Count=UsesSpatialBoss()?std::clamp(4+Firepower/10+(weaponPower==WeaponPower::Cannons?2:0),4,weaponPower==WeaponPower::Cannons?12:10):std::clamp(5+Firepower/16+(weaponPower==WeaponPower::Cannons?4:0),5,weaponPower==WeaponPower::Cannons?16:12);
     static constexpr double Damage[]={0,1.5,2.2,3.0,4.4};
     const double Boost=1+rank*.03;
     std::array<Target*,MaxTargets> Candidates{}; int CandidateCount=0;
@@ -1314,7 +1321,7 @@ void Battle::MoveTargets(double Dt,double TravelDelta)
         if(T.kind==Kind::Gate)
         {
             if(std::abs(T.x-x)>T.size+.08) { Emit(EffectKind::Missed,T.x,0,0,T.id,0,T.size); continue; }
-            const int Before=army,After=std::clamp(T.op==1?army*T.value:army+T.value,0,160);
+            const int Before=army,After=std::clamp(T.op==1?army*T.value:army+(campaign&&T.value<0?int(std::floor(T.value/4.)):T.value),0,ArmyCap());
             if(After>=Before) Recruit(After-Before);
             else { DamageArmy(Before-After,T.x,0,T.id); if(After==0 && phase!=Phase::Lost) { commanderHp=0; army=0; formationAlive.fill(false); visualStrength=0; phase=Phase::Lost; Emit(EffectKind::CommanderDeath,x,0,0,0,-5,1.2); } }
             score+=army-Before; Charge(UsesSpatialBoss()?5:15); Emit(EffectKind::Gate,T.x,0,T.value,T.id,0,T.size);

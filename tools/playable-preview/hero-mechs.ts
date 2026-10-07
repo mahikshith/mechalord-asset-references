@@ -98,8 +98,8 @@ export class HeroSquad {
   if(!this.ready)return;const crowds=[this.sentinel!,this.havoc!,this.wisp!];crowds.forEach(c=>c.begin());
   if(m.visible!==false)for(const u of units){const slot=u.index%8,kind=slot===3?1:slot===7?2:0,rate=kind===2?.5:m.marching?1.25:.35;const p=((this.phases.get(u.index)??(u.index*.618)%1)+(m.held?0:m.dt*rate))%1;this.phases.set(u.index,p);
    const yaw=Math.PI+m.strafe*.23,clip=kind===2?0:m.marching?0:1;
-   if(kind===0)crowds[0].add(u.x,0,-u.z,yaw,.92,clip,p);
-   else if(kind===1)crowds[1].add(u.x,0,-u.z,yaw,.62,clip,p);
+   if(kind===0)crowds[0].add(u.x,0,-u.z,yaw,1.0,clip,p);
+   else if(kind===1)crowds[1].add(u.x,0,-u.z,yaw,.68,clip,p);
    else crowds[2].add(u.x,1.25+Math.sin(m.time*2.2+u.index)*.12,-u.z,yaw,.85,0,p);}
   crowds.forEach(c=>c.end());
  }

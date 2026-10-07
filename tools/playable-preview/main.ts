@@ -280,7 +280,7 @@ function hud(s: Snapshot): void {
   $('route-fill').style.width = `${boss ? percent : destroying ? 0 : route * 100}%`;
   $('route-fill').classList.toggle('core-exposed', exposed); $('route-fill').classList.toggle('rebuilding', rebuilding);
   document.body.classList.toggle('destroying', destroying); $('abilities').hidden = destroying || s.phase === 'lastStand' || s.phase === 'reward' || s.phase === 'reviving';
-  $('army-count').textContent = String(s.army); $('kills').textContent = String(s.kills); $('kill-label').textContent = 'ELIMINATED'; $('weapon-level').textContent = String(s.weapon);
+  $('army-count').textContent = s.campaign ? `${Math.max(0, s.army - 1)}/16` : String(s.army); $('kills').textContent = String(s.kills); $('kill-label').textContent = 'ELIMINATED'; $('weapon-level').textContent = String(s.weapon);
   $('kills').hidden = boss;
   if (boss) $('kill-label').textContent = reactorShield?'BREAK THE REACTOR SHIELD':guarded ? 'DODGE · WAIT FOR THE CORE TO OPEN' : s.bossRevives > 0 && !exposed ? 'BREAK THE REFORGED ARMOR' : ({cannon:'BREAK THE HAND CANNONS',jetpack:'BREAK THE BOOSTERS',leg:'BREAK THE LEG ARMOR',reactor:'DESTROY THE REACTOR'} as const)[s.bossPart];
   $('weapon-name').textContent = tierNames[Math.max(0, Math.min(3, s.weapon - 1))];

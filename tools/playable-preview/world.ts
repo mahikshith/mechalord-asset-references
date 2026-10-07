@@ -70,7 +70,7 @@ export class Battlefield{
   // Keep all six rows clear of the health/transfer controls. Use the maximum
   // formation footprint so recruitment and casualties cannot make the camera bob.
   const distance=(5.05/Math.min(.45,this.camera.aspect))/Math.tan(T.MathUtils.degToRad(15));
-  const rear=new T.Vector3(0,0,3.39),bottom=h-128;
+  const rear=new T.Vector3(0,0,4.7),bottom=h-128; // deepest row of a full 16-machine squad
   const rearY=(look:number)=>{this.camera.position.set(0,distance*.58,look+distance*.815);this.camera.lookAt(0,.1,look);this.camera.updateMatrixWorld(true);return(1-rear.clone().project(this.camera).y)*h*.5;};
   let low=-9.3,high=0;
   if(rearY(low)>bottom){for(let i=0;i<18;i++){const mid=(low+high)*.5;if(rearY(mid)>bottom)low=mid;else high=mid;}this.cameraLookZ=high;}else this.cameraLookZ=low;
@@ -153,7 +153,8 @@ export class Battlefield{
   * crowd sways and swarms when steering. Never fed back into combat. */
  swarmState=new Map<number,{x:number,z:number}>();
  swarm(formation:ReadonlyArray<{index:number,x:number,z:number}>,army:number,dt:number,held:boolean){
-  const extra=Math.max(0,Math.min(army-formation.length,64-formation.length)),out:{index:number,x:number,z:number}[]=[],seen=new Set<number>();
+  // Squads are capped hired machines now: every unit is a real formation slot, no visual fillers.
+  const extra=0*Math.max(0,Math.min(army-formation.length,64-formation.length)),out:{index:number,x:number,z:number}[]=[],seen=new Set<number>();
   const offsets=[[.44,.17],[-.44,-.17],[0,.3]];
   for(let k=0;k<offsets.length&&out.length<extra;k++)for(const u of formation){if(out.length>=extra)break;const id=10000+u.index*4+k,h=Math.sin(id*12.9898)*43758.5453%1,tx=T.MathUtils.clamp(u.x+offsets[k][0]+h*.12,-4.3,4.3),tz=u.z-offsets[k][1];let p=this.swarmState.get(id);if(!p){p={x:tx,z:tz};this.swarmState.set(id,p);}if(!held){const lag=1-Math.exp(-dt*(5+Math.abs(h)*6));p.x+=(tx-p.x)*lag;p.z+=(tz-p.z)*lag;}seen.add(id);out.push({index:id,x:p.x+Math.sin(this.age*2.3+id)*.03,z:p.z});}
   for(const id of this.swarmState.keys())if(!seen.has(id))this.swarmState.delete(id);return out;
