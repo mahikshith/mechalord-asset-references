@@ -26,6 +26,7 @@ import {LightningStrikes} from './lightning-strikes';
 import {BeamStorm} from './beam-storm';
 import {HostileMechCast} from './hostile-mech-cast';
 import {HeroSquad} from './hero-mechs';
+import {addCruelFace} from './tyrant-face';
 const mat=(color:number)=>new T.MeshStandardMaterial({color,roughness:.82,metalness:.06});
 function box(p:T.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,m:T.Material){const o=new T.Mesh(new RoundedBoxGeometry(w,h,d,1,Math.min(.06,w*.15,h*.15,d*.15)),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;p.add(o);return o;}
 function cyl(p:T.Object3D,r:number,rb:number,h:number,x:number,y:number,z:number,m:T.Material,n=12){const o=new T.Mesh(new T.CylinderGeometry(r,rb,h,n),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;p.add(o);return o;}
@@ -38,7 +39,7 @@ class Badge{
 export function enemyArmorLabel(t:Pick<Target,'role'|'variant'>&{guidedArmor?:boolean}){return t.guidedArmor?'GUIDED RESIST':t.role==='battery'?'BATTERY':t.variant===2?'GUNNER':t.role==='carrier'?'SALVAGE':'REAVER';}
  type View={group:T.Group;badge:Badge;bar:T.Mesh;kind:string;rotor?:T.Object3D};
 export class Battlefield{
- renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;thunder!:LightningStrikes;beamStorm!:BeamStorm;mechCast!:HostileMechCast;heroSquad=new HeroSquad();supplyCrate?:T.Object3D;supplyHolo?:T.BufferGeometry;lastBolt=0;empFlash=0;beamTrail=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
+ renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;thunder!:LightningStrikes;beamStorm!:BeamStorm;mechCast!:HostileMechCast;heroSquad=new HeroSquad();cruelFace?:ReturnType<typeof addCruelFace>;supplyCrate?:T.Object3D;supplyHolo?:T.BufferGeometry;lastBolt=0;empFlash=0;beamTrail=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
  environment:BattleEnvironment;routeEnvironment:ContinuousRouteEnvironment;powerVisuals:CommanderPowerVisuals;fx:CombatVisuals;missiles:CombatMissiles;robots:RobotFormation;abilities:RelicEffects;
  specialEnemies:EnemyArchetypes;dressing:FoundryDressing;revival:RevivalScene;clashVisuals:LaserClashVisuals;strafe=0;
  formationPositions:{index:number,x:number,z:number}[]=[];commanderExploded=false;hitNumbers=new Map<number,{at:number,value:number}>();heroArms:T.Object3D[]=[];bossMuzzles:T.Mesh[]=[];bossExploded=false;recoil=0;lastMuzzle=0;previousX=0;bossPreviousX=0;
@@ -86,7 +87,7 @@ export class Battlefield{
   const ventGeometry=new T.TorusGeometry(.28,.045,6,24),ventMaterial=new T.MeshBasicMaterial({color:0xffbd61,transparent:true,opacity:.9,depthWrite:false,toneMapped:false});
   for(let i=0;i<16;i++){const e=this.eliteTemplate.clone(true);e.visible=false;this.elitePool.push(e);this.scene.add(e);this.eliteSockets.push(new WeaponSockets(e,true));const vent=new T.Mesh(ventGeometry,ventMaterial);vent.name='CarrierVulnerability';vent.position.set(0,1.5,.55);vent.visible=false;e.add(vent);}
   this.boss.clear();this.bossModel=tyrant.scene;this.bossModel.rotation.y=Math.PI;this.boss.add(this.bossModel);this.bossModel.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}if(/^(Arm_[LR]|Barrel_[LR]|Pod_[LR]|Leg_[LR]|Knee_[LR]|Head)$/.test(o.name)){o.userData.restQuaternion=o.quaternion.clone();this.bossJoints.push(o);}});
-  this.bossAdapter=new BossRigAdapter(this.boss,this.scene);enhanceVillain(this.boss,VILLAIN_LOOKS.tyrant);this.arsenal=new ArsenalVisuals(this.hero,this.boss);
+  this.bossAdapter=new BossRigAdapter(this.boss,this.scene);enhanceVillain(this.boss,VILLAIN_LOOKS.tyrant);this.boss.updateMatrixWorld(true);this.cruelFace=addCruelFace(this.bossModel);this.arsenal=new ArsenalVisuals(this.hero,this.boss);
   this.formationFraming.setCommanderBounds(commanderAnimationBounds(this.model,hero.animations));
   const parts=(gltf:any)=>{gltf.scene.updateMatrixWorld(true);let mesh:any;gltf.scene.traverse((o:any)=>{if(o.isMesh&&!mesh)mesh=o;});const geo=mesh.geometry.clone().applyMatrix4(mesh.matrixWorld),m=mesh.material.clone();m.roughness=.85;m.metalness=.05;return [geo,m] as [T.BufferGeometry,T.MeshStandardMaterial];};
   const [ag,am]=parts(troop);this.crowd=new AnimatedTroopCrowd(this.scene,ag,am,this.model,hero.animations,64);this.allies=this.crowd.mesh;this.formationFraming.setBounds(this.crowd.bounds);ag.dispose();am.dispose();
@@ -125,9 +126,8 @@ export class Battlefield{
  disposeView(v:View){this.scene.remove(v.group);v.badge.dispose();const materials=new Set<T.Material>(),geometries=new Set<T.BufferGeometry>();v.group.traverse((o:any)=>{if(o.isMesh&&!o.userData.sharedGeometry){geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());}
  trigger(e:Effect,current?:Snapshot){
   if(e.kind==='actStart')return; // A zone marker cannot reset live combat or presentation.
-  if(e.kind==='empPulse'&&this.thunder){const near=(current?.targets??[]).filter(t=>t.kind==='enemy'&&t.z>1&&t.z<26).sort((a,b)=>a.z-b.z).slice(0,5);for(const t of near)this.thunder.strike(t.x,-t.z,0,1);this.thunder.strike(e.x,-e.z-2.5,0,1.3);}
-  if(e.kind==='chainHit'&&this.thunder&&this.age-this.lastBolt>.15&&[e.endX,e.endZ].every(Number.isFinite)){this.lastBolt=this.age;this.thunder.strike(e.endX!,-e.endZ!,e.endY??0,.6);}
-  if((e.kind==='bossPartBreak'||e.kind==='coreExpose')&&this.thunder)this.thunder.strike(this.boss.position.x+(Math.random()-.5)*2,this.boss.position.z+.5,0,1.5);
+  if(e.kind==='empPulse'&&this.thunder&&current?.phase!=='boss'){const near=(current?.targets??[]).filter(t=>t.kind==='enemy'&&t.z>1&&t.z<26).sort((a,b)=>a.z-b.z).slice(0,5);for(const t of near)this.thunder.strike(t.x,-t.z,0,1);this.thunder.strike(e.x,-e.z-2.5,0,1.3);}
+  if(e.kind==='chainHit'&&this.thunder&&current?.phase!=='boss'&&this.age-this.lastBolt>.15&&[e.endX,e.endZ].every(Number.isFinite)){this.lastBolt=this.age;this.thunder.strike(e.endX!,-e.endZ!,e.endY??0,.6);}
   if(e.kind==='empPulse'){this.empFlash=1;this.destruction?.shock(e.x,-e.z,16);this.destruction?.crack(e.x,-e.z-1.5,6,0x6fd8ff);this.shake=Math.max(this.shake,.14);}
   if(e.kind==='shieldHit')this.destruction?.shock(e.x,-e.z,3);
   this.abilities.trigger(e,current);this.powerVisuals?.trigger(e);
@@ -197,6 +197,7 @@ export class Battlefield{
   const active=mode==='play',combatPicture=active||mode==='paused',intro=mode==='intro',reviving=s.phase==='reviving',downed=s.phase==='lastStand',renderDt=mode==='paused'?0:dt;
   const stage=s.stageLevel??s.level;
   if(s.campaign){const p=continuousRoutePalette(intro?0:s.travelDistance);this.renderer.setClearColor(p.sky);(this.scene.fog as T.Fog).color.setHex(p.sky);this.quality.setSky(p.sky);this.scene.traverse(o=>{if(o instanceof T.HemisphereLight){o.color.setHex(p.fill);o.groundColor.setHex(p.ground);}if(o instanceof T.DirectionalLight)o.color.setHex(p.key);});}else this.applyStagePalette(stage);
+  this.cruelFace?.setRage(s.phase==='boss'&&(s.bossAction==='windup'||s.bossAction==='fire')?1:0,this.age);
   villainClock.value=this.age;this.empFlash=Math.max(0,this.empFlash-renderDt*1.4);villainStun.value=Math.max(this.empFlash,s.empStunTime>0?.55+.15*Math.sin(this.age*30):0);this.routeEnvironment.setPower(this.empFlash>0?(this.empFlash>.75?2.5:Math.max(0,1-this.empFlash*1.6)+(Math.random()<.15?.6:0)):1);this.presentation=s;this.bossHitKick=Math.max(0,this.bossHitKick-renderDt);this.bossFireKick=Math.max(0,this.bossFireKick-renderDt);this.commanderHitKick=Math.max(0,this.commanderHitKick-renderDt);
   const combatHeld=reviving||downed||s.rewardPending||!!s.clash?.active;
   this.age+=renderDt;const hostileRate=combatHeld?0:s.timePower==='freeze'?0:s.timePower==='slow'?.5:s.timePower==='haste'?1.35:1;this.hostileAge+=renderDt*hostileRate;if(!(s.empStunTime>0))this.bossVisualAge+=renderDt*hostileRate;const bossAge=this.bossVisualAge;const bossPhase=s.phase==='boss'||s.phase==='destroying'||s.phase==='reward'||(this.bossExploded&&s.phase==='won')||((s.phase==='lost'||downed||reviving)&&s.bossHp>0&&s.travelDistance>=s.travelGoal);

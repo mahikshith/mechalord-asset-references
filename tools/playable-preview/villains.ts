@@ -13,6 +13,7 @@ import {bakeTrooper,trooperAtlas,TROOPER_CLASSES} from './hero-trooper';
 import {heroBotCrowd} from './hero-bots';
 import {HeroMechCrowd} from './hero-mechs';
 import {buildTyrantV2,type TyrantMood} from './tyrant-v2';
+import {addCruelFace} from './tyrant-face';
 import {HostileMechCast} from './hostile-mech-cast';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 import {TGALoader} from 'three/addons/loaders/TGALoader.js';
@@ -157,8 +158,19 @@ async function tyrant2(){
  const t2=await buildTyrantV2();t2.root.rotation.y=yaw;scene.add(t2.root);t2.play(clip,0);
  const dieAt=+(q.get('die')??'-1');if(dieAt>=0){camera.position.set(4,7,22);camera.lookAt(0,4.5,2);}let last=0;tick=t=>{const dt=t-last;last=t;if(dieAt>=0&&t>1&&t2.dying<0)t2.die();t2.update(dt,t,mood,clip==='Run'?1.4:1);};(globalThis as any).probe=()=>t2.clips;
 }
+async function face(){
+ const q=new URLSearchParams(location.search),close=q.get('close')==='1';
+ if(close){camera.position.set(2.6,6.6,6.5);camera.lookAt(3.4,5.6,0);}else{camera.position.set(0,6,17);camera.lookAt(0,4.2,0);}
+ const loader=new GLTFLoader(),[a,b]=await Promise.all([loader.loadAsync('forge-tyrant.glb'),loader.loadAsync('forge-tyrant.glb')]);
+ for(const g of [a,b]){const seen=new Set();g.scene.traverse((o:any)=>{if(o.isMesh){o.castShadow=true;if(!seen.has(o.material)){seen.add(o.material);o.material.color.multiplyScalar(2.2);o.material.metalness=.2;o.material.roughness=.64;}}});}
+ const L=a.scene,R=b.scene;L.scale.setScalar(1.4);R.scale.setScalar(1.4);L.rotation.y=Math.PI;R.rotation.y=Math.PI;L.position.x=-3.4;R.position.x=3.4;scene.add(L,R);scene.updateMatrixWorld(true);
+ enhanceVillain(L,VILLAIN_LOOKS.tyrant);enhanceVillain(R,VILLAIN_LOOKS.tyrant);const f=addCruelFace(R);
+ label('NOW',-3.4,close?3.6:2);label('CRUEL FACE',3.4,close?3.6:2);
+ const hm=R.getObjectByName('Head_MobileMesh') as any;(globalThis as any).probe=()=>({skinned:!!hm?.isSkinnedMesh,headPos:R.getObjectByName('Head')!.getWorldPosition(new T.Vector3()).toArray().map((v:number)=>v.toFixed(2)),box:new T.Box3().setFromObject(hm).getCenter(new T.Vector3()).toArray().map((v:number)=>v.toFixed(2)),face:f?.face.getWorldPosition(new T.Vector3()).toArray().map((v:number)=>v.toFixed(2))});
+ tick=t=>{f?.setRage(q.get('rage')==='1'?1:0,t);};
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():set==='herobots'?herobots():set==='squad'?squad():set==='mk2'?mk2():set==='tyrant2'?tyrant2():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():set==='herobots'?herobots():set==='squad'?squad():set==='mk2'?mk2():set==='tyrant2'?tyrant2():set==='face'?face():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;
