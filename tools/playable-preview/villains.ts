@@ -12,6 +12,7 @@ import {BakedMechCrowd} from './baked-mech-crowd';
 import {bakeTrooper,trooperAtlas,TROOPER_CLASSES} from './hero-trooper';
 import {heroBotCrowd} from './hero-bots';
 import {HeroMechCrowd} from './hero-mechs';
+import {buildTyrantV2,type TyrantMood} from './tyrant-v2';
 import {HostileMechCast} from './hostile-mech-cast';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 import {TGALoader} from 'three/addons/loaders/TGALoader.js';
@@ -102,8 +103,8 @@ async function soldier(){
 }
 /** Tooling: FBX -> compact GLB keeping only the clips the game bakes. ?set=export&name=Stan */
 async function exportMech(){
- const name=new URLSearchParams(location.search).get('name')!;const fbx=await new FBXLoader().loadAsync('mechs/'+name+'.fbx');
- const keep=['Walk','Run','Shoot'].map(n=>fbx.animations.find(a=>a.name==='RobotArmature|'+n)).filter(Boolean) as T.AnimationClip[];keep.forEach(c=>c.name=c.name.replace('RobotArmature|',''));
+ const q=new URLSearchParams(location.search),name=q.get('name')!;const fbx=await new FBXLoader().loadAsync((q.get('dir')??'mechs/')+name+'.fbx');
+ const keep=(q.get('clips')??'Walk,Run,Shoot').split(',').map(n=>fbx.animations.find(a=>a.name==='RobotArmature|'+n)).filter(Boolean) as T.AnimationClip[];keep.forEach(c=>c.name=c.name.replace('RobotArmature|',''));
  fbx.traverse((o:any)=>{if(o.isMesh)o.material=new T.MeshStandardMaterial({color:0xffffff});});
  const glb=await new GLTFExporter().parseAsync(fbx,{binary:true,animations:keep,onlyVisible:false}) as ArrayBuffer;
  const bytes=new Uint8Array(glb);let bin='';for(let i=0;i<bytes.length;i+=32768)bin+=String.fromCharCode(...bytes.subarray(i,i+32768));(globalThis as any).probe=()=>btoa(bin);
@@ -150,8 +151,14 @@ async function mk2(){
    foes.begin();for(let r=0;r<3;r++)for(let c=0;c<7;c++)foes.grunt(100+r*7+c,-2.9+c*.95,-8-r*2.05,0,1.2,1/60,false);foes.end();}
   for(const c of [hav,sen,wisp])c.end();};
 }
+async function tyrant2(){
+ const q=new URLSearchParams(location.search),clip=q.get('clip')??'Idle',yaw=+(q.get('yaw')??'0'),mood=(q.get('mood')??'calm') as TyrantMood;
+ camera.position.set(0,4.6,13);camera.lookAt(0,3,0);
+ const t2=await buildTyrantV2();t2.root.rotation.y=yaw;scene.add(t2.root);t2.play(clip,0);
+ let last=0;tick=t=>{const dt=t-last;last=t;t2.update(dt,t,mood,clip==='Run'?1.4:1);};(globalThis as any).probe=()=>t2.clips;
+}
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);quality.resize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():set==='herobots'?herobots():set==='squad'?squad():set==='mk2'?mk2():troops());
+await (set==='bosses'?bosses():set==='skyreaver'?skyreaver():set==='mechs'?mechs():set==='weapons'?weapons():set==='crowd'?crowd():set==='heroes'?heroes():set==='soldier'?soldier():set==='export'?exportMech():set==='troopers'?troopers():set==='herobots'?herobots():set==='squad'?squad():set==='mk2'?mk2():set==='tyrant2'?tyrant2():troops());
 const start=performance.now();renderer.setAnimationLoop(()=>{const t=(performance.now()-start)/1000;villainClock.value=t;tick(t);quality.render();});
 (globalThis as any).villainsReady=true;
