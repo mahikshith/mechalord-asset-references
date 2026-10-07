@@ -20,7 +20,8 @@ import {CoreAbsorption,type CoreChoice} from './core-absorption';
 import {EnemySupportLinks} from './enemy-support-links';
 import {ContinuousRouteEnvironment,continuousRoutePalette} from './continuous-route-environment';
 import {RenderQuality} from './render-quality';
-import {enhanceVillain,VILLAIN_LOOKS,villainClock} from './villain-look';
+import {enhanceVillain,VILLAIN_LOOKS,villainClock,villainStun} from './villain-look';
+import {BattlefieldDestruction} from './battlefield-destruction';
 const mat=(color:number)=>new T.MeshStandardMaterial({color,roughness:.82,metalness:.06});
 function box(p:T.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,m:T.Material){const o=new T.Mesh(new RoundedBoxGeometry(w,h,d,1,Math.min(.06,w*.15,h*.15,d*.15)),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;p.add(o);return o;}
 function cyl(p:T.Object3D,r:number,rb:number,h:number,x:number,y:number,z:number,m:T.Material,n=12){const o=new T.Mesh(new T.CylinderGeometry(r,rb,h,n),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;p.add(o);return o;}
@@ -33,7 +34,7 @@ class Badge{
 export function enemyArmorLabel(t:Pick<Target,'role'|'variant'>&{guidedArmor?:boolean}){return t.guidedArmor?'GUIDED RESIST':t.role==='battery'?'BATTERY':t.variant===2?'GUNNER':t.role==='carrier'?'SALVAGE':'REAVER';}
  type View={group:T.Group;badge:Badge;bar:T.Mesh;kind:string;rotor?:T.Object3D};
 export class Battlefield{
- renderer:T.WebGLRenderer;quality!:RenderQuality;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
+ renderer:T.WebGLRenderer;quality!:RenderQuality;destruction!:BattlefieldDestruction;empFlash=0;scene=new T.Scene();camera=new T.PerspectiveCamera(30,.56,.1,180);
  environment:BattleEnvironment;routeEnvironment:ContinuousRouteEnvironment;powerVisuals:CommanderPowerVisuals;fx:CombatVisuals;missiles:CombatMissiles;robots:RobotFormation;abilities:RelicEffects;
  specialEnemies:EnemyArchetypes;dressing:FoundryDressing;revival:RevivalScene;clashVisuals:LaserClashVisuals;strafe=0;
  formationPositions:{index:number,x:number,z:number}[]=[];commanderExploded=false;hitNumbers=new Map<number,{at:number,value:number}>();heroArms:T.Object3D[]=[];bossMuzzles:T.Mesh[]=[];bossExploded=false;recoil=0;lastMuzzle=0;previousX=0;bossPreviousX=0;
@@ -56,7 +57,7 @@ export class Battlefield{
   this.specialEnemies=new EnemyArchetypes(this.scene);enhanceVillain(this.specialEnemies.root,VILLAIN_LOOKS.elite);this.dressing=new FoundryDressing(this.scene);this.revival=new RevivalScene(this.scene);this.clashVisuals=new LaserClashVisuals(this.scene);this.absorption=new CoreAbsorption(this.scene);this.supportLinks=new EnemySupportLinks(this.scene);
   this.heroRing=new T.Mesh(new T.RingGeometry(.75,.83,48),new T.MeshBasicMaterial({color:0x52e8ff,transparent:true,opacity:.8,side:T.DoubleSide}));this.heroRing.rotation.x=-Math.PI/2;this.heroRing.position.y=.035;this.hero.add(this.heroRing);
   this.shadowInstances=new T.InstancedMesh(new T.CircleGeometry(.36,12).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x21332d,transparent:true,opacity:.22,depthWrite:false}),220);this.shadowInstances.frustumCulled=false;this.scene.add(this.shadowInstances);
-  this.scene.add(this.boss);this.quality=new RenderQuality(this.renderer,this.scene,this.camera);
+  this.scene.add(this.boss);this.quality=new RenderQuality(this.renderer,this.scene,this.camera);this.destruction=new BattlefieldDestruction(this.scene);this.destruction.onExplode=(x,y,z,k)=>{this.fx.impact(x,y,z,k);this.fx.enemyDeath(x,z,1,k);this.shake=Math.max(this.shake,.16);};
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas);this.resize();
  }
  skyLevel=-1;cameraLookZ=-9.3;formationFraming=new FormationFraming();
@@ -84,7 +85,7 @@ export class Battlefield{
   const [ag,am]=parts(troop);this.crowd=new AnimatedTroopCrowd(this.scene,ag,am,this.model,hero.animations,64);this.allies=this.crowd.mesh;this.formationFraming.setBounds(this.crowd.bounds);ag.dispose();am.dispose();
   this.commanderMotion=new CommanderLocomotion(this.model,hero.animations);this.mixer=this.commanderMotion.mixer;
  }
- reset(){this.crowd?.reset();this.commanderMotion?.reset();this.absorption.reset();this.supportLinks.reset();this.specialEnemies.reset();this.revival.reset();this.clashVisuals.reset();this.strafe=0;this.formationFraming.reset();this.bossAdapter?.reset();this.enemyMotion.clear();this.projectileIDs.clear();this.emitterPositions={};this.bossPreviousZ=40;this.bossPreviousVz=0;this.bossPitch=0;this.bossBank=0;this.bossMotionReady=false;this.enemyRecoil.clear();this.enemyCues.reset();this.presentation=undefined;this.bossHitKick=0;this.bossFireKick=0;this.commanderHitKick=0;this.hostileAge=0;this.bossVisualAge=0;this.commanderExploded=false;this.hero.visible=true;this.formationPositions=[];this.hitNumbers.clear();this.arsenal?.reset();for(const p of this.pickups.values()){this.scene.remove(p.group);p.group.remove(p.badge.sprite);p.badge.dispose();disposePickup(p.group);}this.pickups.clear();for(const v of this.views.values())this.disposeView(v);this.views.clear();for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];this.fx.reset();this.powerVisuals?.reset();this.missiles.reset();this.robots.reset();this.abilities.reset();this.bossExploded=false;this.renderer.toneMappingExposure=1.06;this.camera.fov=30;this.camera.updateProjectionMatrix();this.recoil=0;this.previousX=0;this.bossPreviousX=0;this.lastMuzzle=0;this.shake=0;this.cameraBossBlend=0;this.armyZoom=0;this.swarmState.clear();this.hitStop=0;this.slowFactor=1;}
+ reset(){this.crowd?.reset();this.commanderMotion?.reset();this.absorption.reset();this.supportLinks.reset();this.specialEnemies.reset();this.revival.reset();this.clashVisuals.reset();this.strafe=0;this.formationFraming.reset();this.bossAdapter?.reset();this.enemyMotion.clear();this.projectileIDs.clear();this.emitterPositions={};this.bossPreviousZ=40;this.bossPreviousVz=0;this.bossPitch=0;this.bossBank=0;this.bossMotionReady=false;this.enemyRecoil.clear();this.enemyCues.reset();this.presentation=undefined;this.bossHitKick=0;this.bossFireKick=0;this.commanderHitKick=0;this.hostileAge=0;this.bossVisualAge=0;this.commanderExploded=false;this.hero.visible=true;this.formationPositions=[];this.hitNumbers.clear();this.arsenal?.reset();for(const p of this.pickups.values()){this.scene.remove(p.group);p.group.remove(p.badge.sprite);p.badge.dispose();disposePickup(p.group);}this.pickups.clear();for(const v of this.views.values())this.disposeView(v);this.views.clear();for(const f of this.floating){this.scene.remove(f.badge.sprite);f.badge.dispose();}this.floating=[];this.fx.reset();this.powerVisuals?.reset();this.missiles.reset();this.robots.reset();this.abilities.reset();this.bossExploded=false;this.renderer.toneMappingExposure=1.06;this.camera.fov=30;this.camera.updateProjectionMatrix();this.recoil=0;this.previousX=0;this.bossPreviousX=0;this.lastMuzzle=0;this.shake=0;this.cameraBossBlend=0;this.armyZoom=0;this.swarmState.clear();this.hitStop=0;this.slowFactor=1;this.destruction?.reset();this.empFlash=0;villainStun.value=0;}
  set(mesh:T.InstancedMesh,i:number,x:number,y:number,z:number,scale=1,rot=0,width=1){this.dummy.position.set(x,y,z);this.dummy.rotation.set(0,rot,0);this.dummy.scale.set(scale*width,scale,scale);this.dummy.updateMatrix();mesh.setMatrixAt(i,this.dummy.matrix);}
  createView(t:Target):View{
   const group=new T.Group(),badge=new Badge(t.kind==='gate'?2.8:t.kind==='crate'?2.0:1.45),red=mat(0xe94f38),gold=mat(0xfbb94e),dark=mat(0x233942),white=mat(0xffefd0);let rotor:T.Object3D|undefined;
@@ -105,6 +106,8 @@ export class Battlefield{
  disposeView(v:View){this.scene.remove(v.group);v.badge.dispose();const materials=new Set<T.Material>(),geometries=new Set<T.BufferGeometry>();v.group.traverse((o:any)=>{if(o.isMesh){geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());}
  trigger(e:Effect,current?:Snapshot){
   if(e.kind==='actStart')return; // A zone marker cannot reset live combat or presentation.
+  if(e.kind==='empPulse'){this.empFlash=1;this.destruction.shock(e.x,-e.z,16);this.shake=Math.max(this.shake,.14);}
+  if(e.kind==='shieldHit')this.destruction.shock(e.x,-e.z,3);
   this.abilities.trigger(e,current);this.powerVisuals?.trigger(e);
   if((e.kind==='hit'||e.kind==='chainHit')&&e.hitRegion)this.bossAdapter?.notifyHit(e.hitRegion,e.value);
   if(e.kind==='healthPickup'&&e.value>0){this.fx.healthPickup(this.hero,e.value);this.float('+'+Math.round(e.value),e.x,-e.z,'#7dffc1',2.3,true);}
@@ -122,21 +125,21 @@ export class Battlefield{
   if(e.kind==='pickup'&&powerKind(e.value)!=='health')this.fx.powerAcquire(this.hero,powerKind(e.value));
   if(e.kind==='coreExpose'){this.punch(.12);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.impact(core?.x??e.x,core?.y??(current?.bossY??this.boss.position.y)+4.31,core?-core.z:z+.85,1.6);this.shake=.17;}
   if(e.kind==='bossRevive'){this.fx.impact(e.x,this.boss.position.y+2.7,z,2);this.shake=.24;}
-  if(e.kind==='bossPartBreak'){this.punch(.16);const part=['cannonL','cannonR','boosterL','boosterR','legL','legR'][e.value-1] as 'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'|undefined;if(part){this.scene.updateMatrixWorld(true);this.fx.bossPartBreak(this.boss,part);this.shake=.24;}}
+  if(e.kind==='bossPartBreak'){this.punch(.16);this.destruction.blast({x:this.boss.position.x,z:this.boss.position.z,radius:4.5,force:10});this.destruction.scar(this.boss.position.x+(Math.random()-.5)*2,this.boss.position.z+1,3);const part=['cannonL','cannonR','boosterL','boosterR','legL','legR'][e.value-1] as 'cannonL'|'cannonR'|'boosterL'|'boosterR'|'legL'|'legR'|undefined;if(part){this.scene.updateMatrixWorld(true);this.fx.bossPartBreak(this.boss,part);this.shake=.24;}}
   if(e.kind==='bossPhase'){this.shake=.20;this.fx.impact(e.x,2.8,z,2);}
-  if(e.kind==='kill'){this.hitNumbers.delete(e.entityId);if(e.variant<0)this.fx.impact(e.x,1,z,2);else{const point=combatImpactPoint(e,{depthScale:1,bossPhase:false,overdrive:false,weapon:1,targets:[...(current?.targets??[]),...(this.presentation?.targets??[])]});this.fx.enemyDeath(point.x,point.z,e.variant,e.variant>0?1.6:1,point.y);if(e.variant>0)this.punch(.06);}this.shake=Math.max(this.shake,e.variant>0?.10:.04);}
+  if(e.kind==='kill'){this.hitNumbers.delete(e.entityId);if(e.variant<0)this.fx.impact(e.x,1,z,2);else{const point=combatImpactPoint(e,{depthScale:1,bossPhase:false,overdrive:false,weapon:1,targets:[...(current?.targets??[]),...(this.presentation?.targets??[])]});this.fx.enemyDeath(point.x,point.z,e.variant,e.variant>0?1.6:1,point.y);if(e.variant>0){this.punch(.06);this.destruction.scar(point.x,point.z,1.6);}this.destruction.blast({x:point.x,z:point.z,radius:e.variant>0?2.2:1.1,force:e.variant>0?8:5});}this.shake=Math.max(this.shake,e.variant>0?.10:.04);}
   if(e.kind==='enemyFire'){if(this.enemyRecoil.size>=32&&!this.enemyRecoil.has(e.entityId))this.enemyRecoil.delete(this.enemyRecoil.keys().next().value!);this.enemyRecoil.set(e.entityId,.24);}
-  if(e.kind==='contact'){this.fx.impact(e.x,.6,z,1.2);this.shake=Math.max(this.shake,.045);}
+  if(e.kind==='contact'){this.destruction.blast({x:e.x,z,radius:1.2,force:5});this.fx.impact(e.x,.6,z,1.2);this.shake=Math.max(this.shake,.045);}
   if(e.kind==='block')this.fx.impact(e.x,1,z,.5);
   if(e.kind==='gate'||e.kind==='recruit'){this.fx.impact(e.x,.6,z,.8);if(e.value!==0)this.float(e.value>0?'+'+e.value:String(e.value),e.x,z,'#73eaff');}
   if(e.kind==='troopDeath')this.fx.allyLoss(e.x,z,1);
   if(e.kind==='damage'){this.shake=.12;this.float('-'+Math.abs(e.value),e.x,z,'#ff8469',2,true);}
   if(e.kind==='bossShot'){this.bossFireKick=.3;this.shake=.07;}
   if(e.kind==='commanderHit'){this.commanderHitKick=.35;this.fx.impact(e.x,1.3,z,1.2);this.shake=.2;this.float('-'+Math.abs(e.value)+' HP',e.x,z,'#ff8469',3.1,true);}
-  if(e.kind==='hazardBreak'){this.punch(.05);this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
+  if(e.kind==='hazardBreak'){this.punch(.05);this.destruction.blast({x:e.x,z,radius:2.2,force:8});this.destruction.scar(e.x,z,2);this.fx.enemyDeath(e.x,z,1,Math.max(1.2,e.size));this.shake=.22;}
   if(e.kind==='commanderDeath'&&!this.commanderExploded){this.scene.updateMatrixWorld(true);this.fx.commanderDeath(this.hero);this.commanderExploded=true;this.hero.visible=false;this.shake=.4;}
   if(e.kind==='retreat')this.hitNumbers.delete(e.entityId);
-  if(e.kind==='bossDeath'&&!this.bossExploded){this.punch(.4);this.scene.updateMatrixWorld(true);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.bossDeath(this.boss,core?new T.Vector3(core.x,core.y,-core.z):undefined);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
+  if(e.kind==='bossDeath'&&!this.bossExploded){this.punch(.4);this.destruction.blast({x:this.boss.position.x,z:this.boss.position.z,radius:10,force:14});this.destruction.scar(this.boss.position.x,this.boss.position.z,6);this.scene.updateMatrixWorld(true);const core=spatial?.bossRegions?.find(r=>r.id==='core');this.fx.bossDeath(this.boss,core?new T.Vector3(core.x,core.y,-core.z):undefined);this.bossExploded=true;this.shake=.45;this.float('CORE DESTROYED',e.x,z,'#ffc86b');}
  }
  /** Visual reinforcements: the core tracks the real army count but only 24
   * formation slots. Fill the gaps between slots (up to the 64-troop crowd) so a
@@ -164,7 +167,7 @@ export class Battlefield{
   const active=mode==='play',combatPicture=active||mode==='paused',intro=mode==='intro',reviving=s.phase==='reviving',downed=s.phase==='lastStand',renderDt=mode==='paused'?0:dt;
   const stage=s.stageLevel??s.level;
   if(s.campaign){const p=continuousRoutePalette(intro?0:s.travelDistance);this.renderer.setClearColor(p.sky);(this.scene.fog as T.Fog).color.setHex(p.sky);this.quality.setSky(p.sky);this.scene.traverse(o=>{if(o instanceof T.HemisphereLight){o.color.setHex(p.fill);o.groundColor.setHex(p.ground);}if(o instanceof T.DirectionalLight)o.color.setHex(p.key);});}else this.applyStagePalette(stage);
-  villainClock.value=this.age;this.presentation=s;this.bossHitKick=Math.max(0,this.bossHitKick-renderDt);this.bossFireKick=Math.max(0,this.bossFireKick-renderDt);this.commanderHitKick=Math.max(0,this.commanderHitKick-renderDt);
+  villainClock.value=this.age;this.empFlash=Math.max(0,this.empFlash-renderDt*1.4);villainStun.value=Math.max(this.empFlash,s.empStunTime>0?.55+.15*Math.sin(this.age*30):0);this.routeEnvironment.setPower(this.empFlash>0?(this.empFlash>.75?2.5:Math.max(0,1-this.empFlash*1.6)+(Math.random()<.15?.6:0)):1);this.presentation=s;this.bossHitKick=Math.max(0,this.bossHitKick-renderDt);this.bossFireKick=Math.max(0,this.bossFireKick-renderDt);this.commanderHitKick=Math.max(0,this.commanderHitKick-renderDt);
   const combatHeld=reviving||downed||s.rewardPending||!!s.clash?.active;
   this.age+=renderDt;const hostileRate=combatHeld?0:s.timePower==='freeze'?0:s.timePower==='slow'?.5:s.timePower==='haste'?1.35:1;this.hostileAge+=renderDt*hostileRate;if(!(s.empStunTime>0))this.bossVisualAge+=renderDt*hostileRate;const bossAge=this.bossVisualAge;const bossPhase=s.phase==='boss'||s.phase==='destroying'||s.phase==='reward'||(this.bossExploded&&s.phase==='won')||((s.phase==='lost'||downed||reviving)&&s.bossHp>0&&s.travelDistance>=s.travelGoal);
   for(const [id,kick] of this.enemyRecoil){const next=kick-renderDt*hostileRate;if(next<=0)this.enemyRecoil.delete(id);else this.enemyRecoil.set(id,next);}
@@ -200,6 +203,7 @@ export class Battlefield{
    this.crowd?.update(formation.concat(swarm),{dt:renderDt,time:this.age,marching,strafe:this.strafe,held:combatHeld,visible:!intro&&!this.commanderExploded});
   }
   this.set(this.shadowInstances,shadowCount++,this.hero.position.x,.033,this.hero.position.z,2);
+  this.destruction.update(s.travelDistance,renderDt,!intro);if(marching&&formation.length)this.destruction.trample(centerX,outer+.4);
   this.robots.begin();this.specialEnemies.begin();const live=new Set<number>(),moving=new Set<number>();for(const key of Object.keys(this.emitterPositions))delete this.emitterPositions[key];
   for(const t of s.targets){if(t.z>90||t.z< -8||intro)continue;
    const previous=this.enemyMotion.get(t.id),velocityX=previous&&renderDt>0?(t.x-previous.x)/renderDt:0,velocityZ=previous&&renderDt>0?(-t.z-previous.z)/renderDt:0;

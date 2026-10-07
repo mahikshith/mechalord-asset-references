@@ -83,6 +83,8 @@ export class ContinuousRouteEnvironment {
   this.armRoot.add(this.shoulder);this.shoulder.position.set(0,2.25,0);this.shoulder.add(this.forearm);this.forearm.position.set(0,0,2.52);this.forearm.add(this.claw);this.claw.position.set(0,1.28,1.3);
   scene.add(this.root);
  }
+ /** EMP brown-out: 0 = lights dead, 1 = normal, >1 = surge. */
+ setPower(level:number):void {this.glow.emissiveIntensity=.23*Math.max(0,level);}
  setRoute(markers:RouteMarkers):void {if(![markers.stormStart,markers.forgeStart,markers.arenaStart].every(Number.isFinite)||!(markers.stormStart>0&&markers.forgeStart>markers.stormStart&&markers.arenaStart>markers.forgeStart))throw new Error('Route landmarks must be finite and increase');this.markers={...markers};this.anchor=NaN;}
  load(library?:ReadonlyMap<string,T.Object3D>):Promise<void>{return this.loadPromise??=(async()=>{
   const loader=new GLTFLoader();const sources=await Promise.all(CONTINUOUS_ENVIRONMENT_ASSETS.map(async name=>({name,source:library?.get(name)??(await loader.loadAsync(`environment/${name}.glb`)).scene,borrowed:library?.has(name)??false})));
