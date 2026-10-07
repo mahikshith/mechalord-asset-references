@@ -58,7 +58,7 @@ const challenges = chapters.map(chapter=>chapter.challenge);
 const levelTags = chapters.map(chapter=>chapter.tag);
 type LegacyImprint='laser'|'vitality'|'endurance';
 interface Armory { credits:number; sentinel:number; havoc:number; wisp:number; weapon:number; }
-interface Progress { trophies?: { mohawk: boolean; core: boolean }; legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; clashHint?: boolean; lastLevel: number; commanderXP: number; armory: Armory; }
+interface Progress { difficulty?: number; trophies?: { mohawk: boolean; core: boolean }; legacyImprint?:LegacyImprint; cleared: boolean[]; best: number[]; gateHint: boolean; clashHint?: boolean; lastLevel: number; commanderXP: number; armory: Armory; }
 const progress: Progress = { cleared: chapters.map(()=>false), best: chapters.map(()=>0), gateHint: false, lastLevel: 0, commanderXP: 0, armory: { credits: 0, sentinel: 0, havoc: 0, wisp: 0, weapon: 0 } };
 let migratedProgress = false;
 const rankThresholds = [0, 100, 250, 450];
@@ -86,7 +86,7 @@ try {
       progress.cleared[i] = saved.cleared?.[i] === true;
       const score = saved.best?.[i]; progress.best[i] = Number.isFinite(score) ? Math.max(0, Math.min(1000000, Math.round(score))) : 0;
     }
-    progress.gateHint = saved.gateHint === true; progress.clashHint = saved.clashHint === true; progress.trophies = { mohawk: saved.trophies?.mohawk === true, core: saved.trophies?.core === true };
+    progress.gateHint = saved.gateHint === true; progress.clashHint = saved.clashHint === true; progress.trophies = { mohawk: saved.trophies?.mohawk === true, core: saved.trophies?.core === true }; progress.difficulty = [0,1,2].includes(saved.difficulty) ? saved.difficulty : 1;
     const a = saved.armory ?? {}, n = (v:unknown,max:number)=>Number.isSafeInteger(v)?Math.max(0,Math.min(max,v as number)):0;
     progress.armory = { credits:n(a.credits,10000000), sentinel:n(a.sentinel,MAX_HIRES), havoc:n(a.havoc,MAX_HIRES), wisp:n(a.wisp,MAX_HIRES), weapon:n(a.weapon,3) };
     progress.lastLevel = Number.isInteger(saved.lastLevel) ? Math.max(0, Math.min(chapters.length-1, saved.lastLevel)) : 0;
@@ -158,7 +158,7 @@ function refreshLevels(): void { renderArmory();
 }
 function previewLevel(): void {
   refreshLevels();
-  if (ready) { core.start(selected, selectedLevel, commanderRank(), selectedLevel===campaignIndex?progress.legacyImprint:undefined); core.pause(true); world.reset(); targetX = 0; }
+  if (ready) { core.setDifficulty?.(progress.difficulty ?? 1); core.start(selected, selectedLevel, commanderRank(), selectedLevel===campaignIndex?progress.legacyImprint:undefined); core.pause(true); world.reset(); targetX = 0; }
 }
 const clamp = (value: number): number => Math.max(-3, Math.min(3, value));
 
@@ -187,7 +187,7 @@ function clearInput(): void {
 }
 function begin(): void {
   if (!ready || graphicsLost) return;
-  clearInput(); audio.reset(); void audio.unlock(); clearDialogue(); core.start(selected, selectedLevel, commanderRank(), selectedLevel===campaignIndex?progress.legacyImprint:undefined); core.pause(false); world.reset();
+  clearInput(); audio.reset(); void audio.unlock(); clearDialogue(); core.setDifficulty?.(progress.difficulty ?? 1); core.start(selected, selectedLevel, commanderRank(), selectedLevel===campaignIndex?progress.legacyImprint:undefined); core.pause(false); world.reset();
   if (selectedLevel === campaignIndex) { const ar = progress.armory; if (core.applyLoadout?.(ar.sentinel, ar.havoc, ar.wisp, ar.weapon)) ar.weapon = 0; if (world.heroSquad) world.heroSquad.roster = { havoc: ar.havoc, wisp: ar.wisp }; }
   progress.lastLevel = selectedLevel; saveProgress(); seenEffects.clear(); effectOrder.length = 0;
   intro = false; playing = true; paused = false; defeating = false; downed = false; defeatRemaining = 0; targetX = 0; lastArmy = 8 + commanderRank() * 2; lastWeapon = 1; previous = performance.now();
@@ -406,6 +406,10 @@ document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(button => b
 $('practice-relic').addEventListener('change',()=>{selected=Number($<HTMLSelectElement>('practice-relic').value) as Relic;previewLevel();});
 refreshLevels();
 $('gate-flash').addEventListener('animationend',()=>{ $('gate-flash').textContent=''; $('gate-flash').hidden=true; });
+// Difficulty: Recruit forgives, Veteran is the intended fight, Warlord punishes. Campaign only.
+function renderDifficulty(): void { document.querySelectorAll<HTMLButtonElement>('#difficulty [data-diff]').forEach(b => b.setAttribute('aria-checked', String(Number(b.dataset.diff) === (progress.difficulty ?? 1)))); }
+document.querySelectorAll<HTMLButtonElement>('#difficulty [data-diff]').forEach(b => b.addEventListener('click', () => { progress.difficulty = Number(b.dataset.diff); saveProgress(); renderDifficulty(); }));
+renderDifficulty();
 $('trophies-open').addEventListener('click', () => { $('trophies').hidden = false; renderTrophies(true); }); $('trophies-close').addEventListener('click', () => { $('trophies').hidden = true; });
 $('armory-open').addEventListener('click', () => { armoryOpen = true; $('armory').hidden = false; renderArmory(); }); $('armory-close').addEventListener('click', () => { armoryOpen = false; $('armory').hidden = true; renderArmory(); });
 $('start').addEventListener('click', begin); $('retry').addEventListener('click', begin); $('pause-retry').addEventListener('click', begin); $('back').addEventListener('click', showIntro);

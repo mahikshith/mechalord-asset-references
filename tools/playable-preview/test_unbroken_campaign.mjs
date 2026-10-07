@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 const binary=fs.readFileSync('delivery/playable/assault.wasm');
 globalThis.fetch=async()=>new Response(binary);
 const {AssaultCore}=await import('./assault-core.ts');
-const core=new AssaultCore();await core.load();
+const core=new AssaultCore();await core.load();if(process.env.DIFFICULTY)core.setDifficulty(+process.env.DIFFICULTY);
 const checks=[],runs=[];
 function check(name,fn){fn();checks.push({name,status:'pass'});console.log('PASS '+name);}
 check('ABI5 adapter initializes six stages and exposes finite campaign fields',()=>{assert.equal(core.api.abi_version(),5);for(let i=0;i<6;i++){core.start(0,i,0);const s=core.snapshot();assert.equal(s.level,i);assert.equal(s.campaign,i===5);assert.equal(s.relics.length,3);assert.equal(s.actIndex,0);assert.equal(s.clash.active,false);assert.equal(s.laserCharges,0);assert.equal(s.reviveCinematicTime,0);assert.equal(s.stageLevel,i===5?0:i);}});

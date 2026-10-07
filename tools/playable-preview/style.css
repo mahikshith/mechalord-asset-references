@@ -67,3 +67,4 @@ body.boss-warning .route i{background:#ef7954}body.boss-warning #phase-label{col
 
 .laser-cannon{background-image:linear-gradient(to top,#4fd8ff55 var(--fill,0%),transparent var(--fill,0%))}.laser-cannon:disabled{opacity:.75}
 @keyframes laserNudge{0%,100%{transform:scale(1);box-shadow:0 0 0 0 #4fd8ffcc}50%{transform:scale(1.25);box-shadow:0 0 0 18px #4fd8ff00}}.laser-cannon.nudge{animation:laserNudge .5s infinite;z-index:30;outline:3px solid #ffffff}
+.difficulty{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 8px}.difficulty button{padding:8px 4px;border-radius:10px;background:#1c3954;color:#cfe3f2;font-weight:900;font-size:12px;letter-spacing:.6px;border:2px solid transparent}.difficulty button[aria-checked=true]{background:#ff9a4b;color:#203348;border-color:#ffd2a8}

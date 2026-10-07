@@ -99,7 +99,7 @@ public:
     std::array<Effect,MaxEffects> effects{};
     std::array<Pickup,MaxPickups> pickups{};
     std::array<Laser,2> lasers{};
-    std::array<bool,24> formationAlive{};double machinePlating=0,laserMeter=0,ventTime=0;bool loadoutApplied=false;
+    std::array<bool,24> formationAlive{};double machinePlating=0,laserMeter=0,ventTime=0;int difficulty=1;bool loadoutApplied=false; // difficulty (campaign): 0 Recruit, 1 Veteran, 2 Warlord
     int formationSpan=7;
     bool UsesSpatialBoss() const { return level==0 || level>=3; }
     void Start(Relic Equipped,int Level=0,int Rank=0);
@@ -110,6 +110,7 @@ public:
     double TempestSeconds() const { return campaign?3.5:1.; }
     /** Commander plus at most 16 hired machines in the campaign; older fronts keep the 160 mob. */
     int ArmyCap() const { return campaign?17:160; }
+    double Diff(double Recruit,double Veteran,double Warlord) const { return !campaign?1.:difficulty<=0?Recruit:difficulty==1?Veteran:Warlord; }
     bool ClashTap();
     bool ChooseReward(int Choice);
     bool ApplyLegacyReward(int Choice);

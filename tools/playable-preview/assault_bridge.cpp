@@ -5,7 +5,9 @@ static float Formation[24*3];
 static float LaserData[2*9];
 static float State[116],Targets[256*24],Shots[256*13],EnemyShots[96*13],Pickups[24*7],Effects[192*15];
 API("abi_version") int Version(){return 5;}
-API("start_run") void Start(int Relic,int Level,int Rank) { Battle.Start(static_cast<mech::assault::Relic>(std::clamp(Relic,0,2)),Level,Rank); }
+static int Difficulty=1;
+API("set_difficulty") void SetDifficulty(int D) { Difficulty=std::clamp(D,0,2); }
+API("start_run") void Start(int Relic,int Level,int Rank) { Battle.Start(static_cast<mech::assault::Relic>(std::clamp(Relic,0,2)),Level,Rank); Battle.difficulty=Difficulty; }
 API("level_name") const char* LevelName() { return Battle.LevelName(); }
 API("step") void Step(double Dt,double X) { Battle.Advance(Dt,X); }
 API("use_relic") int Activate() { return Battle.Activate(); }

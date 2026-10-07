@@ -379,7 +379,7 @@ void Battle::DamageRegion(int Id,double Damage,const boss_pose::Vec3& Point,Frie
         const bool Core=Id==6 && guardHp<=0;
         const double Scale=Core?(Kind==FriendlyKind::Missile?.80:Kind==FriendlyKind::Cannon?1.4:Kind==FriendlyKind::Rail?1.7:2.):Kind==FriendlyKind::Cannon?.70:Kind==FriendlyKind::Missile?.60:Kind==FriendlyKind::Rail?1.10:1.20;
         double& Hp=Id<6?regionHp[Id]:guardHp>0?guardHp:bossCoreHp;
-        Actual=std::min(Hp,Damage*Scale*(campaign&&ventTime>0?2.:1.));Hp-=Actual; // weak-point window after big attacks
+        Actual=std::min(Hp,Damage*Scale*(campaign&&ventTime>0?2.:1.)*Diff(1.25,.85,.7));Hp-=Actual; // weak-point window after big attacks
         if(Id<6 && Hp<=1e-8)
         {
             Hp=0;bossPartsMask|=1<<Id;Emit(EffectKind::BossPartBreak,bossX,bossZ,Id+1,0,3,2.7);
@@ -460,7 +460,7 @@ void Battle::Spawn(Kind Type,double X,double Z,double Hp,int Value,int Op,double
     for(auto& T:targets) if(!T.active)
     {
         T={nextTargetId++,Type,X,Z,Hp,Hp,Size,0,Value,Op,Variant,true,X,Motion,.8+level*.18,0};
-        if(Type==Kind::Enemy) { if(UsesSpatialBoss()){T.hp=T.maxHp=Hp*(Variant==0?1.25:1.15)*(campaign?1+actIndex*.12:1);} T.size=Variant==1?1.1:Variant==2?1.:.44; T.depth=Variant>0?1.:.73; }
+        if(Type==Kind::Enemy) { if(UsesSpatialBoss()){T.hp=T.maxHp=Hp*(Variant==0?1.25:1.15)*(campaign?1+actIndex*.12:1)*Diff(.8,1.2,1.5);} T.size=Variant==1?1.1:Variant==2?1.:.44; T.depth=Variant>0?1.:.73; }
         else T.depth=Type==Kind::Gate?.14:Size; if(Type==Kind::Enemy && Variant==1)T.shieldHp=T.shieldMax=3; return;
     }
 }
@@ -870,7 +870,7 @@ void Battle::DamageArmy(int Loss,double AtX,double AtZ,int Attacker,int Slot)
     if(reviveProtection>0 || (RelicActive(Relic::Shield))) { Emit(EffectKind::Block,AtX,AtZ,Loss,Attacker,-2,.45); if(reviveProtection<=0) Emit(EffectKind::ShieldHit,AtX,AtZ,Loss,Attacker,-2,.45); return; }
     if(weaponPower==WeaponPower::Escort && escortShield>0) { const int Block=std::min(Loss,escortShield); escortShield-=Block; Loss-=Block; Emit(EffectKind::EscortBlock,AtX,AtZ,Block,Attacker,-2,.45); if(Loss<=0)return; }
     // Hired machines are armoured: in the campaign four hits destroy one machine.
-    if(campaign&&army>1){machinePlating+=Loss/4.;Loss=int(machinePlating);machinePlating-=Loss;if(Loss<=0){Emit(EffectKind::Block,AtX,AtZ,0,Attacker,-2,.45);return;}}
+    if(campaign&&army>1){machinePlating+=Loss/Diff(5.,3.,2.);Loss=int(machinePlating);machinePlating-=Loss;if(Loss<=0){Emit(EffectKind::Block,AtX,AtZ,0,Attacker,-2,.45);return;}}
     if(army<=1) { DamageCommander(Loss); return; }
     if(Slot<0)
     {
@@ -1032,7 +1032,7 @@ void Battle::HitTarget(Target& T,double Damage,FriendlyKind WeaponKind,bool Igno
     if(T.kind==Kind::Enemy && T.variant>0 && commanderHp<commanderMaxHp-15 && healthDropClock<=0){DropPickup(T.x,std::max(2.,T.z),PickupKind::Health,T.id);healthDropClock=12;}
     if(T.kind==Kind::Crate) AwardWeaponXP(timePower==TimePower::Haste?int(T.value*1.25):T.value);
     if(campaign&&T.kind==Kind::Enemy) AwardWeaponXP(T.variant>0?5:1); // weapon XP now comes from kills
-    if(campaign&&T.kind==Kind::Enemy){laserMeter=std::min(100.,laserMeter+(T.variant>0?6.:1.5));if(laserMeter>=100&&laserCharges<=0)laserCharges=1;} // kills refill the laser cannon
+    if(campaign&&T.kind==Kind::Enemy){laserMeter=std::min(100.,laserMeter+(T.variant>0?6.:1.5)*Diff(1.4,.8,.6));if(laserMeter>=100&&laserCharges<=0)laserCharges=1;} // kills refill the laser cannon
     if(campaign&&T.kind==Kind::Crate&&T.variant==7)
     {   // The pillar falls across the lane: everything in its band is crushed.
         Emit(EffectKind::HazardBreak,T.x,T.z,0,T.id,-7,T.size);
@@ -1525,7 +1525,7 @@ void Battle::BossStep(double Dt)
     if(UsesSpatialBoss() && bossState==BossState::Exposed)
     { bossAction=BossAction::Strafe; bossAttack=0; firePose=0; sweepIndex=-1; return; }
     firePose=std::max(0.,firePose-BossDt); // Campaign enrage: every broken part makes the Tyrant attack faster.
-    const double Enrage=campaign?1.+.09*__builtin_popcount(unsigned(bossPartsMask)):1.;
+    const double Enrage=campaign?(1.+.09*__builtin_popcount(unsigned(bossPartsMask)))*Diff(.85,1.,1.15):1.;
     bossClock+=BossDt*Enrage*(RelicActive(Relic::EMP)?.5:1);ventTime=std::max(0.,ventTime-BossDt);
     if(firePose<=0 && !bossLaneLocked) {
         if(campaign){static constexpr BossPattern Patterns[]={BossPattern::Heavy,BossPattern::Rockets,BossPattern::Laser,BossPattern::Sweep,BossPattern::Rockets,BossPattern::Laser};bossPattern=Patterns[bossVolleys%6];}
