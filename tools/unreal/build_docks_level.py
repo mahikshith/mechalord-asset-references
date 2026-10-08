@@ -141,6 +141,47 @@ def build_scan_master():
     mel.connect_material_property(ao, '', unreal.MaterialProperty.MP_AMBIENT_OCCLUSION)
     mel.connect_material_property(rsum, '', unreal.MaterialProperty.MP_ROUGHNESS)
     mel.connect_material_property(mlerp, '', unreal.MaterialProperty.MP_METALLIC)
+
+    # world-space normal detail: unpack the front (XZ) and top (XY) samples into world axes
+    m.set_editor_property('tangent_space_normal', False)
+    nrm_default = texture('concrete_wall_008', 'nor_gl')
+
+    def world_normal(uvs, y, front):
+        s = node(m, unreal.MaterialExpressionTextureSampleParameter2D, -1100, y, parameter_name='Normal',
+                 sampler_type=unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL, texture=nrm_default)
+        mel.connect_material_expressions(uvs, '', s, 'UVs')
+        r = node(m, unreal.MaterialExpressionComponentMask, -900, y, r=True, g=False, b=False, a=False)
+        g = node(m, unreal.MaterialExpressionComponentMask, -900, y + 60, r=False, g=True, b=False, a=False)
+        b = node(m, unreal.MaterialExpressionComponentMask, -900, y + 120, r=False, g=False, b=True, a=False)
+        for k in (r, g, b):
+            mel.connect_material_expressions(s, '', k, '')
+        neg = node(m, unreal.MaterialExpressionMultiply, -750, y + 60, const_b=-1.0)
+        mel.connect_material_expressions(g, '', neg, 'A')
+        # bump strength
+        flat = node(m, unreal.MaterialExpressionMultiply, -750, y, const_b=1.0)
+        mel.connect_material_expressions(r, '', flat, 'A')
+        ab = node(m, unreal.MaterialExpressionAppendVector, -600, y)
+        abc = node(m, unreal.MaterialExpressionAppendVector, -450, y)
+        mel.connect_material_expressions(flat, '', ab, 'A')
+        if front:   # wall facing the camera: (u, depth, v) -> (X, Y, Z)
+            mel.connect_material_expressions(b, '', ab, 'B')
+            mel.connect_material_expressions(ab, '', abc, 'A')
+            mel.connect_material_expressions(neg, '', abc, 'B')
+        else:       # floor: (u, v, depth) -> (X, Y, Z)
+            mel.connect_material_expressions(neg, '', ab, 'B')
+            mel.connect_material_expressions(ab, '', abc, 'A')
+            mel.connect_material_expressions(b, '', abc, 'B')
+        return abc
+
+    nf = world_normal(uv_f, 300, True)
+    nt = world_normal(uv_t, 600, False)
+    nl = node(m, unreal.MaterialExpressionLinearInterpolate, -300, 450)
+    mel.connect_material_expressions(nf, '', nl, 'A')
+    mel.connect_material_expressions(nt, '', nl, 'B')
+    mel.connect_material_expressions(blend, '', nl, 'Alpha')
+    nn = node(m, unreal.MaterialExpressionNormalize, -150, 450)
+    mel.connect_material_expressions(nl, '', nn, '')
+    mel.connect_material_property(nn, '', unreal.MaterialProperty.MP_NORMAL)
     mel.recompile_material(m)
     eal.save_loaded_asset(m)
     return m
@@ -202,6 +243,9 @@ def texture(name, kind):
     else:
         f = os.path.join(TEX, name, f'{name}_{kind}_2k.jpg')
     t = import_file(f, f'{ROOT}/Textures')[0]
+    if kind == 'nor_gl':
+        t.set_editor_property('srgb', False)
+        t.set_editor_property('compression_settings', unreal.TextureCompressionSettings.TC_NORMALMAP)
     if kind == 'arm':
         t.set_editor_property('srgb', False)
         t.set_editor_property('compression_settings', unreal.TextureCompressionSettings.TC_MASKS)
@@ -220,6 +264,7 @@ def build_materials(specs):
             tex = 'hazard' if k == 'hazard' else s['tex']
             mel.set_material_instance_texture_parameter_value(mi, 'Diffuse', texture(tex, 'diff'))
             mel.set_material_instance_texture_parameter_value(mi, 'ARM', texture('concrete_wall_008' if k == 'hazard' else tex, 'arm'))
+            mel.set_material_instance_texture_parameter_value(mi, 'Normal', texture('concrete_wall_008' if k == 'hazard' else tex, 'nor_gl'))
             size = 60.0 if k == 'hazard' else 100.0 / max(0.05, s.get('scale', 1.0))
             mel.set_material_instance_scalar_parameter_value(mi, 'TextureSize', size)
             if k == 'scan':
@@ -229,7 +274,9 @@ def build_materials(specs):
                 if s.get('metal') is not None:
                     mel.set_material_instance_scalar_parameter_value(mi, 'MetalOverride', 1.0)
                     mel.set_material_instance_scalar_parameter_value(mi, 'MetalValue', float(s['metal']))
-                mel.set_material_instance_scalar_parameter_value(mi, 'RoughAdd', float(s.get('rough_add', 0.0)))
+                # scans read glossy under the key light; walkable tread plate most of all
+                extra = 0.3 if name == 'Scan_Tread' else 0.1
+                mel.set_material_instance_scalar_parameter_value(mi, 'RoughAdd', float(s.get('rough_add', 0.0)) + extra)
         elif k == 'flat':
             mel.set_material_instance_vector_parameter_value(mi, 'Color', lc(s['color']))
             mel.set_material_instance_scalar_parameter_value(mi, 'Roughness', float(s.get('rough', 0.8)))
@@ -276,6 +323,21 @@ def assign(mesh, mats):
 
 
 # ------------------------------------------------------------------------- level
+
+def import_prop(fname):
+    ui = unreal.FbxImportUI()
+    ui.import_mesh = True
+    ui.import_as_skeletal = False
+    ui.import_materials = False
+    ui.import_textures = False
+    ui.mesh_type_to_import = unreal.FBXImportType.FBXIT_STATIC_MESH
+    sm = ui.static_mesh_import_data
+    sm.set_editor_property('combine_meshes', True)
+    sm.set_editor_property('auto_generate_collision', True)
+    sm.set_editor_property('convert_scene', True)
+    objs = import_file(os.path.join(SRC, fname + '.fbx'), f'{ROOT}/Props', ui)
+    return next(o for o in objs if isinstance(o, unreal.StaticMesh))
+
 
 def setp(obj, key, value):
     try:
@@ -325,13 +387,13 @@ def build_level(spec, mats, meshes):
     sun = spawn(unreal.DirectionalLight, (0, 0, 2000), unreal.MathLibrary.make_rot_from_x(travel))
     lc_ = sun.get_component_by_class(unreal.DirectionalLightComponent)
     lc_.set_editor_property('intensity', 5.0)
-    lc_.set_editor_property('light_color', unreal.Color(255, 150, 90, 255))
+    lc_.set_editor_property('light_color', unreal.Color(r=255, g=150, b=90, a=255))
     lc_.set_editor_property('atmosphere_sun_light', True)
     lc_.set_editor_property('mobility', unreal.ComponentMobility.MOVABLE)
     key = spawn(unreal.DirectionalLight, (0, 1500, 1500), unreal.MathLibrary.make_rot_from_x(unreal.Vector(0.3, -1.0, -0.6)))
     kc = key.get_component_by_class(unreal.DirectionalLightComponent)
-    kc.set_editor_property('intensity', 2.4)
-    kc.set_editor_property('light_color', unreal.Color(200, 215, 255, 255))
+    kc.set_editor_property('intensity', 2.6)
+    kc.set_editor_property('light_color', unreal.Color(r=255, g=236, b=215, a=255))
     kc.set_editor_property('mobility', unreal.ComponentMobility.MOVABLE)
     kc.set_editor_property('atmosphere_sun_light', False)
     kch = kc.get_editor_property('lighting_channels')
@@ -357,10 +419,50 @@ def build_level(spec, mats, meshes):
     setp(s, 'override_bloom_intensity', True)
     setp(s, 'bloom_intensity', 0.8)
     setp(s, 'override_auto_exposure_bias', True)
-    setp(s, 'auto_exposure_bias', -0.6)
+    setp(s, 'auto_exposure_bias', -0.35)
     setp(s, 'override_vignette_intensity', True)
     setp(s, 'vignette_intensity', 0.45)
     pp.set_editor_property('settings', s)
+    dcls = unreal.load_class(None, '/Script/SideAssault.IronDestructible')
+    for pr in spec.get('props', []):
+        mesh = meshes.get(pr['mesh'])
+        if not mesh:
+            continue
+        a = spawn(dcls, pr['location'])
+        a.set_actor_label('Prop_' + pr['name'])
+        a.get_editor_property('mesh').set_static_mesh(mesh)
+        a.set_editor_property('health', float(pr['health']))
+        a.set_editor_property('style', getattr(unreal.IronBreakStyle, pr['style'].upper()))
+        a.set_editor_property('debris_tint', lc(pr['tint']))
+        a.set_editor_property('debris_count', 10 if pr['name'] == 'Sandbags' else 6)
+        a.set_editor_property('simulate_when_unsupported', pr['name'] == 'Crate_C')
+        if 'lamp_offset' in pr:
+            a.set_editor_property('has_lamp', True)
+            a.set_editor_property('lamp_offset', unreal.Vector(*pr['lamp_offset']))
+    for lt in spec.get('lights', []):
+        if lt['kind'] == 'beacon':
+            b = spawn(unreal.PointLight, lt['location'])
+            bc = b.get_component_by_class(unreal.PointLightComponent)
+            setp(bc, 'intensity', 6000.0)
+            setp(bc, 'light_color', unreal.Color(r=255, g=40, b=20, a=255))
+            setp(bc, 'attenuation_radius', 700.0)
+            setp(bc, 'mobility', unreal.ComponentMobility.MOVABLE)
+            ch = bc.get_editor_property('lighting_channels')
+            ch.set_editor_property('channel1', True)
+            bc.set_editor_property('lighting_channels', ch)
+    # rim light from behind the play plane so the hero and machines separate from the dark backdrop
+    rim = spawn(unreal.DirectionalLight, (0, -1500, 1500), unreal.MathLibrary.make_rot_from_x(unreal.Vector(0.25, 1.0, -0.45)))
+    rc = rim.get_component_by_class(unreal.DirectionalLightComponent)
+    setp(rc, 'intensity', 3.5)
+    setp(rc, 'light_color', unreal.Color(r=255, g=170, b=110, a=255))
+    setp(rc, 'mobility', unreal.ComponentMobility.MOVABLE)
+    setp(rc, 'atmosphere_sun_light', False)
+    rch = rc.get_editor_property('lighting_channels')
+    rch.set_editor_property('channel0', False)
+    rch.set_editor_property('channel1', True)
+    rc.set_editor_property('lighting_channels', rch)
+    for comp in (lc_, kc, rc):
+        setp(comp, 'contact_shadow_length', 0.04)
     ps = spawn(unreal.PlayerStart, spec['player_start'])
     info = spawn(unreal.load_class(None, '/Script/SideAssault.IronLevelInfo'))
     info.set_editor_property('camera_min_x', -1340.0)
@@ -385,6 +487,10 @@ def main():
         m = import_layer(name)
         assign(m, mats)
         meshes[name] = m
+    for pr in spec.get('props', []):
+        m = import_prop(pr['mesh'])
+        assign(m, mats)
+        meshes[pr['mesh']] = m
         log('mesh', name, m.get_num_triangles(0) if hasattr(m, 'get_num_triangles') else '')
     build_level(spec, mats, meshes)
     log('DONE')

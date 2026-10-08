@@ -48,13 +48,13 @@ void AIronEnemy::ApplyRoleDefaults()
 	float Hp = 4.0f;
 	switch (EnemyRole)
 	{
-	case EIronEnemyRole::Lancer:     Hp = 14.0f; Weight = 4.0f; Move->MaxWalkSpeed = 140.0f; break;
-	case EIronEnemyRole::Bulwark:    Hp = 18.0f; Weight = 6.0f; FrontArmour = 0.85f; Move->MaxWalkSpeed = 170.0f; break;
-	case EIronEnemyRole::Raider:     Hp = 7.0f;  Weight = 1.6f; Move->MaxWalkSpeed = 430.0f; break;
-	case EIronEnemyRole::Sentry:     Hp = 10.0f; Weight = 5.0f; Move->MaxWalkSpeed = 0.0f; break;
+	case EIronEnemyRole::Lancer:     Hp = 14.0f; Weight = 4.0f; Move->MaxWalkSpeed = 140.0f; PatrolRange = 350.0f; break;
+	case EIronEnemyRole::Bulwark:    Hp = 18.0f; Weight = 6.0f; FrontArmour = 0.85f; Move->MaxWalkSpeed = 170.0f; PatrolRange = 700.0f; break;
+	case EIronEnemyRole::Raider:     Hp = 7.0f;  Weight = 1.6f; Move->MaxWalkSpeed = 430.0f; bAgile = true; break;
+	case EIronEnemyRole::Sentry:     Hp = 10.0f; Weight = 5.0f; Move->MaxWalkSpeed = 120.0f; PatrolRange = 260.0f; break;
 	case EIronEnemyRole::Watcher:    Hp = 3.0f;  Weight = 0.8f; Move->MaxFlySpeed = 520.0f; Move->SetMovementMode(MOVE_Flying); Move->BrakingDecelerationFlying = 900.0f; break;
-	case EIronEnemyRole::Scuttler:   Hp = 3.0f;  Weight = 1.0f; Move->MaxWalkSpeed = 520.0f; break;
-	case EIronEnemyRole::Wallrunner: Hp = 5.0f;  Weight = 1.2f; Move->MaxWalkSpeed = 380.0f; break;
+	case EIronEnemyRole::Scuttler:   Hp = 3.0f;  Weight = 1.0f; Move->MaxWalkSpeed = 520.0f; PatrolRange = 2500.0f; break;
+	case EIronEnemyRole::Wallrunner: Hp = 5.0f;  Weight = 1.2f; Move->MaxWalkSpeed = 380.0f; bAgile = true; break;
 	}
 	if (MaxHealth <= 0.0f)
 	{
@@ -106,6 +106,7 @@ void AIronEnemy::BeginPlay()
 		Beam->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane.Plane")));
 		Beam->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Beam->CastShadow = false;
+		Beam->SetUsingAbsoluteLocation(true);
 		Beam->SetUsingAbsoluteRotation(true);
 		Beam->SetUsingAbsoluteScale(true);
 		Beam->SetupAttachment(RootComponent);
@@ -116,6 +117,30 @@ void AIronEnemy::BeginPlay()
 			BeamMid->SetScalarParameterValue(TEXT("Softness"), 1.2f);
 		}
 		Beam->SetVisibility(false);
+		auto Layer = [this](UMaterialInstanceDynamic*& OutMid, const FLinearColor& Color, float Softness) -> UStaticMeshComponent*
+		{
+			UStaticMeshComponent* L = NewObject<UStaticMeshComponent>(this);
+			L->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane.Plane")));
+			L->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			L->CastShadow = false;
+			L->SetUsingAbsoluteLocation(true);
+			L->SetUsingAbsoluteRotation(true);
+			L->SetUsingAbsoluteScale(true);
+			L->SetupAttachment(RootComponent);
+			L->RegisterComponent();
+			if (UMaterialInterface* G = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/IronLegion/FX/M_IronGlow.M_IronGlow")))
+			{
+				OutMid = L->CreateDynamicMaterialInstance(0, G);
+				OutMid->SetVectorParameterValue(TEXT("Color"), Color);
+				OutMid->SetScalarParameterValue(TEXT("Softness"), Softness);
+			}
+			L->SetVisibility(false);
+			return L;
+		};
+		BeamCore = Layer(BeamCoreMid, FLinearColor(1.0f, 0.85f, 0.6f), 0.8f);
+		BeamHit = Layer(BeamHitMid, FLinearColor(1.0f, 0.45f, 0.15f), 2.0f);
+		if (BeamHitMid) BeamHitMid->SetScalarParameterValue(TEXT("Intensity"), 40.0f);
+		BeamHit->SetWorldRotation(FRotator(0.0f, 0.0f, 90.0f));
 		if (USoundBase* Hum = LoadObject<USoundBase>(nullptr, TEXT("/Game/IronLegion/Audio/SFX_LaserLoop.SFX_LaserLoop")))
 		{
 			BeamHum = NewObject<UAudioComponent>(this);
@@ -147,6 +172,77 @@ void AIronEnemy::SetAnim(EIronEnemyAnim State)
 	}
 }
 
+
+// ------------------------------------------------------------------------------- navigation
+
+bool AIronEnemy::BlockedAhead(float Dir, float& OutTopZ) const
+{
+	const UCapsuleComponent* Cap = GetCapsuleComponent();
+	const float R = Cap->GetScaledCapsuleRadius();
+	const float HalfH = Cap->GetScaledCapsuleHalfHeight();
+	const FVector Feet = GetActorLocation() - FVector(0.0f, 0.0f, HalfH - 25.0f);
+	FCollisionQueryParams Q(SCENE_QUERY_STAT(IronAhead), false, this);
+	FHitResult Hit;
+	// knee-high probe a little beyond the capsule; pawns don't count as walls
+	if (!GetWorld()->SweepSingleByChannel(Hit, Feet, Feet + FVector(Dir * (R + 45.0f), 0.0f, 0.0f), FQuat::Identity, ECC_WorldStatic, FCollisionShape::MakeSphere(18.0f), Q))
+	{
+		OutTopZ = Feet.Z;
+		return false;
+	}
+	// how tall is it? probe down from above the obstacle
+	const FVector Over = Hit.ImpactPoint + FVector(Dir * 20.0f, 0.0f, HalfH * 2.0f + 200.0f);
+	FHitResult Top;
+	OutTopZ = GetWorld()->LineTraceSingleByChannel(Top, Over, Over - FVector(0.0f, 0.0f, HalfH * 2.0f + 400.0f), ECC_WorldStatic, Q) ? Top.ImpactPoint.Z : Feet.Z + 1000.0f;
+	return true;
+}
+
+bool AIronEnemy::Walk(float Dir, float Scale)
+{
+	if (FMath::IsNearlyZero(Dir))
+	{
+		return false;
+	}
+	Dir = FMath::Sign(Dir);
+	// stay inside the patrol range around home
+	const float Off = GetActorLocation().X - Home.X;
+	if ((Dir > 0.0f && Off > PatrolRange) || (Dir < 0.0f && Off < -PatrolRange))
+	{
+		return false;
+	}
+	float TopZ = 0.0f;
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (Move->IsMovingOnGround() && BlockedAhead(Dir, TopZ))
+	{
+		const float Feet = GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+		const float Step = TopZ - Feet;
+		if (Step < 45.0f)
+		{
+			// the movement component steps up small ledges by itself
+		}
+		else if (bAgile && Step < 330.0f)
+		{
+			Jump();
+		}
+		else
+		{
+			return false;  // a wall: hold position rather than grinding into it
+		}
+	}
+	AddMovementInput(FVector(Dir, 0.0f, 0.0f), Scale);
+	return true;
+}
+
+bool AIronEnemy::HasLineOfSight(const FVector& From, const AActor* Target) const
+{
+	FHitResult Hit;
+	FCollisionQueryParams Q(SCENE_QUERY_STAT(IronSight), false, this);
+	if (!GetWorld()->LineTraceSingleByChannel(Hit, From, Target->GetActorLocation(), ECC_Visibility, Q))
+	{
+		return true;
+	}
+	return Hit.GetActor() == Target;
+}
+
 // ------------------------------------------------------------------------------------- tick
 
 void AIronEnemy::Tick(float Dt)
@@ -158,7 +254,7 @@ void AIronEnemy::Tick(float Dt)
 	{
 		if (M)
 		{
-			M->SetScalarParameterValue(TEXT("HitFlash"), FlashLevel * 2.5f);
+			M->SetScalarParameterValue(TEXT("HitFlash"), FlashLevel * 1.3f);
 		}
 	}
 	if (bDead)
@@ -208,8 +304,7 @@ void AIronEnemy::TickLancer(AIronTrooper* Hero, float Dt)
 	const float Dx = H.X - GetActorLocation().X;
 	if (FMath::Abs(Dx) < 500.0f && AttackTimer <= 0.0f)
 	{
-		AddMovementInput(FVector(-FMath::Sign(Dx), 0.0f, 0.0f), 1.0f);
-		SetAnim(EIronEnemyAnim::Move);
+		SetAnim(Walk(-Dx) ? EIronEnemyAnim::Move : EIronEnemyAnim::Idle);
 	}
 	else if (AttackTimer <= 0.0f)
 	{
@@ -250,7 +345,10 @@ void AIronEnemy::TickBulwark(AIronTrooper* Hero, float Dt)
 	if (bCharging)
 	{
 		AttackTimer -= Dt;
-		AddMovementInput(FVector(Facing(), 0.0f, 0.0f), 1.0f);
+		if (!Walk(Facing()))
+		{
+			AttackTimer = 0.0f;  // charge ends against a wall or the edge of its ground
+		}
 		SetAnim(EIronEnemyAnim::Run);
 		if (AttackTimer <= 0.0f)
 		{
@@ -264,8 +362,7 @@ void AIronEnemy::TickBulwark(AIronTrooper* Hero, float Dt)
 		FaceTowards(H.X);
 		if (FMath::Abs(Dx) > 120.0f)
 		{
-			AddMovementInput(FVector(FMath::Sign(Dx), 0.0f, 0.0f), 1.0f);
-			SetAnim(EIronEnemyAnim::Move);
+			SetAnim(Walk(Dx) ? EIronEnemyAnim::Move : EIronEnemyAnim::Attack);
 		}
 		else
 		{
@@ -285,14 +382,13 @@ void AIronEnemy::TickRaider(AIronTrooper* Hero, float Dt)
 	const float Err = FMath::Abs(Dx) - Want;
 	if (FMath::Abs(Err) > 120.0f && BurstLeft == 0)
 	{
-		AddMovementInput(FVector(FMath::Sign(Dx) * FMath::Sign(Err), 0.0f, 0.0f), 1.0f);
-		SetAnim(EIronEnemyAnim::Run);
+		SetAnim(Walk(Dx * Err) ? EIronEnemyAnim::Run : EIronEnemyAnim::Idle);
 	}
 	else if (BurstLeft == 0)
 	{
 		SetAnim(EIronEnemyAnim::Idle);
 	}
-	if (GetCharacterMovement()->IsMovingOnGround() && (H.Z > GetActorLocation().Z + 150.0f || FMath::FRand() < Dt * 0.25f))
+	if (GetCharacterMovement()->IsMovingOnGround() && (H.Z > GetActorLocation().Z + 150.0f && FMath::FRand() < Dt * 1.5f))
 	{
 		Jump();
 	}
@@ -321,67 +417,113 @@ void AIronEnemy::TickRaider(AIronTrooper* Hero, float Dt)
 
 void AIronEnemy::TickSentry(AIronTrooper* Hero, float Dt)
 {
-	// hold position; a red laser line telegraphs, then a sweeping beam burns along it
+	// Holds its ledge but turns to track the hero. It only fires with a clear line of sight:
+	// if the hero hides under the deck it walks along the ledge to find an angle instead of
+	// burning into the floor. A thin red tell line, then a hot beam sweeps across the hero.
 	const FVector H = Hero->GetActorLocation();
-	FaceTowards(H.X);
-	NextAttack -= Dt;
 	const FVector Eye = GetActorLocation() + FVector(Facing() * 40.0f, 0.0f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 0.6f);
-	if (NextAttack <= 0.0f && AttackTimer <= 0.0f)
+	NextAttack -= Dt;
+	if (AttackTimer <= 0.0f)
 	{
-		AttackTimer = 2.0f;  // 0.8 s tell + 1.2 s sweep
+		FaceTowards(H.X);
+		HideBeam();
+		const bool bSight = HasLineOfSight(Eye, Hero);
 		const FVector To = H - Eye;
-		BeamAngle = FMath::RadiansToDegrees(FMath::Atan2(To.Z, FMath::Abs(To.X))) + 18.0f;
-		SetAnim(EIronEnemyAnim::Attack);
+		const float Angle = FMath::RadiansToDegrees(FMath::Atan2(To.Z, FMath::Abs(To.X)));
+		if (!bSight || Angle < -62.0f)
+		{
+			// no shot from here: shuffle along the ledge away from straight-down angles
+			SetAnim(Walk(Angle < -62.0f ? -To.X : To.X) ? EIronEnemyAnim::Move : EIronEnemyAnim::Idle);
+			return;
+		}
+		SetAnim(EIronEnemyAnim::Idle);
+		if (NextAttack <= 0.0f)
+		{
+			AttackTimer = 2.0f;  // 0.8 s tell + 1.2 s sweep
+			SweepFrom = FMath::Clamp(Angle + 16.0f, -60.0f, 60.0f);
+			SweepTo = FMath::Clamp(Angle - 16.0f, -62.0f, 60.0f);
+			BeamAngle = SweepFrom;
+			SetAnim(EIronEnemyAnim::Attack);
+		}
+		return;
 	}
-	if (AttackTimer > 0.0f)
+	AttackTimer -= Dt;
+	const bool bFiring = AttackTimer < 1.2f;
+	if (bFiring)
 	{
-		AttackTimer -= Dt;
-		const bool bFiring = AttackTimer < 1.2f;
-		if (bFiring)
+		BeamAngle = FMath::Lerp(SweepFrom, SweepTo, FMath::Clamp((1.2f - AttackTimer) / 1.2f, 0.0f, 1.0f));
+	}
+	const float Rad = FMath::DegreesToRadians(BeamAngle);
+	const FVector Dir(FMath::Cos(Rad) * Facing(), 0.0f, FMath::Sin(Rad));
+	FHitResult Hit;
+	FCollisionQueryParams Q(SCENE_QUERY_STAT(IronBeam), false, this);
+	const FVector End = Eye + Dir * 2200.0f;
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Eye, End, ECC_Visibility, Q);
+	const FVector Stop = bHit ? FVector(Hit.ImpactPoint) : End;
+	DrawBeam(Eye, Stop, bFiring, bHit);
+	if (bFiring && bHit && Hit.GetActor())
+	{
+		UGameplayStatics::ApplyDamage(Hit.GetActor(), Hit.GetActor() == Hero ? 1.0f : 0.15f, GetController(), this, nullptr);
+	}
+	if (AttackTimer <= 0.0f)
+	{
+		NextAttack = 2.0f + FMath::FRand();
+		SetAnim(EIronEnemyAnim::Idle);
+		HideBeam();
+	}
+}
+
+void AIronEnemy::HideBeam()
+{
+	if (Beam) Beam->SetVisibility(false);
+	if (BeamCore) BeamCore->SetVisibility(false);
+	if (BeamHit) BeamHit->SetVisibility(false);
+	if (BeamHum && BeamHum->IsPlaying()) BeamHum->FadeOut(0.15f, 0.0f);
+}
+
+void AIronEnemy::DrawBeam(const FVector& Eye, const FVector& Stop, bool bFiring, bool bHit)
+{
+	if (!Beam)
+	{
+		return;
+	}
+	// layered strip: a wide soft red glow plus a thin white-hot core, flickering, with a glow
+	// where it lands and a scatter of sparks while it burns
+	const FVector Mid = (Eye + Stop) * 0.5f + FVector(0.0f, 35.0f, 0.0f);
+	const float Len = FVector::Dist(Eye, Stop);
+	const FRotator Rot(BeamAngle, Facing() > 0.0f ? 0.0f : 180.0f, 90.0f);
+	const float Flicker = 0.85f + 0.3f * FMath::FRand();
+	Beam->SetVisibility(true);
+	Beam->SetWorldLocationAndRotation(Mid, Rot);
+	Beam->SetWorldScale3D(FVector(Len / 100.0f, bFiring ? 0.42f * Flicker : 0.05f, 1.0f));
+	if (BeamMid)
+	{
+		BeamMid->SetVectorParameterValue(TEXT("Color"), bFiring ? FLinearColor(1.0f, 0.18f, 0.06f) : FLinearColor(1.0f, 0.04f, 0.02f));
+		BeamMid->SetScalarParameterValue(TEXT("Intensity"), (bFiring ? 22.0f : 14.0f) * Flicker);
+	}
+	if (BeamCore)
+	{
+		BeamCore->SetVisibility(bFiring);
+		BeamCore->SetWorldLocationAndRotation(Mid + FVector(0.0f, 4.0f, 0.0f), Rot);
+		BeamCore->SetWorldScale3D(FVector(Len / 100.0f, 0.09f * Flicker, 1.0f));
+		if (BeamCoreMid)
 		{
-			BeamAngle -= Dt * 30.0f;  // sweep downward through the hero's line
+			BeamCoreMid->SetScalarParameterValue(TEXT("Intensity"), 70.0f * Flicker);
 		}
-		const float Rad = FMath::DegreesToRadians(BeamAngle);
-		const FVector Dir(FMath::Cos(Rad) * Facing(), 0.0f, FMath::Sin(Rad));
-		FHitResult Hit;
-		FCollisionQueryParams Q(SCENE_QUERY_STAT(IronBeam), false, this);
-		const FVector End = Eye + Dir * 2200.0f;
-		const bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Eye, End, ECC_Visibility, Q);
-		const FVector Stop = bHit ? Hit.ImpactPoint : End;
-		if (Beam)
-		{
-			// a soft glowing strip from the eye to the hit point: thin red tell, then a hot beam
-			const FVector Mid = (Eye + Stop) * 0.5f + FVector(0.0f, 35.0f, 0.0f);
-			const float Len = FVector::Dist(Eye, Stop);
-			Beam->SetVisibility(true);
-			Beam->SetWorldLocation(Mid);
-			Beam->SetWorldRotation(FRotator(BeamAngle, Facing() > 0.0f ? 0.0f : 180.0f, 90.0f));
-			Beam->SetWorldScale3D(FVector(Len / 100.0f, bFiring ? 0.32f : 0.06f, 1.0f));
-			if (BeamMid)
-			{
-				BeamMid->SetVectorParameterValue(TEXT("Color"), bFiring ? FLinearColor(1.0f, 0.3f, 0.12f) : FLinearColor(1.0f, 0.05f, 0.03f));
-				BeamMid->SetScalarParameterValue(TEXT("Intensity"), bFiring ? 60.0f : 18.0f);
-			}
-			if (bFiring && BeamHum && !BeamHum->IsPlaying())
-			{
-				BeamHum->Play();
-			}
-			if (bFiring && bHit && FMath::FRand() < 0.35f)
-			{
-				UIronFX::Impact(this, Stop, FLinearColor(1.0f, 0.35f, 0.1f), false);
-			}
-		}
-		if (bFiring && bHit && Hit.GetActor() == Hero)
-		{
-			UGameplayStatics::ApplyDamage(Hero, 1.0f, GetController(), this, nullptr);
-		}
-		if (AttackTimer <= 0.0f)
-		{
-			NextAttack = 2.2f + FMath::FRand();
-			SetAnim(EIronEnemyAnim::Idle);
-			if (Beam) Beam->SetVisibility(false);
-			if (BeamHum) BeamHum->Stop();
-		}
+	}
+	if (BeamHit)
+	{
+		BeamHit->SetVisibility(bFiring && bHit);
+		BeamHit->SetWorldLocation(Stop + FVector(0.0f, 45.0f, 0.0f));
+		BeamHit->SetWorldScale3D(FVector(0.9f * Flicker));
+	}
+	if (bFiring && BeamHum && !BeamHum->IsPlaying())
+	{
+		BeamHum->FadeIn(0.1f, 0.8f);
+	}
+	if (bFiring && bHit && FMath::FRand() < 0.4f)
+	{
+		UIronFX::Impact(this, Stop, FLinearColor(1.0f, 0.35f, 0.1f), false);
 	}
 }
 
@@ -430,8 +572,7 @@ void AIronEnemy::TickScuttler(AIronTrooper* Hero, float Dt)
 	// run straight at the hero and detonate on contact
 	const FVector H = Hero->GetActorLocation();
 	FaceTowards(H.X);
-	AddMovementInput(FVector(FMath::Sign(H.X - GetActorLocation().X), 0.0f, 0.0f), 1.0f);
-	SetAnim(EIronEnemyAnim::Run);
+	SetAnim(Walk(H.X - GetActorLocation().X) ? EIronEnemyAnim::Run : EIronEnemyAnim::Idle);
 	if (FVector::Dist(H, GetActorLocation()) < 110.0f)
 	{
 		Explode(220.0f, 2.0f);
@@ -459,8 +600,7 @@ void AIronEnemy::TickWallrunner(AIronTrooper* Hero, float Dt)
 		}
 		else
 		{
-			AddMovementInput(FVector(FMath::Sign(Dx), 0.0f, 0.0f), 1.0f);
-			SetAnim(EIronEnemyAnim::Run);
+			SetAnim(Walk(Dx) ? EIronEnemyAnim::Run : EIronEnemyAnim::Idle);
 		}
 	}
 	ContactDamage(Hero, 100.0f, 1.0f);
@@ -569,8 +709,7 @@ void AIronEnemy::Die(const FVector& Impulse)
 	GetCharacterMovement()->DisableMovement();
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FlashLevel = 1.0f;
-	if (Beam) Beam->SetVisibility(false);
-	if (BeamHum) BeamHum->Stop();
+	HideBeam();
 	const float Size = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	UIronFX::Explosion(this, GetActorLocation(), FMath::Clamp(Size * 1.6f, 90.0f, 320.0f), Weight >= 4.0f);
 	UIronFX::Debris(this, GetActorLocation(), Weight >= 4.0f ? 9 : 4, FMath::Clamp(Size * 0.35f, 12.0f, 45.0f), FLinearColor(0.12f, 0.05f, 0.04f));

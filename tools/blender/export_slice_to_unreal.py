@@ -26,8 +26,22 @@ def ue(v):
 
 # ---- collision boxes for the walkable / blocking parts of the lane
 COLLIDE = ('NearPier_Mass', 'NearPier_Cap', 'FarPier_Mass', 'FarPier_Cap', 'Channel_Floor', 'Channel_BackWall',
-           'Slab_Broken', 'Crate_A', 'Crate_B', 'Crate_C', 'Barrel_A', 'Barrel_B', 'Barrel_C', 'Bunker_Mass',
-           'Bunker_Roof', 'Bunker_Armour', 'Barricade_Plate')
+           'Slab_Broken', 'Bunker_Mass', 'Bunker_Roof', 'Bunker_Armour')
+
+# Destructible props: (group, style, name prefixes, health, debris tint, lamp side or None)
+PROPS = [
+    ('Crate_A', 'Shatter', ('Crate_A',), 6, (0.16, 0.18, 0.12), None),
+    ('Crate_B', 'Shatter', ('Crate_B',), 6, (0.16, 0.18, 0.12), None),
+    ('Crate_C', 'Shatter', ('Crate_C',), 5, (0.35, 0.22, 0.12), None),
+    ('Barrel_A', 'Explode', ('Barrel_A',), 4, (0.28, 0.08, 0.04), None),
+    ('Barrel_B', 'Explode', ('Barrel_B',), 4, (0.28, 0.08, 0.04), None),
+    ('Barrel_C', 'Explode', ('Barrel_C',), 4, (0.15, 0.17, 0.11), None),
+    ('Sandbags', 'Shatter', ('Bag_',), 14, (0.32, 0.27, 0.19), None),
+    ('Barricade', 'Shatter', ('Barricade_',), 10, (0.16, 0.18, 0.12), None),
+    ('LampNear', 'Topple', ('LampNear_',), 5, (0.08, 0.08, 0.09), 1.0),
+    ('LampFar', 'Topple', ('LampFar_',), 5, (0.08, 0.08, 0.09), 1.0),
+    ('CatwalkRail', 'Shatter', ('RailPost', 'RailTop', 'RailMid'), 8, (0.4, 0.3, 0.05), None),
+]
 boxes = []
 dg = bpy.context.evaluated_depsgraph_get()
 for o in bpy.data.objects:
@@ -64,6 +78,46 @@ for o in list(bpy.data.objects):
 for name in ('Haze', 'LowFog'):
     if bpy.data.objects.get(name):
         bpy.data.objects.remove(bpy.data.objects[name])
+props = []
+for group, style, prefixes, health, tint, lamp in PROPS:
+    members = [o for o in bpy.data.collections['Playable'].all_objects
+               if o.type in ('MESH', 'CURVE') and o.name.startswith(prefixes) and not o.name.endswith('_Light')]
+    if not members:
+        continue
+    bpy.ops.object.select_all(action='DESELECT')
+    copies = []
+    for o in members:
+        d = o.copy()
+        d.data = o.data.copy()
+        d.parent = None
+        d.matrix_world = o.matrix_world.copy()
+        bpy.context.scene.collection.objects.link(d)
+        copies.append(d)
+    for d in copies:
+        d.select_set(True)
+    bpy.context.view_layer.objects.active = copies[0]
+    bpy.ops.object.convert(target='MESH')
+    bpy.ops.object.join()
+    j = bpy.context.view_layer.objects.active
+    j.name = 'SM_Prop_' + group
+    pts = [j.matrix_world @ Vector(v) for v in j.bound_box]
+    base = Vector(((min(v.x for v in pts) + max(v.x for v in pts)) / 2, (min(v.y for v in pts) + max(v.y for v in pts)) / 2, min(v.z for v in pts)))
+    bpy.context.scene.cursor.location = base
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    j.location = (0.0, 0.0, 0.0)
+    bpy.ops.export_scene.fbx(filepath=os.path.join(OUT, j.name + '.fbx'), use_selection=True, object_types={'MESH'},
+                             mesh_smooth_type='FACE', apply_unit_scale=True, bake_anim=False, axis_forward='-Z', axis_up='Y')
+    entry = dict(name=group, mesh=j.name, style=style, health=health, tint=list(tint), location=ue(base))
+    if lamp:
+        head = next((o for o in members if o.name.endswith('_Bulb')), None)
+        if head:
+            hp = head.matrix_world.translation
+            entry['lamp_offset'] = [(hp.x - base.x) * 100.0, 0.0, (hp.z - base.z) * 100.0 - 10.0]
+    props.append(entry)
+    bpy.data.objects.remove(j)
+    for o in members:
+        bpy.data.objects.remove(o)
+
 layers = {'Playable': 'SM_Docks_Lane', 'Midground': 'SM_Docks_Mid', 'Background': 'SM_Docks_Far'}
 exported = {}
 for coll, fname in layers.items():
@@ -86,13 +140,16 @@ if w:
     bpy.ops.export_scene.fbx(filepath=os.path.join(OUT, 'SM_Docks_Water.fbx'), use_selection=True, object_types={'MESH'},
                              mesh_smooth_type='FACE', apply_unit_scale=True, bake_anim=False)
 
+beacon = bpy.data.objects.get('Bunker_Beacon')
+lights = [dict(kind='beacon', location=ue(beacon.matrix_world.translation))] if beacon else []
 sun = bpy.data.objects['Sun']
 sun_dir = sun.matrix_world.to_quaternion() @ Vector((0, 0, -1))  # light travel direction
 spec = dict(
     materials={k: v for k, v in K.MAT_SPECS.items() if v['kind'] != 'volume'},
-    boxes=boxes, water=water, layers=exported,
+    boxes=boxes, water=water, layers=exported, props=props,
     sun_travel=[sun_dir.x, -sun_dir.y, sun_dir.z],
     player_start=[-640.0, 0.0, 120.0],
+    lights=lights,
 )
 with open(os.path.join(OUT, 'docks_spec.json'), 'w') as fh:
     json.dump(spec, fh, indent=1, default=list)

@@ -77,6 +77,14 @@ protected:
 	AIronTrooper* FindHero() const;
 	float Facing() const { return GetActorForwardVector().X >= 0.0f ? 1.0f : -1.0f; }
 	void FaceTowards(float X);
+
+	/** Walk along X with obstacle sense: climbs low steps, hops (agile roles) or holds at walls,
+	 *  never leaves its patrol range, and keeps a little space from the hero. Returns false if held. */
+	bool Walk(float Dir, float Scale = 1.0f);
+	bool BlockedAhead(float Dir, float& OutTopZ) const;
+	bool HasLineOfSight(const FVector& From, const AActor* Target) const;
+	void DrawBeam(const FVector& Eye, const FVector& Stop, bool bFiring, bool bHit);
+	void HideBeam();
 	void SetAnim(EIronEnemyAnim State);
 	void FireAt(const FVector& Target, float Speed, float Gravity, float Damage, float Radius, const FLinearColor& Color);
 	void ContactDamage(AIronTrooper* Hero, float Radius, float Damage);
@@ -102,12 +110,20 @@ protected:
 	FVector DiveTarget = FVector::ZeroVector;
 	float BeamAngle = 0.0f;
 	float Weight = 1.0f;          // knockback divisor
+	float PatrolRange = 900.0f;   // how far from home the enemy will roam
+	bool bAgile = false;          // can hop over obstacles
 	float FrontArmour = 0.0f;     // fraction of frontal damage absorbed
 
 	UPROPERTY(Transient) TArray<UMaterialInstanceDynamic*> Flash;
 	UPROPERTY(Transient) UStaticMeshComponent* Beam = nullptr;
 	UPROPERTY(Transient) UMaterialInstanceDynamic* BeamMid = nullptr;
 	UPROPERTY(Transient) UAudioComponent* BeamHum = nullptr;
+	UPROPERTY(Transient) UStaticMeshComponent* BeamCore = nullptr;
+	UPROPERTY(Transient) UMaterialInstanceDynamic* BeamCoreMid = nullptr;
+	UPROPERTY(Transient) UStaticMeshComponent* BeamHit = nullptr;
+	UPROPERTY(Transient) UMaterialInstanceDynamic* BeamHitMid = nullptr;
+	float SweepFrom = 0.0f;
+	float SweepTo = 0.0f;
 	float FlashLevel = 0.0f;
 	float DeadTime = 0.0f;
 };

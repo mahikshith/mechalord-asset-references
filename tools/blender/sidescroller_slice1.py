@@ -219,11 +219,6 @@ K.box('Bunker_Slot', (2.2, 0.6, 0.42), (BX - 0.3, -1.45, 1.75), dark, bevel=0.03
 K.box('Bunker_Armour', (2.9, 0.22, 1.35), (BX - 0.3, -1.52, 0.68), rustred, bevel=0.03, collection=PLAY)
 for i in range(4):
     K.cyl(f'Bunker_Bolt{i}', 0.06, 0.08, (BX - 1.5 + i, -1.66, 1.25), dark, verts=12, rot=(math.radians(90), 0, 0), collection=PLAY)
-# turret gun poking from slot, aimed left
-K.cyl('Turret_Barrel', 0.11, 2.2, (BX - 1.9, -1.4, 1.75), gunmetal, verts=24, rot=(0, math.radians(90), 0), collection=PLAY)
-K.cyl('Turret_Muzzle', 0.17, 0.35, (BX - 3.0, -1.4, 1.75), dark, verts=24, rot=(0, math.radians(90), 0), collection=PLAY)
-K.cyl('Turret_Mantlet', 0.42, 0.5, (BX - 0.7, -1.4, 1.75), olive, verts=32, rot=(0, math.radians(90), 0), collection=PLAY)
-K.box('Turret_Sight', (0.18, 0.06, 0.06), (BX - 0.85, -1.7, 2.12), lamp_red, bevel=0.0, collection=PLAY)
 # warning light on roof
 K.cyl('Bunker_Beacon', 0.13, 0.22, (BX + 1.6, -0.6, 3.62), lamp_red, verts=16, collection=PLAY)
 

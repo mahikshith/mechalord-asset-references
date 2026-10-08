@@ -41,6 +41,8 @@ AIronTrooper::AIronTrooper()
 	GetCharacterMovement()->MaxSwimSpeed = 380.0f;
 	GetCharacterMovement()->Buoyancy = 1.05f;
 	Tags.Add(TEXT("Player"));
+	// no template wall-jump: in a Contra-style game pressing jump beside a wall must not launch the hero upward
+	WallJumpTraceDistance = 0.0f;
 	// the hero also takes the level's camera-side key light
 	GetMesh()->LightingChannels.bChannel1 = true;
 
@@ -607,7 +609,15 @@ void AIronTrooper::RunAutopilot(float DeltaSeconds)
 		const bool bAdvance = Phase < 2.2f;
 		if (bAdvance) DoMove(1.0f); else ActionValueY = 0.0f;
 		static float Stuck = 0.0f;
-		Stuck = (bAdvance && FMath::Abs(GetVelocity().X) < 40.0f) ? Stuck + DeltaSeconds : 0.0f;
+		// only climb real geometry; an enemy in the way is something to shoot, not to hop over
+		bool bWallAhead = false;
+		{
+			FHitResult Hit;
+			FCollisionQueryParams Q(SCENE_QUERY_STAT(IronBotAhead), false, this);
+			const FVector Knee = GetActorLocation() - FVector(0.0f, 0.0f, 50.0f);
+			bWallAhead = GetWorld()->LineTraceSingleByChannel(Hit, Knee, Knee + FVector(GetFacing() * 90.0f, 0.0f, 0.0f), ECC_WorldStatic, Q);
+		}
+		Stuck = (bAdvance && bWallAhead && FMath::Abs(GetVelocity().X) < 40.0f) ? Stuck + DeltaSeconds : (Stuck < 0.0f ? Stuck + DeltaSeconds : 0.0f);
 		if (bInWater || Stuck > 0.2f)
 		{
 			DoJumpStart();

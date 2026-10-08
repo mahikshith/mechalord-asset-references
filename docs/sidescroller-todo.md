@@ -1,5 +1,10 @@
 # Side-scroller to-do (from the user's review, 8 October 2026)
 
+**Status 8 October 2026 (second session):** section A done (see below); clip `delivery/sidescroller-lookdev/unreal-fight-v2.gif`. In section B, the armour, Leela idle and mech paint are done, and Stan was seen on camera; the rest stays open.
+
+Done in A: turret deleted from the Blender slice; `AIronEnemy::Walk` (wall probe, step-up, agile hop, patrol range); the template wall-jump was disabled for the hero (`WallJumpTraceDistance = 0`), which was the real cause of the hero launching upward when jump was pressed beside walls, and the bot now only climbs real geometry; the Sentry tracks the hero, needs line of sight, walks its ledge to find an angle, and draws a layered flickering beam with a hit glow, sparks and a faded hum; world-space biplanar normal maps on the scan material, warm key, rim and beacon lights, lamp spot lights, contact shadows (note: Python `unreal.Color` must use keywords, positional order is BGRA); `AIronDestructible` (Shatter / Explode with chained splash / Topple with lamp light) for crates, barrels, sandbags, the barricade, both lamps and the catwalk rail, exported as separate props by `export_slice_to_unreal.py`.
+
+
 Work through these in order and show a capture after each group. Read `docs/sidescroller-unreal.md` first.
 
 ## A. User's review of the first fight clip
